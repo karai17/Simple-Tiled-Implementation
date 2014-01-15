@@ -30,83 +30,50 @@ local sti = {}
 function sti:new(map)
 	-- Load the map
 	self.map = require(map)
+	self.map.quads = {}
+	
+	-- Create array of quads, tileset's lastgid
+	local gid = 1
+	for i, tileset in ipairs(self.map.tilesets) do
+		local iw		= tileset.imagewidth
+		local ih		= tileset.imageheight
+		local tw		= tileset.tilewidth
+		local th		= tileset.tileheight
+		local s			= tileset.spacing
+		local m			= tileset.margin
+		local w			= math.floor((iw - m - s) / (tw + s))
+		local h			= math.floor((ih - m - s) / (th + s))
+		tileset.lastgid	= tileset.firstgid + w * h - 1
+		
+		for y = 1, h do
+			for x = 1, w do
+				local qx = x * tw + m - tw
+				local qy = y * th + m - th
+				
+				-- Spacing does not affect the first row/col
+				if x > 1 then qx = qx + s end
+				if y > 1 then qy = qy + s end
+				
+				self.map.quads[gid] = love.graphics.newQuad(qx, qy, tw, th, iw, ih)
+				gid = gid + 1
+			end
+		end
+	end
 	
 	-- Add images
 	for i, tileset in ipairs(self.map.tilesets) do
-		tileset.image	= love.graphics.newImage(tileset.image)
+		tileset.image = love.graphics.newImage(tileset.image)
 	end
 	
-	-- Add tile coordinates, images
+	-- Add tile structure, images
 	for i, layer in ipairs(self.map.layers) do
 		if layer.type == "tilelayer" then
-			local x, y = 0, 0
-			
-			-- Get gid from tiles
-			for k, gid in ipairs(layer.data) do
-				local tx = x * self.map.tilewidth
-				local ty = y * self.map.tileheight
-				
-				layer.data[k] = {
-					gid		= gid,
-					x		= tx,
-					y		= ty,
-				}
-				
-				x = x + 1
-				if x == layer.width then
-					x = 0
-					y = y + 1
-				end
-			end
+			layer.data = self:setTileLayer(layer)
 		end
 		
 		if layer.type == "imagelayer" then
 			layer.image = love.graphics.newImage(layer.image)
 		end
-	end
-	
-	-- Create array of quads, tileset's lastgid
-	local gid = 1
-	self.quads = {}
-	for i, tileset in ipairs(self.map.tilesets) do
-		local iw	= tileset.imagewidth
-		local ih	= tileset.imageheight
-		local tw	= tileset.tilewidth
-		local th	= tileset.tileheight
-		local s		= tileset.spacing
-		local m		= tileset.margin
-		local w		= math.floor((iw - m - s) / (tw + s))
-		local h		= math.floor((ih - m - s) / (th + s))
-		local x, y	= 0, 0
-		
-		for k=1, w*h do
-			local qx, qy = 0, 0
-			
-			-- Spacing does not affect the first row/col
-			if x == 0 then
-				qx = x * tw + m
-			else
-				qx = x * tw + m + s
-			end
-			
-			if y == 0 then
-				qy = y * th + m
-			else
-				qy = y * th + m + s
-			end
-			
-			self.quads[gid] = love.graphics.newQuad(qx, qy, tw, th, iw, ih)
-			x = x + 1
-			
-			if x == w then
-				x = 0
-				y = y + 1
-			end
-			
-			gid = gid + 1
-		end
-		
-		tileset.lastgid	= tileset.firstgid + w * h - 1
 	end
 	
 	self.spriteBatches = {}
@@ -142,15 +109,16 @@ function sti:drawTileLayer(index, layer)
 	if layer.visible then
 		love.graphics.setColor(255, 255, 255, 255 * layer.opacity)
 		
-		for _,tile in pairs(layer.data) do
-			if tile.gid ~= 0 then
-				for i, tileset in ipairs(self.map.tilesets) do
-					if tile.gid >= tileset.firstgid and tile.gid <= tileset.lastgid then
-						local x = tile.x
-						local y = tile.y + (self.map.tileheight - tileset.tileheight)
-						
-						love.graphics.draw(self.map.tilesets[i].image, self.quads[tile.gid], x, y)
-					end
+		for y,v in pairs(layer.data) do
+			for x,tile in pairs(v) do
+				if tile.gid ~= 0 then
+					local ts = self.map.tilesets[tile.tileset]
+					local tw = self.map.tilewidth
+					local th = self.map.tileheight
+					local tx = x * tw + ts.tileoffset.x - tw
+					local ty = y * th + ts.tileoffset.y + (th - ts.tileheight) - th
+					
+					love.graphics.draw(ts.image, self.map.quads[tile.gid], tx, ty)
 				end
 			end
 		end
@@ -174,6 +142,34 @@ function sti:drawImageLayer(index, layer)
 		love.graphics.draw(layer.image, 0, 0)
 		love.graphics.setColor(255, 255, 255, 255)
 	end
+end
+
+function sti:setTileLayer(layer)
+	local i = 1
+	local map = {}
+	for y = 1, layer.height do
+		map[y] = {}
+		for x = 1, layer.width do
+			local gid	= layer.data[i]
+			local ts	= 0
+			
+			for k, tileset in ipairs(self.map.tilesets) do
+				if gid >= tileset.firstgid and gid <= tileset.lastgid then
+					ts = k
+					break
+				end
+			end
+			
+			map[y][x] = {
+				gid		= gid,
+				tileset	= ts,
+			}
+			
+			i = i + 1
+		end
+	end
+	
+	return map
 end
 
 return sti

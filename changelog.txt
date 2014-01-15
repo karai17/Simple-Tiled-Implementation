@@ -1,0 +1,19 @@
+======================================
+Simple Tiled Implementation Change Log
+======================================
+-------------------
+2014-01-14 : v0.2.0
+-------------------
+* Fixed:	Drawing Tile Offset
+* Changed:	Tile Layer data structure is more efficient
+* Changed:	Simplified Quad generation
+
+-------------------
+2014-01-14 : v0.1.0
+-------------------
+* Initial Commit
+* Added:	Orthogonal Map support
+* Added:	Draw Tile Layers
+* Added:	Draw Image Layers
+* Added:	Ignore Hidden Layers
+* Added:	Layer Opacity
