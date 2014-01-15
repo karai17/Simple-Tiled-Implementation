@@ -11,15 +11,11 @@ local sti = require "sti"
 
 function love.load()
     -- Load a map exported from Tiled as a lua file
-    sti:new("assets.maps.map01")
-end
-
-function love.update(dt)
-	sti:update(dt) -- this doesn't do anything (yet)!
+    map = sti.new("assets/maps/map01.lua")
 end
 
 function love.draw()
-	sti:draw()
+	map:draw()
 end
 
 ```

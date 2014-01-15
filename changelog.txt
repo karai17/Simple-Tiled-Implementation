@@ -2,6 +2,16 @@
 Simple Tiled Implementation Change Log
 ======================================
 -------------------
+2014-01-15 : v0.2.1
+-------------------
+* Added:	Support for map instances
+* Changed:	Sandboxed map environment
+* Changed:	Data structures are more efficient
+* Removed:	Unnecessary update function
+
+Thanks to JarrettBillingsley for many of these changes
+
+-------------------
 2014-01-14 : v0.2.0
 -------------------
 * Fixed:	Drawing Tile Offset

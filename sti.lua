@@ -25,16 +25,26 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ]]--
 
-local sti = {}
+local STI = {}
+local Map = {}
 
-function sti:new(map)
-	-- Load the map
-	self.map = require(map)
-	self.map.quads = {}
+function STI.new(map)
+	local ret = setmetatable({}, {__index = Map})
+	-- Get path to map
+	local path = map:reverse():find("[/\\]") or ""
+	if path ~= "" then
+		path = map:sub(1, 1 + (#map - path))
+	end
 	
-	-- Create array of quads, tileset's lastgid
+	-- Load map
+	map = assert(love.filesystem.load(map), "File not found: " .. map)
+	setfenv(map, {})
+	ret.map = map()
+	ret.tiles = {}
+	
+	-- Create array of quads
 	local gid = 1
-	for i, tileset in ipairs(self.map.tilesets) do
+	for i, tileset in ipairs(ret.map.tilesets) do
 		local iw		= tileset.imagewidth
 		local ih		= tileset.imageheight
 		local tw		= tileset.tilewidth
@@ -43,7 +53,6 @@ function sti:new(map)
 		local m			= tileset.margin
 		local w			= math.floor((iw - m - s) / (tw + s))
 		local h			= math.floor((ih - m - s) / (th + s))
-		tileset.lastgid	= tileset.firstgid + w * h - 1
 		
 		for y = 1, h do
 			for x = 1, w do
@@ -54,81 +63,109 @@ function sti:new(map)
 				if x > 1 then qx = qx + s end
 				if y > 1 then qy = qy + s end
 				
-				self.map.quads[gid] = love.graphics.newQuad(qx, qy, tw, th, iw, ih)
+				ret.tiles[gid] = {
+					gid		= gid,
+					tileset	= tileset,
+					quad	= love.graphics.newQuad(qx, qy, tw, th, iw, ih),
+					offset	= {
+						x = tileset.tileoffset.x - ret.map.tilewidth,
+						y = tileset.tileoffset.y - tileset.tileheight,
+					}
+				}
+				
 				gid = gid + 1
 			end
 		end
 	end
 	
 	-- Add images
-	for i, tileset in ipairs(self.map.tilesets) do
-		tileset.image = love.graphics.newImage(tileset.image)
+	for i, tileset in ipairs(ret.map.tilesets) do
+		local image = STI.formatPath(path..tileset.image)
+		tileset.image = love.graphics.newImage(image)
 	end
 	
 	-- Add tile structure, images
-	for i, layer in ipairs(self.map.layers) do
+	for i, layer in ipairs(ret.map.layers) do
 		if layer.type == "tilelayer" then
-			layer.data = self:setTileLayer(layer)
+			layer.data = ret:createTileLayerData(layer)
 		end
 		
 		if layer.type == "imagelayer" then
-			layer.image = love.graphics.newImage(layer.image)
+			local image = STI.formatPath(path..layer.image)
+			layer.image = love.graphics.newImage(image)
 		end
 	end
 	
-	self.spriteBatches = {}
-	for i, tileset in ipairs(self.map.tilesets) do
-		local image = self.map.tilesets[i].image
+	--[[
+	ret.spriteBatches = {}
+	for i, tileset in ipairs(ret.map.tilesets) do
+		local image = ret.map.tilesets[i].image
 		local w = tileset.imagewidth / tileset.tilewidth
 		local h = tileset.imageheight / tileset.tileheight
 		local size = w * h
 		
-		self.spriteBatches[i] = love.graphics.newSpriteBatch(image, size)
+		ret.spriteBatches[i] = love.graphics.newSpriteBatch(image, size)
 	end
+	]]--
+	
+	return ret
 end
 
-function sti:update(dt)
-
+function STI.formatPath(path)
+	local str = string.split(path, "/")
+	
+	for i, segment in pairs(str) do
+		if segment == ".." then
+			str[i]		= nil
+			str[i-1]	= nil
+		end
+	end
+	
+	path = ""
+	for _, segment in pairs(str) do
+		path = path .. segment .. "/"
+	end
+	
+	return string.sub(path, 1, path:len()-1)
 end
 
-function sti:draw()
-	for i, layer in ipairs(self.map.layers) do
+function Map:draw()
+	for _, layer in ipairs(self.map.layers) do
 		if layer.type == "tilelayer" then
-			self:drawTileLayer(1, layer)
+			self:drawTileLayer(layer)
 		elseif layer.type == "objectgroup" then
-			self:drawObjectLayer(i, layer)
+			self:drawObjectLayer(layer)
 		elseif layer.type == "imagelayer" then
-			self:drawImageLayer(i, layer)
+			self:drawImageLayer(layer)
 		else
 			-- Invalid layer!
 		end
 	end
 end
 
-function sti:drawTileLayer(index, layer)
+function Map:drawTileLayer(layer)
 	if layer.visible then
+		local tw = self.map.tilewidth
+		local th = self.map.tileheight
+		
 		love.graphics.setColor(255, 255, 255, 255 * layer.opacity)
 		
 		for y,v in pairs(layer.data) do
 			for x,tile in pairs(v) do
 				if tile.gid ~= 0 then
-					local ts = self.map.tilesets[tile.tileset]
-					local tw = self.map.tilewidth
-					local th = self.map.tileheight
-					local tx = x * tw + ts.tileoffset.x - tw
-					local ty = y * th + ts.tileoffset.y + (th - ts.tileheight) - th
+					local tx = x * tw + tile.offset.x
+					local ty = y * th + tile.offset.y
 					
-					love.graphics.draw(ts.image, self.map.quads[tile.gid], tx, ty)
+					love.graphics.draw(tile.tileset.image, tile.quad, tx, ty)
 				end
 			end
 		end
 		
 		love.graphics.setColor(255, 255, 255, 255)
 	end
-	
 end
 
-function sti:drawObjectLayer(index, layer)
+function Map:drawObjectLayer(layer)
 	if layer.visible then
 		love.graphics.setColor(255, 255, 255, 255 * layer.opacity)
 	
@@ -136,7 +173,7 @@ function sti:drawObjectLayer(index, layer)
 	end
 end
 
-function sti:drawImageLayer(index, layer)
+function Map:drawImageLayer(layer)
 	if layer.visible then
 		love.graphics.setColor(255, 255, 255, 255 * layer.opacity)
 		love.graphics.draw(layer.image, 0, 0)
@@ -144,32 +181,43 @@ function sti:drawImageLayer(index, layer)
 	end
 end
 
-function sti:setTileLayer(layer)
-	local i = 1
+function Map:createTileLayerData(layer)
+	local gid = 1
 	local map = {}
+	
 	for y = 1, layer.height do
 		map[y] = {}
 		for x = 1, layer.width do
-			local gid	= layer.data[i]
-			local ts	= 0
-			
-			for k, tileset in ipairs(self.map.tilesets) do
-				if gid >= tileset.firstgid and gid <= tileset.lastgid then
-					ts = k
-					break
-				end
-			end
-			
-			map[y][x] = {
-				gid		= gid,
-				tileset	= ts,
-			}
-			
-			i = i + 1
+			map[y][x] = self.tiles[layer.data[gid]]
+			gid = gid + 1
 		end
 	end
 	
 	return map
 end
 
-return sti
+-- http://wiki.interfaceware.com/534.html
+function string.split(s, d)
+	local t = {}
+	local i = 0
+	local f
+	local match = '(.-)' .. d .. '()'
+	
+	if string.find(s, d) == nil then
+		return {s}
+	end
+	
+	for sub, j in string.gmatch(s, match) do
+		i = i + 1
+		t[i] = sub
+		f = j
+	end
+	
+	if i ~= 0 then
+		t[i+1] = string.sub(s, f)
+	end
+	
+	return t
+end
+
+return STI
