@@ -5,6 +5,7 @@ Simple Tiled Implementation Change Log
 2014-01-15 : v0.2.1
 -------------------
 * Added:	Support for map instances
+* Added:	Name alias to layer indices
 * Changed:	Sandboxed map environment
 * Changed:	Data structures are more efficient
 * Removed:	Unnecessary update function
