@@ -2,6 +2,11 @@
 Simple Tiled Implementation Change Log
 ======================================
 -------------------
+2014-01-16 : v0.3.1
+-------------------
+* Added:	Update callback to Custom Layers
+
+-------------------
 2014-01-16 : v0.3.0
 -------------------
 * Added:	Support for converting layers to Custom Layers

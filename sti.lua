@@ -136,6 +136,18 @@ function STI.formatPath(path)
 	return string.sub(path, 1, path:len()-1)
 end
 
+function Map:update(dt)
+	for _, layer in ipairs(self.map.layers) do
+		if layer.type == "customlayer" then
+			self:updateCustomLayer(dt, layer)
+		end
+	end
+end
+
+function Map:updateCustomLayer(dt, layer)
+	layer:update(dt)
+end
+
 function Map:draw()
 	for _, layer in ipairs(self.map.layers) do
 		if layer.visible then
@@ -147,8 +159,6 @@ function Map:draw()
 				self:drawImageLayer(layer)
 			elseif layer.type == "customlayer" then
 				self:drawCustomLayer(layer)
-			else
-				-- Invalid layer!
 			end
 		end
 	end
@@ -274,8 +284,9 @@ function Map:convertToCustomLayer(name)
 		return -- invalid layer!
 	end
 	
-	layer.type = "customlayer"
-	layer.draw = function(self) end
+	layer.type		= "customlayer"
+	function layer:draw() return end
+	function layer:update(dt) return end
 end
 
 -- http://wiki.interfaceware.com/534.html

@@ -23,18 +23,33 @@ function love.load()
 	local spriteLayer = map.map.layers["SpriteLayer"]
 	spriteLayer.sprites = {
 		player = {
+			image = love.graphics.newImage("assets/sprites/player.png"),
 			x = 64,
 			y = 64,
-			image = love.graphics.newImage("assets/sprites/player.png"),
+			r = 0,
 		}
 	}
+	
+	-- Customize Update callback for Custom Layer
+	function spriteLayer:update(dt)
+		for _, sprite in pairs(self.sprites) do
+			sprite.r = self.sprite.r + 90 * dt
+		end
+	end
 	
 	-- Customize draw callback for Custom Layer
 	function spriteLayer:draw()
 		for _, sprite in pairs(self.sprites) do
-			love.graphics.draw(sprite.image, sprite.x, sprite.y)
+			local x = math.floor(self.sprite.x)
+			local y = math.floor(self.sprite.y)
+			local r = math.rad(self.sprite.r)
+			love.graphics.draw(sprite.image, sprite.x, sprite.y, sprite.r)
 		end
 	end
+end
+
+function love.update(dt)
+	map:update(dt)
 end
 
 function love.draw()
