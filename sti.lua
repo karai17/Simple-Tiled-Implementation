@@ -30,7 +30,6 @@ local Map = {}
 
 function STI.new(map)
 	map = map .. ".lua"
-	local ret = setmetatable({}, {__index = Map})
 	
 	-- Get path to map
 	local path = map:reverse():find("[/\\]") or ""
@@ -41,24 +40,14 @@ function STI.new(map)
 	-- Load map
 	map = assert(love.filesystem.load(map), "File not found: " .. map)
 	setfenv(map, {})
-	map = map()
+	map = setmetatable(map(), {__index = Map})
 	
-	ret.version		= map.version
-	ret.luaversion	= map.luaversion
-	ret.orientation	= map.orientation
-	ret.width		= map.width
-	ret.height		= map.height
-	ret.tilewidth	= map.tilewidth
-	ret.tileheight	= map.tileheight
-	ret.properties	= map.properties
-	ret.tilesets	= map.tilesets
-	ret.layers		= map.layers
-	ret.tiles		= {}
-	ret.collision	= {}
+	map.tiles		= {}
+	map.collision	= {}
 	
 	-- Create array of quads
 	local gid = 1
-	for i, tileset in ipairs(ret.tilesets) do
+	for i, tileset in ipairs(map.tilesets) do
 		local iw		= tileset.imagewidth
 		local ih		= tileset.imageheight
 		local tw		= tileset.tilewidth
@@ -77,7 +66,7 @@ function STI.new(map)
 				if x > 1 then qx = qx + s end
 				if y > 1 then qy = qy + s end
 				
-				ret.tiles[gid] = {
+				map.tiles[gid] = {
 					gid		= gid,
 					tileset	= tileset,
 					quad	= love.graphics.newQuad(qx, qy, tw, th, iw, ih),
@@ -85,12 +74,12 @@ function STI.new(map)
 				
 				--[[ THIS IS A TEMPORARY FIX FOR 0.9.1 ]]--
 				if tileset.tileoffset then
-					ret.tiles[gid].offset	= {
-						x = tileset.tileoffset.x - ret.tilewidth,
+					map.tiles[gid].offset	= {
+						x = tileset.tileoffset.x - map.tilewidth,
 						y = tileset.tileoffset.y - tileset.tileheight,
 					}
 				else
-					ret.tiles[gid].offset	= {
+					map.tiles[gid].offset	= {
 						x = 0,
 						y = 0,
 					}
@@ -102,17 +91,17 @@ function STI.new(map)
 	end
 	
 	-- Add images
-	for i, tileset in ipairs(ret.tilesets) do
+	for i, tileset in ipairs(map.tilesets) do
 		local image = STI.formatPath(path..tileset.image)
 		tileset.image = love.graphics.newImage(image)
 	end
 	
 	-- Add tile structure, images
-	for i, layer in ipairs(ret.layers) do
-		ret.layers[layer.name] = layer
+	for i, layer in ipairs(map.layers) do
+		map.layers[layer.name] = layer
 		
 		if layer.type == "tilelayer" then
-			layer.data = ret:createTileLayerData(layer)
+			layer.data = map:createTileLayerData(layer)
 		end
 		
 		if layer.type == "imagelayer" then
@@ -124,18 +113,18 @@ function STI.new(map)
 	end
 	
 	--[[
-	ret.spriteBatches = {}
-	for i, tileset in ipairs(ret.tilesets) do
-		local image = ret.tilesets[i].image
+	map.spriteBatches = {}
+	for i, tileset in ipairs(map.tilesets) do
+		local image = map.tilesets[i].image
 		local w = tileset.imagewidth / tileset.tilewidth
 		local h = tileset.imageheight / tileset.tileheight
 		local size = w * h
 		
-		ret.spriteBatches[i] = love.graphics.newSpriteBatch(image, size)
+		map.spriteBatches[i] = love.graphics.newSpriteBatch(image, size)
 	end
 	]]--
 	
-	return ret
+	return map
 end
 
 function STI.formatPath(path)
