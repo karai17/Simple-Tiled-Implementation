@@ -29,6 +29,7 @@ local STI = {}
 local Map = {}
 
 function STI.new(map)
+	map = map .. ".lua"
 	local ret = setmetatable({}, {__index = Map})
 	
 	-- Get path to map
@@ -96,7 +97,9 @@ function STI.new(map)
 		
 		if layer.type == "imagelayer" then
 			local image = STI.formatPath(path..layer.image)
-			layer.image = love.graphics.newImage(image)
+			if layer.image ~= "" then
+				layer.image = love.graphics.newImage(image)
+			end
 		end
 	end
 	
@@ -135,56 +138,60 @@ end
 
 function Map:draw()
 	for _, layer in ipairs(self.map.layers) do
-		if layer.type == "tilelayer" then
-			self:drawTileLayer(layer)
-		elseif layer.type == "objectgroup" then
-			self:drawObjectLayer(layer)
-		elseif layer.type == "imagelayer" then
-			self:drawImageLayer(layer)
-		else
-			-- Invalid layer!
+		if layer.visible then
+			if layer.type == "tilelayer" then
+				self:drawTileLayer(layer)
+			elseif layer.type == "objectgroup" then
+				self:drawObjectLayer(layer)
+			elseif layer.type == "imagelayer" then
+				self:drawImageLayer(layer)
+			elseif layer.type == "customlayer" then
+				self:drawCustomLayer(layer)
+			else
+				-- Invalid layer!
+			end
 		end
 	end
 end
 
 function Map:drawTileLayer(layer)
-	if layer.visible then
-		local tw = self.map.tilewidth
-		local th = self.map.tileheight
-		
-		love.graphics.setColor(255, 255, 255, 255 * layer.opacity)
-		
-		for y,tiles in pairs(layer.data) do
-			for x,tile in pairs(tiles) do
-				if tile.gid ~= 0 then
-					local tx = x * tw + tile.offset.x
-					local ty = y * th + tile.offset.y
-					love.graphics.draw(tile.tileset.image, tile.quad, tx, ty)
-				end
+	local tw = self.map.tilewidth
+	local th = self.map.tileheight
+	
+	love.graphics.setColor(255, 255, 255, 255 * layer.opacity)
+	
+	for y,tiles in pairs(layer.data) do
+		for x,tile in pairs(tiles) do
+			if tile.gid ~= 0 then
+				local tx = x * tw + tile.offset.x
+				local ty = y * th + tile.offset.y
+				love.graphics.draw(tile.tileset.image, tile.quad, tx, ty)
 			end
 		end
-		
-		love.graphics.setColor(255, 255, 255, 255)
 	end
+	
+	love.graphics.setColor(255, 255, 255, 255)
 end
 
 function Map:drawObjectLayer(layer)
-	if layer.visible then
-		love.graphics.setColor(255, 255, 255, 255 * layer.opacity)
+	love.graphics.setColor(255, 255, 255, 255 * layer.opacity)
 	
-		love.graphics.setColor(255, 255, 255, 255)
-	end
+	love.graphics.setColor(255, 255, 255, 255)
 end
 
 function Map:drawImageLayer(layer)
-	if layer.visible then
+	if layer.image ~= "" then
 		love.graphics.setColor(255, 255, 255, 255 * layer.opacity)
 		love.graphics.draw(layer.image, 0, 0)
 		love.graphics.setColor(255, 255, 255, 255)
 	end
 end
 
-function Map:drawCollisionLayer()
+function Map:drawCustomLayer(layer)
+	layer:draw()
+end
+
+function Map:drawCollisionMap()
 	local tw = self.map.tilewidth
 	local th = self.map.tileheight
 	
@@ -220,7 +227,7 @@ function Map:createTileLayerData(layer)
 	return map
 end
 
-function Map:createCollisionLayer(name)
+function Map:createCollisionMap(name)
 	local layer	= self.map.layers[name]
 	
 	if layer.type == "tilelayer" then
@@ -245,6 +252,28 @@ function Map:createCollisionLayer(name)
 
 		self.collision = map
 	end
+end
+
+function Map:convertToCustomLayer(name)
+	local layer = self.map.layers[name]
+	
+	if layer.type == "tilelayer" then
+		layer.x			= nil
+		layer.y			= nil
+		layer.width		= nil
+		layer.height	= nil
+		layer.encoding	= nil
+		layer.data		= nil
+	elseif layer.type == "objectgroup" then
+		layer.objects	= nil
+	elseif layer.type == "imagelayer" then
+		layer.image		= nil
+	else
+		return -- invalid layer!
+	end
+	
+	layer.type = "customlayer"
+	layer.draw = function(self) end
 end
 
 -- http://wiki.interfaceware.com/534.html

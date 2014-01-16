@@ -11,13 +11,38 @@ local sti = require "sti"
 
 function love.load()
 	-- Load a map exported from Tiled as a lua file
-	map = sti.new("assets/maps/map01.lua")
-	map:createCollisionLayer("LayerName")
+	map = sti.new("assets/maps/map01")
+	
+	-- Create a collision map to use with your own collision code
+	map:createCollisionMap("LayerName")
+	
+	-- Convert any layer to a Custom Layer
+	map:convertToCustomLayer("SpriteLayer")
+	
+	-- Add data to Custom Layer
+	local spriteLayer = map.map.layers["SpriteLayer"]
+	spriteLayer.sprites = {
+		player = {
+			x = 64,
+			y = 64,
+			image = love.graphics.newImage("assets/sprites/player.png"),
+		}
+	}
+	
+	-- Customize draw callback for Custom Layer
+	function spriteLayer:draw()
+		for _, sprite in pairs(self.sprites) do
+			love.graphics.draw(sprite.image, sprite.x, sprite.y)
+		end
+	end
 end
 
 function love.draw()
+	-- Draw map
 	map:draw()
-	map:drawCollisionLayer()
+	
+	-- Draw Collision Map (useful for debugging)
+	map:drawCollisionMap()
 end
 
 ```
