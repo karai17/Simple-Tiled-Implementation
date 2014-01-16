@@ -41,13 +41,24 @@ function STI.new(map)
 	-- Load map
 	map = assert(love.filesystem.load(map), "File not found: " .. map)
 	setfenv(map, {})
-	ret.map			= map()
+	map = map()
+	
+	ret.version		= map.version
+	ret.luaversion	= map.luaversion
+	ret.orientation	= map.orientation
+	ret.width		= map.width
+	ret.height		= map.height
+	ret.tilewidth	= map.tilewidth
+	ret.tileheight	= map.tileheight
+	ret.properties	= map.properties
+	ret.tilesets	= map.tilesets
+	ret.layers		= map.layers
 	ret.tiles		= {}
 	ret.collision	= {}
 	
 	-- Create array of quads
 	local gid = 1
-	for i, tileset in ipairs(ret.map.tilesets) do
+	for i, tileset in ipairs(ret.tilesets) do
 		local iw		= tileset.imagewidth
 		local ih		= tileset.imageheight
 		local tw		= tileset.tilewidth
@@ -70,11 +81,20 @@ function STI.new(map)
 					gid		= gid,
 					tileset	= tileset,
 					quad	= love.graphics.newQuad(qx, qy, tw, th, iw, ih),
-					offset	= {
-						x = tileset.tileoffset.x - ret.map.tilewidth,
+				}
+				
+				--[[ THIS IS A TEMPORARY FIX FOR 0.9.1 ]]--
+				if tileset.tileoffset then
+					ret.tiles[gid].offset	= {
+						x = tileset.tileoffset.x - ret.tilewidth,
 						y = tileset.tileoffset.y - tileset.tileheight,
 					}
-				}
+				else
+					ret.tiles[gid].offset	= {
+						x = 0,
+						y = 0,
+					}
+				end
 				
 				gid = gid + 1
 			end
@@ -82,14 +102,14 @@ function STI.new(map)
 	end
 	
 	-- Add images
-	for i, tileset in ipairs(ret.map.tilesets) do
+	for i, tileset in ipairs(ret.tilesets) do
 		local image = STI.formatPath(path..tileset.image)
 		tileset.image = love.graphics.newImage(image)
 	end
 	
 	-- Add tile structure, images
-	for i, layer in ipairs(ret.map.layers) do
-		ret.map.layers[layer.name] = layer
+	for i, layer in ipairs(ret.layers) do
+		ret.layers[layer.name] = layer
 		
 		if layer.type == "tilelayer" then
 			layer.data = ret:createTileLayerData(layer)
@@ -105,8 +125,8 @@ function STI.new(map)
 	
 	--[[
 	ret.spriteBatches = {}
-	for i, tileset in ipairs(ret.map.tilesets) do
-		local image = ret.map.tilesets[i].image
+	for i, tileset in ipairs(ret.tilesets) do
+		local image = ret.tilesets[i].image
 		local w = tileset.imagewidth / tileset.tilewidth
 		local h = tileset.imageheight / tileset.tileheight
 		local size = w * h
@@ -137,7 +157,7 @@ function STI.formatPath(path)
 end
 
 function Map:update(dt)
-	for _, layer in ipairs(self.map.layers) do
+	for _, layer in ipairs(self.layers) do
 		if layer.type == "customlayer" then
 			self:updateCustomLayer(dt, layer)
 		end
@@ -149,7 +169,7 @@ function Map:updateCustomLayer(dt, layer)
 end
 
 function Map:draw()
-	for _, layer in ipairs(self.map.layers) do
+	for _, layer in ipairs(self.layers) do
 		if layer.visible then
 			if layer.type == "tilelayer" then
 				self:drawTileLayer(layer)
@@ -165,8 +185,8 @@ function Map:draw()
 end
 
 function Map:drawTileLayer(layer)
-	local tw = self.map.tilewidth
-	local th = self.map.tileheight
+	local tw = self.tilewidth
+	local th = self.tileheight
 	
 	love.graphics.setColor(255, 255, 255, 255 * layer.opacity)
 	
@@ -204,13 +224,13 @@ function Map:drawCustomLayer(layer)
 end
 
 function Map:drawCollisionMap()
-	local tw = self.map.tilewidth
-	local th = self.map.tileheight
+	local tw = self.tilewidth
+	local th = self.tileheight
 	
 	love.graphics.setColor(255, 255, 255, 255 * self.collision.opacity)
 	
-	for y=1, self.map.height do
-		for x=1, self.map.width do
+	for y=1, self.height do
+		for x=1, self.width do
 			local tx = x * tw - tw
 			local ty = y * th - th
 			if self.collision.data[y][x] == 1 then
@@ -240,11 +260,11 @@ function Map:createTileLayerData(layer)
 end
 
 function Map:createCollisionMap(name)
-	local layer	= self.map.layers[name]
+	local layer	= self.layers[name]
 	
 	if layer.type == "tilelayer" then
-		local w		= self.map.width
-		local h		= self.map.height
+		local w		= self.width
+		local h		= self.height
 		local i		= 1
 		local map	= {
 			opacity	= 0.5,
@@ -267,7 +287,7 @@ function Map:createCollisionMap(name)
 end
 
 function Map:convertToCustomLayer(name)
-	local layer = self.map.layers[name]
+	local layer = self.layers[name]
 	
 	if layer.type == "tilelayer" then
 		layer.x			= nil

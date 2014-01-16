@@ -10,17 +10,17 @@ Quick Example
 local sti = require "sti"
 
 function love.load()
-	-- Load a map exported from Tiled as a lua file
+	-- Load a map exported to Lua from Tiled
 	map = sti.new("assets/maps/map01")
 	
-	-- Create a collision map to use with your own collision code
-	map:createCollisionMap("LayerName")
+	-- Create a Collision Map to use with your own collision code
+	map:createCollisionMap("Collision Layer")
 	
 	-- Convert any layer to a Custom Layer
-	map:convertToCustomLayer("SpriteLayer")
+	map:convertToCustomLayer("Sprite Layer")
 	
 	-- Add data to Custom Layer
-	local spriteLayer = map.map.layers["SpriteLayer"]
+	local spriteLayer = map.layers["Sprite Layer"]
 	spriteLayer.sprites = {
 		player = {
 			image = love.graphics.newImage("assets/sprites/player.png"),
@@ -30,14 +30,14 @@ function love.load()
 		}
 	}
 	
-	-- Customize Update callback for Custom Layer
+	-- Update callback for Custom Layer
 	function spriteLayer:update(dt)
 		for _, sprite in pairs(self.sprites) do
 			sprite.r = sprite.r + 90 * dt
 		end
 	end
 	
-	-- Customize draw callback for Custom Layer
+	-- Draw callback for Custom Layer
 	function spriteLayer:draw()
 		for _, sprite in pairs(self.sprites) do
 			local x = math.floor(sprite.x)
@@ -53,7 +53,6 @@ function love.update(dt)
 end
 
 function love.draw()
-	-- Draw map
 	map:draw()
 	
 	-- Draw Collision Map (useful for debugging)
