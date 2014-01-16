@@ -30,6 +30,7 @@ local Map = {}
 
 function STI.new(map)
 	local ret = setmetatable({}, {__index = Map})
+	
 	-- Get path to map
 	local path = map:reverse():find("[/\\]") or ""
 	if path ~= "" then
@@ -39,8 +40,9 @@ function STI.new(map)
 	-- Load map
 	map = assert(love.filesystem.load(map), "File not found: " .. map)
 	setfenv(map, {})
-	ret.map = map()
-	ret.tiles = {}
+	ret.map			= map()
+	ret.tiles		= {}
+	ret.collision	= {}
 	
 	-- Create array of quads
 	local gid = 1
@@ -152,12 +154,11 @@ function Map:drawTileLayer(layer)
 		
 		love.graphics.setColor(255, 255, 255, 255 * layer.opacity)
 		
-		for y,v in pairs(layer.data) do
-			for x,tile in pairs(v) do
+		for y,tiles in pairs(layer.data) do
+			for x,tile in pairs(tiles) do
 				if tile.gid ~= 0 then
 					local tx = x * tw + tile.offset.x
 					local ty = y * th + tile.offset.y
-					
 					love.graphics.draw(tile.tileset.image, tile.quad, tx, ty)
 				end
 			end
@@ -183,19 +184,65 @@ function Map:drawImageLayer(layer)
 	end
 end
 
+function Map:drawCollisionLayer(layer)
+	local tw = self.map.tilewidth
+	local th = self.map.tileheight
+	
+	love.graphics.setColor(255, 255, 255, 255 * layer.opacity)
+	
+	for y=1, self.map.height do
+		for x=1, self.map.width do
+			local tx = x * tw - tw
+			local ty = y * th - th
+			if layer.data[y][x] == 1 then
+				love.graphics.rectangle("fill", tx, ty, tw, th)
+			else
+				love.graphics.rectangle("line", tx, ty, tw, th)
+			end
+		end
+	end
+	
+	love.graphics.setColor(255, 255, 255, 255)
+end
+
 function Map:createTileLayerData(layer)
-	local gid = 1
+	local i = 1
 	local map = {}
 	
 	for y = 1, layer.height do
 		map[y] = {}
 		for x = 1, layer.width do
-			map[y][x] = self.tiles[layer.data[gid]]
-			gid = gid + 1
+			map[y][x] = self.tiles[layer.data[i]]
+			i = i + 1
 		end
 	end
 	
 	return map
+end
+
+function Map:createCollisionLayer(layer)
+	if layer.type == "tilelayer" then
+		local w		= self.map.width
+		local h		= self.map.height
+		local i		= 1
+		local map	= {
+			opacity	= 0.5,
+			data	= {},
+		}
+		
+		for y=1, h do
+			map.data[y] = {}
+			for x=1, w do
+				if layer.data[y][x] == nil then
+					map.data[y][x] = 0
+				else
+					map.data[y][x] = 1
+				end
+			end
+		end
+
+		self.collision = map
+	end
 end
 
 -- http://wiki.interfaceware.com/534.html

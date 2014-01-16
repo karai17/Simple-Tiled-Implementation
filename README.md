@@ -10,12 +10,14 @@ Quick Example
 local sti = require "sti"
 
 function love.load()
-    -- Load a map exported from Tiled as a lua file
-    map = sti.new("assets/maps/map01.lua")
+	-- Load a map exported from Tiled as a lua file
+	map = sti.new("assets/maps/map01.lua")
+	map:createCollisionLayer(map.map.layers.Karai)
 end
 
 function love.draw()
 	map:draw()
+	map:drawCollisionLayer(map.collision)
 end
 
 ```
