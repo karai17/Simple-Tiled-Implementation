@@ -184,17 +184,17 @@ function Map:drawImageLayer(layer)
 	end
 end
 
-function Map:drawCollisionLayer(layer)
+function Map:drawCollisionLayer()
 	local tw = self.map.tilewidth
 	local th = self.map.tileheight
 	
-	love.graphics.setColor(255, 255, 255, 255 * layer.opacity)
+	love.graphics.setColor(255, 255, 255, 255 * self.collision.opacity)
 	
 	for y=1, self.map.height do
 		for x=1, self.map.width do
 			local tx = x * tw - tw
 			local ty = y * th - th
-			if layer.data[y][x] == 1 then
+			if self.collision.data[y][x] == 1 then
 				love.graphics.rectangle("fill", tx, ty, tw, th)
 			else
 				love.graphics.rectangle("line", tx, ty, tw, th)
@@ -220,7 +220,9 @@ function Map:createTileLayerData(layer)
 	return map
 end
 
-function Map:createCollisionLayer(layer)
+function Map:createCollisionLayer(name)
+	local layer	= self.map.layers[name]
+	
 	if layer.type == "tilelayer" then
 		local w		= self.map.width
 		local h		= self.map.height
