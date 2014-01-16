@@ -33,17 +33,17 @@ function love.load()
 	-- Customize Update callback for Custom Layer
 	function spriteLayer:update(dt)
 		for _, sprite in pairs(self.sprites) do
-			sprite.r = self.sprite.r + 90 * dt
+			sprite.r = sprite.r + 90 * dt
 		end
 	end
 	
 	-- Customize draw callback for Custom Layer
 	function spriteLayer:draw()
 		for _, sprite in pairs(self.sprites) do
-			local x = math.floor(self.sprite.x)
-			local y = math.floor(self.sprite.y)
-			local r = math.rad(self.sprite.r)
-			love.graphics.draw(sprite.image, sprite.x, sprite.y, sprite.r)
+			local x = math.floor(sprite.x)
+			local y = math.floor(sprite.y)
+			local r = math.rad(sprite.r)
+			love.graphics.draw(sprite.image, x, y, r)
 		end
 	end
 end
