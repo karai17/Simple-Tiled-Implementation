@@ -1,113 +1,42 @@
 <!doctype html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>Simple Tiled Implementation by karai17</title>
-    <link rel="stylesheet" href="stylesheets/styles.css">
-    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-    <script src="javascripts/respond.js"></script>
-    <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <!--[if lt IE 8]>
-    <link rel="stylesheet" href="stylesheets/ie.css">
-    <![endif]-->
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-
-  </head>
-  <body>
-      <div id="header">
-        <nav>
-          <li class="fork"><a href="https://github.com/karai17/Simple-Tiled-Implementation">View On GitHub</a></li>
-          <li class="downloads"><a href="https://github.com/karai17/Simple-Tiled-Implementation/zipball/master">ZIP</a></li>
-          <li class="downloads"><a href="https://github.com/karai17/Simple-Tiled-Implementation/tarball/master">TAR</a></li>
-          <li class="title">DOWNLOADS</li>
-        </nav>
-      </div><!-- end header -->
-
-    <div class="wrapper">
-
-      <section>
-        <div id="title">
-          <h1>Simple Tiled Implementation</h1>
-          <p>Tiled library for LÖVE</p>
-          <hr>
-          <span class="credits left">Project maintained by <a href="https://github.com/karai17">karai17</a></span>
-          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
-        </div>
-
-        <h1>
-<a name="simple-tiled-implementation" class="anchor" href="#simple-tiled-implementation"><span class="octicon octicon-link"></span></a>Simple Tiled Implementation</h1>
-
-<hr><p>Simple Tiled Implementation is a <a href="http://www.mapeditor.org/"><strong>Tiled Map Editor</strong></a> library designed for the <em>awesome</em> <a href="https://www.love2d.org/"><strong>LÖVE</strong></a> framework.</p>
-
-<h2>
-<a name="quick-example" class="anchor" href="#quick-example"><span class="octicon octicon-link"></span></a>Quick Example</h2>
-
-<hr><div class="highlight highlight-lua"><pre><span class="kd">local</span> <span class="n">sti</span> <span class="o">=</span> <span class="nb">require</span> <span class="s2">"</span><span class="s">sti"</span>
-
-<span class="k">function</span> <span class="nc">love</span><span class="p">.</span><span class="nf">load</span><span class="p">()</span>
-    <span class="c1">-- Load a map exported to Lua from Tiled</span>
-    <span class="n">map</span> <span class="o">=</span> <span class="n">sti</span><span class="p">.</span><span class="n">new</span><span class="p">(</span><span class="s2">"</span><span class="s">assets/maps/map01"</span><span class="p">)</span>
-
-    <span class="c1">-- Create a Collision Map to use with your own collision code</span>
-    <span class="n">map</span><span class="p">:</span><span class="n">createCollisionMap</span><span class="p">(</span><span class="s2">"</span><span class="s">Collision Layer"</span><span class="p">)</span>
-
-    <span class="c1">-- Create a Custom Layer</span>
-    <span class="n">map</span><span class="p">:</span><span class="n">newCustomLayer</span><span class="p">(</span><span class="s2">"</span><span class="s">Sprite Layer"</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-
-    <span class="c1">-- Add data to Custom Layer</span>
-    <span class="kd">local</span> <span class="n">spriteLayer</span> <span class="o">=</span> <span class="n">map</span><span class="p">.</span><span class="n">layers</span><span class="p">[</span><span class="s2">"</span><span class="s">Sprite Layer"</span><span class="p">]</span>
-    <span class="n">spriteLayer</span><span class="p">.</span><span class="n">sprites</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="n">player</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="n">image</span> <span class="o">=</span> <span class="n">love</span><span class="p">.</span><span class="n">graphics</span><span class="p">.</span><span class="n">newImage</span><span class="p">(</span><span class="s2">"</span><span class="s">assets/sprites/player.png"</span><span class="p">),</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span>
-            <span class="n">y</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span>
-            <span class="n">r</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
-        <span class="p">}</span>
-    <span class="p">}</span>
-
-    <span class="c1">-- Update callback for Custom Layer</span>
-    <span class="k">function</span> <span class="nf">spriteLayer</span><span class="p">:</span><span class="n">update</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">sprite</span> <span class="k">in</span> <span class="nb">pairs</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">sprites</span><span class="p">)</span> <span class="k">do</span>
-            <span class="n">sprite</span><span class="p">.</span><span class="n">r</span> <span class="o">=</span> <span class="n">sprite</span><span class="p">.</span><span class="n">r</span> <span class="o">+</span> <span class="mi">90</span> <span class="o">*</span> <span class="n">dt</span>
-        <span class="k">end</span>
-    <span class="k">end</span>
-
-    <span class="c1">-- Draw callback for Custom Layer</span>
-    <span class="k">function</span> <span class="nf">spriteLayer</span><span class="p">:</span><span class="n">draw</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">sprite</span> <span class="k">in</span> <span class="nb">pairs</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">sprites</span><span class="p">)</span> <span class="k">do</span>
-            <span class="kd">local</span> <span class="n">x</span> <span class="o">=</span> <span class="nb">math.floor</span><span class="p">(</span><span class="n">sprite</span><span class="p">.</span><span class="n">x</span><span class="p">)</span>
-            <span class="kd">local</span> <span class="n">y</span> <span class="o">=</span> <span class="nb">math.floor</span><span class="p">(</span><span class="n">sprite</span><span class="p">.</span><span class="n">y</span><span class="p">)</span>
-            <span class="kd">local</span> <span class="n">r</span> <span class="o">=</span> <span class="nb">math.rad</span><span class="p">(</span><span class="n">sprite</span><span class="p">.</span><span class="n">r</span><span class="p">)</span>
-            <span class="n">love</span><span class="p">.</span><span class="n">graphics</span><span class="p">.</span><span class="n">draw</span><span class="p">(</span><span class="n">sprite</span><span class="p">.</span><span class="n">image</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span>
-        <span class="k">end</span>
-    <span class="k">end</span>
-<span class="k">end</span>
-
-<span class="k">function</span> <span class="nc">love</span><span class="p">.</span><span class="nf">update</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
-    <span class="n">map</span><span class="p">:</span><span class="n">update</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
-<span class="k">end</span>
-
-<span class="k">function</span> <span class="nc">love</span><span class="p">.</span><span class="nf">draw</span><span class="p">()</span>
-    <span class="n">map</span><span class="p">:</span><span class="n">draw</span><span class="p">()</span>
-
-    <span class="c1">-- Draw Collision Map (useful for debugging)</span>
-    <span class="n">map</span><span class="p">:</span><span class="n">drawCollisionMap</span><span class="p">()</span>
-<span class="k">end</span>
-
-</pre></div>
-
-<h2>
-<a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h2>
-
-<hr><p>This code is licensed under the <a href="http://www.opensource.org/licenses/mit-license.html"><strong>MIT Open Source License</strong></a>. Check out the LICENSE file for more information.</p>
-      </section>
-
-    </div>
-    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
-    
-  </body>
+	<head>
+		<meta charset="utf-8" />
+		<meta http-equiv="X-UA-Compatible" content="chrome=1" />
+		<link rel="stylesheet" href="stylesheets/reset.css" />
+		<link rel="stylesheet" href="stylesheets/styles.css" />
+		<link rel="stylesheet" href="javascripts/highlight/styles/default.css" />
+		<script src="javascripts/highlight/highlight.pack.js"></script>
+		<script>
+			hljs.configure({tabReplace: '    '});
+			hljs.initHighlightingOnLoad();
+		</script>
+		<title>Simple Tiled Implementation</title>
+	</head>
+	<body>
+		<div>
+			<nav>
+				<li class="fork"><a href="https://github.com/karai17/Simple-Tiled-Implementation">View On GitHub</a></li>
+				<li class="downloads"><a href="https://github.com/karai17/Simple-Tiled-Implementation/zipball/master">ZIP</a></li>
+				<li class="downloads"><a href="https://github.com/karai17/Simple-Tiled-Implementation/tarball/master">TAR</a></li>
+			</nav>
+		</div>
+		<div>
+			<pre><code class="language-lua">
+				local sti = require "libs.sti"
+				
+				function love.load()
+					map = sti.new("assets/maps/map01")
+				end
+				
+				function love.update(dt)
+					map:update(dt)
+				end
+				
+				function love.draw()
+					map:draw()
+				end
+			</code></pre>
+		</div>
+	</body>
 </html>
