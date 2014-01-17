@@ -16,8 +16,8 @@ function love.load()
 	-- Create a Collision Map to use with your own collision code
 	map:createCollisionMap("Collision Layer")
 	
-	-- Convert any layer to a Custom Layer
-	map:convertToCustomLayer("Sprite Layer")
+	-- Create a Custom Layer
+	map:newCustomLayer("Sprite Layer", 3)
 	
 	-- Add data to Custom Layer
 	local spriteLayer = map.layers["Sprite Layer"]
