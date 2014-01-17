@@ -25,6 +25,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ]]--
 
+-- Simple Tiled Implementation v0.4.1
+
 local STI = {}
 local Map = {}
 
@@ -80,8 +82,8 @@ function STI.new(map)
 					}
 				else
 					map.tiles[gid].offset	= {
-						x = 0,
-						y = 0,
+						x = -map.tilewidth,
+						y = -tileset.tileheight,
 					}
 				end
 				
@@ -233,17 +235,24 @@ function Map:drawObjectLayer(layer)
 			drawLineEllipse(object.x+1, object.y+1, object.width, object.height, shadow)
 			drawLineEllipse(object.x, object.y, object.width, object.height, line)
 		elseif object.shape == "polygon" then
-			local points = {{},{},{}}
+			local points = {{},{}}
 			
 			for _, point in ipairs(object.polygon) do
-					table.insert(points[1], object.x + point.x)
-					table.insert(points[1], object.y + point.y)
-					table.insert(points[2], object.x + point.x+1)
-					table.insert(points[2], object.y + point.y+1)
+				table.insert(points[1], object.x + point.x)
+				table.insert(points[1], object.y + point.y)
+				table.insert(points[2], object.x + point.x+1)
+				table.insert(points[2], object.y + point.y+1)
 			end
 			
 			love.graphics.setColor(fill)
-			love.graphics.polygon("fill", points[1])
+			if not love.math.isConvex(points[1]) then
+				local triangles = love.math.triangulate(points[1])
+				for _, triangle in ipairs(triangles) do
+					love.graphics.polygon("fill", triangle)
+				end
+			else
+				love.graphics.polygon("fill", points[1])
+			end
 			
 			love.graphics.setColor(shadow)
 			love.graphics.polygon("line", points[2])
@@ -251,13 +260,13 @@ function Map:drawObjectLayer(layer)
 			love.graphics.setColor(line)
 			love.graphics.polygon("line", points[1])
 		elseif object.shape == "polyline" then
-			local points = {{},{},{}}
+			local points = {{},{}}
 			
 			for _, point in ipairs(object.polyline) do
-					table.insert(points[1], object.x + point.x)
-					table.insert(points[1], object.y + point.y)
-					table.insert(points[2], object.x + point.x+1)
-					table.insert(points[2], object.y + point.y+1)
+				table.insert(points[1], object.x + point.x)
+				table.insert(points[1], object.y + point.y)
+				table.insert(points[2], object.x + point.x+1)
+				table.insert(points[2], object.y + point.y+1)
 			end
 			
 			love.graphics.setColor(shadow)
