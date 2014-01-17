@@ -98,18 +98,22 @@ function STI.new(map)
 	
 	-- Add tile structure, images
 	for i, layer in ipairs(map.layers) do
-		map.layers[layer.name] = layer
-		
 		if layer.type == "tilelayer" then
 			layer.data = map:createTileLayerData(layer)
-		end
-		
-		if layer.type == "imagelayer" then
+			layer.draw = function() map:drawTileLayer(layer) end
+		elseif layer.type == "objectgroup" then
+			layer.draw = function() map:drawObjectLayer(layer) end
+		elseif layer.type == "imagelayer" then
 			local image = STI.formatPath(path..layer.image)
 			if layer.image ~= "" then
 				layer.image = love.graphics.newImage(image)
 			end
+			
+			layer.draw = function() map:drawImageLayer(layer) end
 		end
+		
+		layer.update = function(dt) map:updateLayer(dt) end
+		map.layers[layer.name] = layer
 	end
 	
 	--[[
@@ -147,28 +151,18 @@ end
 
 function Map:update(dt)
 	for _, layer in ipairs(self.layers) do
-		if layer.type == "customlayer" then
-			self:updateCustomLayer(dt, layer)
-		end
+		layer:update(dt)
 	end
 end
 
-function Map:updateCustomLayer(dt, layer)
-	layer:update(dt)
+function Map:updateLayer(dt)
+	return
 end
 
 function Map:draw()
 	for _, layer in ipairs(self.layers) do
 		if layer.visible then
-			if layer.type == "tilelayer" then
-				self:drawTileLayer(layer)
-			elseif layer.type == "objectgroup" then
-				self:drawObjectLayer(layer)
-			elseif layer.type == "imagelayer" then
-				self:drawImageLayer(layer)
-			elseif layer.type == "customlayer" then
-				self:drawCustomLayer(layer)
-			end
+			layer:draw()
 		end
 	end
 end
@@ -296,6 +290,37 @@ function Map:convertToCustomLayer(name)
 	layer.type		= "customlayer"
 	function layer:draw() return end
 	function layer:update(dt) return end
+end
+
+function Map:newCustomLayer(name, index)
+	local layer = {
+      type = "customlayer",
+      name = name,
+      visible = true,
+      opacity = 1,
+      properties = {},
+    }
+	function layer:draw() return end
+	function layer:update(dt) return end
+	
+	table.insert(self.layers, index, layer)
+	self.layers[name] = self.layers[index]
+end
+
+function Map:removeLayer(index)
+	if type(index) == "string" then
+		for i, layer in ipairs(self.layers) do
+			if layer.name == index then
+				table.remove(self.layers, i)
+				self.layers[index] = nil
+				break
+			end
+		end
+	else
+		local name = self.layers[index].name
+		table.remove(self.layers, index)
+		self.layers[name] = nil
+	end
 end
 
 -- http://wiki.interfaceware.com/534.html

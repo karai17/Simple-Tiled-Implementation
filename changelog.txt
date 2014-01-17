@@ -2,10 +2,18 @@
 Simple Tiled Implementation Change Log
 ======================================
 -------------------
+2014-01-16 : v0.3.3
+-------------------
+* Added:	Create new Custom Layer
+* Added:	Callbacks for all layers
+* Added:	Remove Layer
+* Changed:	Simplified sti.new()
+
+-------------------
 2014-01-16 : v0.3.2
 -------------------
-* Fixed:	a crash if using Tiled 0.9.1
-* Changed:	map structure to remove "map"table
+* Fixed:	Crash if using Tiled 0.9.1
+* Changed:	Map structure to remove "map"table
 
 -------------------
 2014-01-16 : v0.3.1
@@ -16,7 +24,7 @@ Simple Tiled Implementation Change Log
 2014-01-16 : v0.3.0
 -------------------
 * Added:	Support for converting layers to Custom Layers
-* Changed:	sti.new()  no longer requires the file extension
+* Changed:	sti.new() no longer requires the file extension
 
 -------------------
 2014-01-15 : v0.2.2
