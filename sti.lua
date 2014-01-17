@@ -187,7 +187,86 @@ function Map:drawTileLayer(layer)
 end
 
 function Map:drawObjectLayer(layer)
-	love.graphics.setColor(255, 255, 255, 255 * layer.opacity)
+	local line		= { 160, 160, 160, 255 * layer.opacity }
+	local fill		= { 160, 160, 160, 255 * layer.opacity * 0.2 }
+	local shadow	= { 0, 0, 0, 255 * layer.opacity }
+	
+	for _, object in ipairs(layer.objects) do
+		if object.shape == "rectangle" then
+			love.graphics.setColor(fill)
+			love.graphics.rectangle("fill", object.x, object.y, object.width, object.height)
+			
+			love.graphics.setColor(shadow)
+			love.graphics.rectangle("line", object.x+1, object.y+1, object.width, object.height)
+			
+			love.graphics.setColor(line)
+			love.graphics.rectangle("line", object.x, object.y, object.width, object.height)
+		elseif object.shape == "ellipse" then
+			local function drawEllipse(mode, x, y, w, h, color)
+				love.graphics.push()
+				love.graphics.translate(x + w/2, y + h/2)
+				love.graphics.scale(w/2, h/2)
+				love.graphics.setColor(color)
+				love.graphics.circle(mode, 0, 0, 1, 100)
+				love.graphics.pop()
+			end
+			
+			local function drawLineEllipse(x, y, rx, ry, color)
+				local segments = 100
+				local vertices = {}
+				
+				for i=0, segments do
+					local angle = (i / segments) * math.pi * 2
+					
+					local px = x + rx / 2 + math.cos(angle) * rx / 2
+					local py = y + ry / 2 + math.sin(angle) * ry / 2
+					
+					vertices[#vertices+1] = px
+					vertices[#vertices+1] = py
+				end
+				
+				love.graphics.setColor(color)
+				love.graphics.line(vertices)
+			end
+			
+			drawEllipse("fill", object.x, object.y, object.width, object.height, fill)
+			drawLineEllipse(object.x+1, object.y+1, object.width, object.height, shadow)
+			drawLineEllipse(object.x, object.y, object.width, object.height, line)
+		elseif object.shape == "polygon" then
+			local points = {{},{},{}}
+			
+			for _, point in ipairs(object.polygon) do
+					table.insert(points[1], object.x + point.x)
+					table.insert(points[1], object.y + point.y)
+					table.insert(points[2], object.x + point.x+1)
+					table.insert(points[2], object.y + point.y+1)
+			end
+			
+			love.graphics.setColor(fill)
+			love.graphics.polygon("fill", points[1])
+			
+			love.graphics.setColor(shadow)
+			love.graphics.polygon("line", points[2])
+			
+			love.graphics.setColor(line)
+			love.graphics.polygon("line", points[1])
+		elseif object.shape == "polyline" then
+			local points = {{},{},{}}
+			
+			for _, point in ipairs(object.polyline) do
+					table.insert(points[1], object.x + point.x)
+					table.insert(points[1], object.y + point.y)
+					table.insert(points[2], object.x + point.x+1)
+					table.insert(points[2], object.y + point.y+1)
+			end
+			
+			love.graphics.setColor(shadow)
+			love.graphics.line(points[2])
+			
+			love.graphics.setColor(line)
+			love.graphics.line(points[1])
+		end
+	end
 	
 	love.graphics.setColor(255, 255, 255, 255)
 end

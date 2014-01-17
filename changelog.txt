@@ -2,6 +2,11 @@
 Simple Tiled Implementation Change Log
 ======================================
 -------------------
+2014-01-17 : v0.4.0
+-------------------
+* Added:	Draw Object Layers
+
+-------------------
 2014-01-16 : v0.3.3
 -------------------
 * Added:	Create new Custom Layer
