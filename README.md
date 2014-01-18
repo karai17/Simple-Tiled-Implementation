@@ -1,7 +1,7 @@
 Simple Tiled Implementation
 ==
 ---
-Simple Tiled Implementation is a [**Tiled Map Editor**][Tiled] library designed for the *awesome* [**LÖVE**][LOVE] framework.
+Simple Tiled Implementation is a [**Tiled Map Editor**][Tiled] library designed for the *awesome* [**LÖVE**][LOVE] framework. Please read the library [**documentation**][dox] to learn how it all works!
 
 Quick Example
 --
@@ -66,6 +66,7 @@ License
 ---
 This code is licensed under the [**MIT Open Source License**][MIT]. Check out the LICENSE file for more information.
 
-[Tiled]: http://www.mapeditor.org/
-[LOVE]: https://www.love2d.org/
-[MIT]: http://www.opensource.org/licenses/mit-license.html
+[Tiled]:	http://www.mapeditor.org/
+[LOVE]:		https://www.love2d.org/
+[dox]:		http://karai17.github.io/Simple-Tiled-Implementation/
+[MIT]:		http://www.opensource.org/licenses/mit-license.html
