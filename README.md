@@ -66,7 +66,7 @@ License
 ---
 This code is licensed under the [**MIT Open Source License**][MIT]. Check out the LICENSE file for more information.
 
-[Tiled]:	http://www.mapeditor.org/
-[LOVE]:		https://www.love2d.org/
-[dox]:		http://karai17.github.io/Simple-Tiled-Implementation/
-[MIT]:		http://www.opensource.org/licenses/mit-license.html
+[Tiled]: http://www.mapeditor.org/
+[LOVE]: https://www.love2d.org/
+[dox]: http://karai17.github.io/Simple-Tiled-Implementation/
+[MIT]: http://www.opensource.org/licenses/mit-license.html
