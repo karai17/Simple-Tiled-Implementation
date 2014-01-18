@@ -5,7 +5,7 @@
 		<meta http-equiv="X-UA-Compatible" content="chrome=1" />
 		<link rel="stylesheet" href="stylesheets/reset.css" />
 		<link rel="stylesheet" href="stylesheets/styles.css" />
-		<link rel="stylesheet" href="javascripts/highlight/styles/default.css" />
+		<link rel="stylesheet" href="stylesheets/monokai_sublime.css" />
 		<script src="javascripts/highlight/highlight.pack.js"></script>
 		<script>
 			hljs.configure({tabReplace: '    '});
@@ -14,29 +14,28 @@
 		<title>Simple Tiled Implementation</title>
 	</head>
 	<body>
-		<div>
-			<nav>
-				<li class="fork"><a href="https://github.com/karai17/Simple-Tiled-Implementation">View On GitHub</a></li>
-				<li class="downloads"><a href="https://github.com/karai17/Simple-Tiled-Implementation/zipball/master">ZIP</a></li>
-				<li class="downloads"><a href="https://github.com/karai17/Simple-Tiled-Implementation/tarball/master">TAR</a></li>
-			</nav>
+		<div id="content">
+			<header>Simple Tiled Implementation</header>
+			<pre><code class="language-lua">local sti = require "libs.sti"
+
+function love.load()
+	map = sti.new("assets/maps/map01")
+end
+
+function love.update(dt)
+	map:update(dt)
+end
+
+function love.draw()
+	map:draw()
+end</code></pre>
 		</div>
-		<div>
-			<pre><code class="language-lua">
-				local sti = require "libs.sti"
-				
-				function love.load()
-					map = sti.new("assets/maps/map01")
-				end
-				
-				function love.update(dt)
-					map:update(dt)
-				end
-				
-				function love.draw()
-					map:draw()
-				end
-			</code></pre>
-		</div>
+		<footer>
+			<span>&copy; 2014 Landon Manning |</span>
+			<span>Published with <a href="http://pages.github.com" target="_new">GitHub Pages</a> |</span>
+			<span><a href="https://github.com/karai17/Simple-Tiled-Implementation">View On GitHub</a> |</span>
+			<span><a href="https://github.com/karai17/Simple-Tiled-Implementation/zipball/master">ZIP</a> |</span>
+			<span><a href="https://github.com/karai17/Simple-Tiled-Implementation/tarball/master">TAR</a></span>
+		</footer>
 	</body>
 </html>
