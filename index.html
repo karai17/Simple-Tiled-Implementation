@@ -33,6 +33,7 @@
 					<li><a href="#createCollisionMap">Map:createCollisionMap</a></li>
 					<li><a href="#drawCollisionMap">Map:drawCollisionMap</a></li>
 					<li><a href="#callbacks">Callbacks</a></li>
+					<li><a href="#properties">Properties</a></li>
 				</nav>
 			</header>
 			<section>
@@ -411,6 +412,35 @@ end
 
 function love.draw()
 	map:draw()
+end</code></pre>
+			</section>
+			<section>
+				<h2><a id="properties">Properties</a></h2>
+				<p>Every Layer has its own properties that are used when updating or drawing the layer. Each of these properties can be modified, but should only be modified by a user who knows what they are doing.</p>
+				<h3>Example</h3>
+				<pre><code class="language-lua">local sti = require "libs.sti"
+
+function love.load()
+	map = sti.new("assets/maps/map01")
+	
+	local groundLayer = map.layers["Ground"]
+	
+	-- Change a tile
+	local x = 8 -- x coordinate of the tile
+	local y = 15 -- y coordinate of the tile
+	local gid = 572 -- Global ID of the new tile
+	
+	groundLayer.data[y][x] = map.tiles[gid]
+	
+	-- Stop drawing layer
+	groundLayer.visible = false -- true to draw again
+	
+	-- Layer opacity
+	groundLayer.opacity = 0.75 -- 0 for transparent, 1 for opaque
+	
+	-- Offset layer in pixels (this can be useful for parallax)
+	groundLayer.x = -17 -- negative numbers offset left/up
+	groundLayer.y = 34 -- positive numbers offset right/down
 end</code></pre>
 			</section>
 		</div>
