@@ -25,7 +25,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ]]--
 
--- Simple Tiled Implementation v0.4.1
+-- Simple Tiled Implementation v0.4.2
 
 local STI = {}
 local Map = {}
@@ -101,7 +101,7 @@ function STI.new(map)
 	-- Add tile structure, images
 	for i, layer in ipairs(map.layers) do
 		if layer.type == "tilelayer" then
-			layer.data = map:createTileLayerData(layer)
+			layer.data = map:addTileLayerData(layer)
 			layer.draw = function() map:drawTileLayer(layer) end
 		elseif layer.type == "objectgroup" then
 			layer.draw = function() map:drawObjectLayer(layer) end
@@ -114,7 +114,7 @@ function STI.new(map)
 			layer.draw = function() map:drawImageLayer(layer) end
 		end
 		
-		layer.update = function(dt) map:updateLayer(dt) end
+		layer.update = function(dt) return end
 		map.layers[layer.name] = layer
 	end
 	
@@ -151,29 +151,98 @@ function STI.formatPath(path)
 	return string.sub(path, 1, path:len()-1)
 end
 
+function Map:addTileLayerData(layer)
+	local i = 1
+	local map = {}
+	
+	for y = 1, layer.height do
+		map[y] = {}
+		for x = 1, layer.width do
+			map[y][x] = self.tiles[layer.data[i]]
+			i = i + 1
+		end
+	end
+	
+	return map
+end
+
+function Map:addCustomLayer(name, index)
+	local layer = {
+      type = "customlayer",
+      name = name,
+      visible = true,
+      opacity = 1,
+      properties = {},
+    }
+	function layer:draw() return end
+	function layer:update(dt) return end
+	
+	table.insert(self.layers, index, layer)
+	self.layers[name] = self.layers[index]
+end
+
+function Map:convertToCustomLayer(index)
+	local layer = self.layers[index]
+	
+	if layer.type == "tilelayer" then
+		layer.x			= nil
+		layer.y			= nil
+		layer.width		= nil
+		layer.height	= nil
+		layer.encoding	= nil
+		layer.data		= nil
+	elseif layer.type == "objectgroup" then
+		layer.objects	= nil
+	elseif layer.type == "imagelayer" then
+		layer.image		= nil
+	else
+		return -- invalid layer!
+	end
+	
+	layer.type		= "customlayer"
+	function layer:draw() return end
+	function layer:update(dt) return end
+end
+
+function Map:removeLayer(index)
+	if type(index) == "string" then
+		for i, layer in ipairs(self.layers) do
+			if layer.name == index then
+				table.remove(self.layers, i)
+				self.layers[index] = nil
+				break
+			end
+		end
+	else
+		local name = self.layers[index].name
+		table.remove(self.layers, index)
+		self.layers[name] = nil
+	end
+end
+
 function Map:update(dt)
 	for _, layer in ipairs(self.layers) do
 		layer:update(dt)
 	end
 end
 
-function Map:updateLayer(dt)
-	return
-end
-
 function Map:draw()
 	for _, layer in ipairs(self.layers) do
 		if layer.visible then
-			layer:draw()
+			self:drawLayer(layer)
 		end
 	end
+end
+
+function Map:drawLayer(layer)
+	love.graphics.setColor(255, 255, 255, 255 * layer.opacity)
+	layer:draw()
+	love.graphics.setColor(255, 255, 255, 255)
 end
 
 function Map:drawTileLayer(layer)
 	local tw = self.tilewidth
 	local th = self.tileheight
-	
-	love.graphics.setColor(255, 255, 255, 255 * layer.opacity)
 	
 	for y,tiles in pairs(layer.data) do
 		for x,tile in pairs(tiles) do
@@ -184,8 +253,6 @@ function Map:drawTileLayer(layer)
 			end
 		end
 	end
-	
-	love.graphics.setColor(255, 255, 255, 255)
 end
 
 function Map:drawObjectLayer(layer)
@@ -276,22 +343,39 @@ function Map:drawObjectLayer(layer)
 			love.graphics.line(points[1])
 		end
 	end
-	
-	love.graphics.setColor(255, 255, 255, 255)
 end
 
 function Map:drawImageLayer(layer)
 	if layer.image ~= "" then
-		love.graphics.setColor(255, 255, 255, 255 * layer.opacity)
 		love.graphics.draw(layer.image, 0, 0)
-		love.graphics.setColor(255, 255, 255, 255)
 	end
 end
 
-function Map:drawCustomLayer(layer)
-	love.graphics.setColor(255, 255, 255, 255 * layer.opacity)
-	layer:draw()
-	love.graphics.setColor(255, 255, 255, 255)
+function Map:createCollisionMap(index)
+	local layer	= self.layers[index]
+	
+	if layer.type == "tilelayer" then
+		local w		= self.width
+		local h		= self.height
+		local i		= 1
+		local map	= {
+			opacity	= 0.5,
+			data	= {},
+		}
+		
+		for y=1, h do
+			map.data[y] = {}
+			for x=1, w do
+				if layer.data[y][x] == nil then
+					map.data[y][x] = 0
+				else
+					map.data[y][x] = 1
+				end
+			end
+		end
+	end
+	
+	self.collision = map
 end
 
 function Map:drawCollisionMap()
@@ -313,102 +397,6 @@ function Map:drawCollisionMap()
 	end
 	
 	love.graphics.setColor(255, 255, 255, 255)
-end
-
-function Map:createTileLayerData(layer)
-	local i = 1
-	local map = {}
-	
-	for y = 1, layer.height do
-		map[y] = {}
-		for x = 1, layer.width do
-			map[y][x] = self.tiles[layer.data[i]]
-			i = i + 1
-		end
-	end
-	
-	return map
-end
-
-function Map:createCollisionMap(name)
-	local layer	= self.layers[name]
-	
-	if layer.type == "tilelayer" then
-		local w		= self.width
-		local h		= self.height
-		local i		= 1
-		local map	= {
-			opacity	= 0.5,
-			data	= {},
-		}
-		
-		for y=1, h do
-			map.data[y] = {}
-			for x=1, w do
-				if layer.data[y][x] == nil then
-					map.data[y][x] = 0
-				else
-					map.data[y][x] = 1
-				end
-			end
-		end
-
-		self.collision = map
-	end
-end
-
-function Map:convertToCustomLayer(name)
-	local layer = self.layers[name]
-	
-	if layer.type == "tilelayer" then
-		layer.x			= nil
-		layer.y			= nil
-		layer.width		= nil
-		layer.height	= nil
-		layer.encoding	= nil
-		layer.data		= nil
-	elseif layer.type == "objectgroup" then
-		layer.objects	= nil
-	elseif layer.type == "imagelayer" then
-		layer.image		= nil
-	else
-		return -- invalid layer!
-	end
-	
-	layer.type		= "customlayer"
-	function layer:draw() return end
-	function layer:update(dt) return end
-end
-
-function Map:newCustomLayer(name, index)
-	local layer = {
-      type = "customlayer",
-      name = name,
-      visible = true,
-      opacity = 1,
-      properties = {},
-    }
-	function layer:draw() return end
-	function layer:update(dt) return end
-	
-	table.insert(self.layers, index, layer)
-	self.layers[name] = self.layers[index]
-end
-
-function Map:removeLayer(index)
-	if type(index) == "string" then
-		for i, layer in ipairs(self.layers) do
-			if layer.name == index then
-				table.remove(self.layers, i)
-				self.layers[index] = nil
-				break
-			end
-		end
-	else
-		local name = self.layers[index].name
-		table.remove(self.layers, index)
-		self.layers[name] = nil
-	end
 end
 
 -- http://wiki.interfaceware.com/534.html
