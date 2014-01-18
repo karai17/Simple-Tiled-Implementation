@@ -37,14 +37,14 @@
 			</header>
 			<section>
 				<h2><a id="new">STI.new(map)</a></h2>
-				<p>Load map</p>
+				<p>Load and initialize an exported Lua Tiled Map.</p>
 				<h3>Parameters</h3>
 				<ul>
-					<li><span>map</span> Path to Map File (sans file extension)</li>
+					<li><span>map</span> Path to Tiled Map (sans file extension)</li>
 				</ul>
 				<h3>Returns</h3>
 				<ul>
-					<li><span>map</span> Map table</li>
+					<li><span>table</span> STI Map data structure</li>
 				</ul>
 				<pre><code class="language-lua">local sti = require "libs.sti"
 
@@ -54,11 +54,11 @@ end</code></pre>
 			</section>
 			<section>
 				<h2><a id="addCustomLayer">Map:addCustomLayer(name, index)</a></h2>
-				<p>Create a new custom layer</p>
+				<p>Add an empty Custom Layer to the Layers Table. Custom Layers are used for adding non-Tiled data to the map, such as sprites.</p>
 				<h3>Parameters</h3>
 				<ul>
 					<li><span>name</span> Name of New Layer</li>
-					<li><span>index</span> Position within Layers</li>
+					<li><span>index</span> Draw Order within Layers</li>
 				</ul>
 				<h3>Returns</h3>
 				<ul>
@@ -74,7 +74,7 @@ end</code></pre>
 			</section>
 			<section>
 				<h2><a id="convertToCustomLayer">Map:convertToCustomLayer(index)</a></h2>
-				<p>Convert a layer into a custom layer</p>
+				<p>Convert any Tile Layer, Object Layer, or Image Layer into an empty Custom Layer.</p>
 				<h3>Parameters</h3>
 				<ul>
 					<li><span>index</span> Layer Name or Index</li>
@@ -97,7 +97,7 @@ end</code></pre>
 			</section>
 			<section>
 				<h2><a id="removeLayer">Map:removeLayer(index)</a></h2>
-				<p>Remove a layer</p>
+				<p>Remove any Layer from the Layers Table.</p>
 				<h3>Parameters</h3>
 				<ul>
 					<li><span>index</span> Layer Name or Index</li>
@@ -120,7 +120,7 @@ end</code></pre>
 			</section>
 			<section>
 				<h2><a id="update">Map:update(dt)</a></h2>
-				<p>Updates all layers in order</p>
+				<p>Update all Layers in order of Index.</p>
 				<h3>Parameters</h3>
 				<ul>
 					<li><span>dt</span> Delta Time</li>
@@ -141,7 +141,7 @@ end</code></pre>
 			</section>
 			<section>
 				<h2><a id="draw">Map:draw()</a></h2>
-				<p>Draws all layers in order</p>
+				<p>Draw all Layers in order of Index.</p>
 				<h3>Parameters</h3>
 				<ul>
 					<li>none</li>
@@ -166,7 +166,7 @@ end</code></pre>
 			</section>
 			<section>
 				<h2><a id="drawLayer">Map:drawLayer(layer)</a></h2>
-				<p>Draws layer callback</p>
+				<p>Execute a Layer's Draw Callback.</p>
 				<h3>Parameters</h3>
 				<ul>
 					<li><span>layer</span> Specific Layer to Draw</li>
@@ -195,7 +195,7 @@ end</code></pre>
 			</section>
 			<section>
 				<h2><a id="drawTileLayer">Map:drawTileLayer(layer)</a></h2>
-				<p>Draw default TileLayer (manually set opacity)</p>
+				<p>Draw a Tile Layer using the default Draw Function. When a map is initialized, all Tile Layers are given this draw function. When manually using this method, the Layer Opacity must be manually set.</p>
 				<h3>Parameters</h3>
 				<ul>
 					<li><span>layer</span> Specific Layer to Draw</li>
@@ -216,15 +216,19 @@ end
 
 function love.draw()
 	-- Draw using name
+	love.graphics.setColor(255, 255, 255, 255 * map.layers["Ground Layer"].opacity)
 	map:drawTileLayer(map.layers["Ground Layer"])
+	love.graphics.setColor(255, 255, 255, 255)
 	
 	-- Draw using index
+	love.graphics.setColor(255, 255, 255, 255 * map.layers[1].opacity)
 	map:drawTileLayer(map.layers[1])
+	love.graphics.setColor(255, 255, 255, 255)
 end</code></pre>
 			</section>
 			<section>
 				<h2><a id="drawObjectLayer">Map:drawObjectLayer(layer)</a></h2>
-				<p>Draw default ObjectLayer (manually set opacity)</p>
+				<p>Draw an Object Layer using the default Draw Function. When a map is initialized, all Object Layers are given this draw function. When manually using this method, the Layer Opacity must be manually set.</p>
 				<h3>Parameters</h3>
 				<ul>
 					<li><span>layer</span> Specific Layer to Draw</li>
@@ -245,15 +249,19 @@ end
 
 function love.draw()
 	-- Draw using name
+	love.graphics.setColor(255, 255, 255, 255 * map.layers["Polygons"].opacity)
 	map:drawObjectLayer(map.layers["Polygons"])
+	love.graphics.setColor(255, 255, 255, 255)
 	
 	-- Draw using index
+	love.graphics.setColor(255, 255, 255, 255 * map.layers[3].opacity)
 	map:drawObjectLayer(map.layers[3])
+	love.graphics.setColor(255, 255, 255, 255)
 end</code></pre>
 			</section>
 			<section>
 				<h2><a id="drawImageLayer">Map:drawImageLayer(layer)</a></h2>
-				<p>Draw default ImageLayer (manually set opacity)</p>
+				<p>Draw an Image Layer using the default Draw Function. When a map is initialized, all Image Layers are given this draw function. When manually using this method, the Layer Opacity must be manually set.</p>
 				<h3>Parameters</h3>
 				<ul>
 					<li><span>layer</span> Specific Layer to Draw</li>
@@ -274,15 +282,19 @@ end
 
 function love.draw()
 	-- Draw using name
+	love.graphics.setColor(255, 255, 255, 255 * map.layers["Watermark"].opacity)
 	map:drawLayer(map.layers["Watermark"])
+	love.graphics.setColor(255, 255, 255, 255)
 	
 	-- Draw using index
+	love.graphics.setColor(255, 255, 255, 255 * map.layers[4].opacity)
 	map:drawLayer(map.layers[4])
+	love.graphics.setColor(255, 255, 255, 255)
 end</code></pre>
 			</section>
 			<section>
 				<h2><a id="createCollisionMap">Map:createCollisionMap(index)</a></h2>
-				<p>Create a collision map</p>
+				<p>Use a Tile Layer to create a Collision Map. The Collision Map is simply a Binary Map and does not have any collision detection built in.</p>
 				<h3>Parameters</h3>
 				<ul>
 					<li><span>index</span> Layer Name or Index</li>
@@ -313,7 +325,7 @@ end</code></pre>
 			</section>
 			<section>
 				<h2><a id="drawCollisionMap">Map:drawCollisionMap()</a></h2>
-				<p>Draws the collision map (useful for debugging)</p>
+				<p>Draw the Collision Map. This can be useful for debugging your collision detection code.</p>
 				<h3>Parameters</h3>
 				<ul>
 					<li>none</li>
@@ -346,22 +358,29 @@ end</code></pre>
 			</section>
 			<section>
 				<h2><a id="callbacks">Callbacks</a></h2>
-				<p>update, draw</p>
+				<p>Every Layer has its own Update and Draw callback functions. When a map is initialized, each Layer is given an empty Update function and a Draw function respective of the Layer's type. When a Custom Layer is created, it is given empty callbacks. Both the Update and Draw callbacks can be overridden to customize your Map.</p>
 				<pre><code class="language-lua">local sti = require "libs.sti"
 
 function love.load()
 	map = sti.new("assets/maps/map01")
+	
+	-- Add a Custom Layer
 	map:addCustomLayer("Sprite Layer", 2)
 	
 	local spriteLayer = map.layers["Sprite Layer"]
 	
-	-- Add data to layer
+	-- Add custom data to layer
 	spriteLayer.sprite = {
 		image = love.graphics.newImage("assets/sprites/pickle.png"),
 		x = 128,
 		y = 128,
 		r = 0,
 	}
+	
+	-- Override Update callback
+	function spriteLayer:update(dt)
+		self.sprite.r = self.sprite.r + 90 * dt
+	end
 	
 	-- Override Draw callback
 	function spriteLayer:draw()
@@ -370,11 +389,6 @@ function love.load()
 		local r = math.rad(self.sprite.r)
 		
 		love.graphics.draw(self.sprite.image, x, y, r)
-	end
-	
-	-- Override Update callback
-	function spriteLayer:update(dt)
-		self.sprite.r = self.sprite.r + 90 * dt
 	end
 end
 

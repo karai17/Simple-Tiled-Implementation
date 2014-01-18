@@ -17,7 +17,7 @@ nav li, section li { margin: 5px 0 5px 20px; }
 
 section li span {
 	color: #e6db74;
-	font-family: Courier New, mono-space;
+	font-family: Courier New, fixed-width;
 	font-size: 120%;
 	font-weight: 700;
 }
