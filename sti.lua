@@ -25,7 +25,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ]]--
 
--- Simple Tiled Implementation v0.4.2
+-- Simple Tiled Implementation v0.4.3
 
 local STI = {}
 local Map = {}
@@ -104,6 +104,8 @@ function STI.new(map)
 			layer.data = map:addTileLayerData(layer)
 			layer.draw = function() map:drawTileLayer(layer) end
 		elseif layer.type == "objectgroup" then
+			layer.x = 0
+			layer.y = 0
 			layer.draw = function() map:drawObjectLayer(layer) end
 		elseif layer.type == "imagelayer" then
 			local image = STI.formatPath(path..layer.image)
@@ -111,6 +113,8 @@ function STI.new(map)
 				layer.image = love.graphics.newImage(image)
 			end
 			
+			layer.x = 0
+			layer.y = 0
 			layer.draw = function() map:drawImageLayer(layer) end
 		end
 		
@@ -247,8 +251,8 @@ function Map:drawTileLayer(layer)
 	for y,tiles in pairs(layer.data) do
 		for x,tile in pairs(tiles) do
 			if tile.gid ~= 0 then
-				local tx = x * tw + tile.offset.x
-				local ty = y * th + tile.offset.y
+				local tx = layer.x + x * tw + tile.offset.x
+				local ty = layer.y + y * th + tile.offset.y
 				love.graphics.draw(tile.tileset.image, tile.quad, tx, ty)
 			end
 		end
@@ -261,15 +265,18 @@ function Map:drawObjectLayer(layer)
 	local shadow	= { 0, 0, 0, 255 * layer.opacity }
 	
 	for _, object in ipairs(layer.objects) do
+		local x = layer.x + object.x
+		local y = layer.y + object.y
+		
 		if object.shape == "rectangle" then
 			love.graphics.setColor(fill)
-			love.graphics.rectangle("fill", object.x, object.y, object.width, object.height)
+			love.graphics.rectangle("fill", x, y, object.width, object.height)
 			
 			love.graphics.setColor(shadow)
-			love.graphics.rectangle("line", object.x+1, object.y+1, object.width, object.height)
+			love.graphics.rectangle("line", x+1, y+1, object.width, object.height)
 			
 			love.graphics.setColor(line)
-			love.graphics.rectangle("line", object.x, object.y, object.width, object.height)
+			love.graphics.rectangle("line", x, y, object.width, object.height)
 		elseif object.shape == "ellipse" then
 			local function drawEllipse(mode, x, y, w, h, color)
 				love.graphics.push()
@@ -298,17 +305,17 @@ function Map:drawObjectLayer(layer)
 				love.graphics.line(vertices)
 			end
 			
-			drawEllipse("fill", object.x, object.y, object.width, object.height, fill)
-			drawLineEllipse(object.x+1, object.y+1, object.width, object.height, shadow)
-			drawLineEllipse(object.x, object.y, object.width, object.height, line)
+			drawEllipse("fill", x, y, object.width, object.height, fill)
+			drawLineEllipse(x+1, y+1, object.width, object.height, shadow)
+			drawLineEllipse(x, y, object.width, object.height, line)
 		elseif object.shape == "polygon" then
 			local points = {{},{}}
 			
 			for _, point in ipairs(object.polygon) do
-				table.insert(points[1], object.x + point.x)
-				table.insert(points[1], object.y + point.y)
-				table.insert(points[2], object.x + point.x+1)
-				table.insert(points[2], object.y + point.y+1)
+				table.insert(points[1], x + point.x)
+				table.insert(points[1], y + point.y)
+				table.insert(points[2], x + point.x+1)
+				table.insert(points[2], y + point.y+1)
 			end
 			
 			love.graphics.setColor(fill)
@@ -330,10 +337,10 @@ function Map:drawObjectLayer(layer)
 			local points = {{},{}}
 			
 			for _, point in ipairs(object.polyline) do
-				table.insert(points[1], object.x + point.x)
-				table.insert(points[1], object.y + point.y)
-				table.insert(points[2], object.x + point.x+1)
-				table.insert(points[2], object.y + point.y+1)
+				table.insert(points[1], x + point.x)
+				table.insert(points[1], y + point.y)
+				table.insert(points[2], x + point.x+1)
+				table.insert(points[2], y + point.y+1)
 			end
 			
 			love.graphics.setColor(shadow)
@@ -347,7 +354,7 @@ end
 
 function Map:drawImageLayer(layer)
 	if layer.image ~= "" then
-		love.graphics.draw(layer.image, 0, 0)
+		love.graphics.draw(layer.image, layer.x, layer.y)
 	end
 end
 
