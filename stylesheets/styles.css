@@ -6,6 +6,7 @@ body {
 }
 
 header, section { margin-bottom: 50px; }
+
 nav {
 	font-size: 110%;
 	list-style-type: none;
@@ -13,7 +14,7 @@ nav {
 }
 
 section ul { margin-bottom: 20px; }
-nav li, section li { margin: 5px 0 5px 20px; }
+nav li, section li { margin: 0 0 5px 20px; }
 
 section li span {
 	color: #e6db74;
@@ -31,7 +32,10 @@ h1, h2 {
 
 h1 { font-size: 280%; }
 h2 { font-size: 180%; }
-h3 { font-size: 140%; }
+h3 {
+	font-size: 140%;
+	margin-bottom: 5px;
+}
 
 pre {
 	border: 2px dashed #e0e0e0;
