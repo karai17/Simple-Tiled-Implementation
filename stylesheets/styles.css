@@ -5,13 +5,28 @@ body {
 	margin: 50px;
 }
 
-header {
-	border-bottom: 2px solid #e0e0e0;
-	color: #e0e0e0;
+section ul {
 	margin-bottom: 20px;
 }
 
+section li {
+	margin: 5px 0 5px 20px;
+}
+
+section li span {
+	color: #e6db74;
+	font-family: Courier New, mono-space;
+	font-size: 120%;
+	font-weight: 700;
+}
+
 h1, h2, h3 { font-weight: 300; }
+
+h1, h2 {
+	border-bottom: 2px solid #e0e0e0;
+	margin-bottom: 20px;
+}
+
 h1 { font-size: 240%; }
 h2 { font-size: 180%; }
 h3 { font-size: 140%; }

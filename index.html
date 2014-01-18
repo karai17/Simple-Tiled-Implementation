@@ -15,9 +15,126 @@
 	</head>
 	<body>
 		<div id="content">
-			<header><h1>Simple Tiled Implementation</h1></header>
-			<p>Simple Tiled Implementation is a <a href="http://mapeditor.org/">Tiled Map Editor</a> library designed for the *awesome* <a href="https://love2d.org/">L&Ouml;VE</a> framework.</p>
-			<pre><code class="language-lua">local sti = require "libs.sti"
+			<header>
+				<h1>Simple Tiled Implementation</h1>
+				<p>Simple Tiled Implementation is a <a href="http://mapeditor.org/">Tiled Map Editor</a> library designed for the *awesome* <a href="https://love2d.org/">L&Ouml;VE</a> framework.</p>
+			</header>
+			<section>
+				<h2>STI.new(map)</h2>
+				<p>Load map</p>
+				<h3>Parameters</h3>
+				<ul>
+					<li><span>map:</span> Path to Map File (sans file extension)</li>
+				</ul>
+				<h3>Returns</h3>
+				<ul>
+					<li><span>map:</span> Map table</li>
+				</ul>
+				<pre><code class="language-lua">local sti = require "libs.sti"
+
+function love.load()
+	map = sti.new("assets/maps/map01")
+end</code></pre>
+			</section>
+			<section>
+				<h2>Map:addCustomLayer(name, index)</h2>
+				<p>Create a new custom layer</p>
+				<h3>Parameters</h3>
+				<ul>
+					<li><span>name:</span> Name of New Layer</li>
+					<li><span>index:</span> Position within Layers</li>
+				</ul>
+				<h3>Returns</h3>
+				<ul>
+					<li>none</li>
+				</ul>
+				<pre><code class="language-lua">local sti = require "libs.sti"
+
+function love.load()
+	map = sti.new("assets/maps/map01")
+	
+	map:addCustomLayer("Sprite Layer", 2)
+end</code></pre>
+			</section>
+			<section>
+				<h2>Map:convertToCustomLayer(index)</h2>
+				<p>Convert a layer into a custom layer</p>
+				<h3>Parameters</h3>
+				<ul>
+					<li><span>index:</span> Layer Name or Index</li>
+				</ul>
+				<h3>Returns</h3>
+				<ul>
+					<li>none</li>
+				</ul>
+				<pre><code class="language-lua">local sti = require "libs.sti"
+
+function love.load()
+	map = sti.new("assets/maps/map01")
+	
+	-- Convert using name
+	map:convertToCustomLayer("Sprite Layer")
+	
+	-- Convert using index
+	map:convertToCustomLayer(2)
+end</code></pre>
+			</section>
+			<section>
+				<h2>Map:removeLayer(index)</h2>
+				<p>Remove a layer</p>
+				<h3>Parameters</h3>
+				<ul>
+					<li><span>index:</span> Layer Name or Index</li>
+				</ul>
+				<h3>Returns</h3>
+				<ul>
+					<li>none</li>
+				</ul>
+				<pre><code class="language-lua">local sti = require "libs.sti"
+
+function love.load()
+	map = sti.new("assets/maps/map01")
+	
+	-- Remove using name
+	map:removeLayer("Sprite Layer")
+	
+	-- Remove using index
+	map:removeLayer(2)
+end</code></pre>
+			</section>
+			<section>
+				<h2>Map:update(dt)</h2>
+				<p>Updates all layers in order</p>
+				<h3>Parameters</h3>
+				<ul>
+					<li><span>dt:</span> Delta Time</li>
+				</ul>
+				<h3>Returns</h3>
+				<ul>
+					<li>none</li>
+				</ul>
+				<pre><code class="language-lua">local sti = require "libs.sti"
+
+function love.load()
+	map = sti.new("assets/maps/map01")
+end
+
+function love.update(dt)
+	map:update(dt)
+end</code></pre>
+			</section>
+			<section>
+				<h2>Map:draw()</h2>
+				<p>Draws all layers in order</p>
+				<h3>Parameters</h3>
+				<ul>
+					<li>none</li>
+				</ul>
+				<h3>Returns</h3>
+				<ul>
+					<li>none</li>
+				</ul>
+				<pre><code class="language-lua">local sti = require "libs.sti"
 
 function love.load()
 	map = sti.new("assets/maps/map01")
@@ -30,44 +147,229 @@ end
 function love.draw()
 	map:draw()
 end</code></pre>
-			<header><h2>Callbacks</h2></header>
-			<p>update, draw</p>
-			
-			<header><h2>STI.new(map)</h2></header>
-			<p>Load map</p>
-			
-			<header><h2>Map:addCustomLayer(name, index)</h2></header>
-			<p>Create a new custom layer</p>
-			
-			<header><h2>Map:convertToCustomLayer(index)</h2></header>
-			<p>Convert a laye rinto a custom layer</p>
-			
-			<header><h2>Map:removeLayer(index)</h2></header>
-			<p>Remove a layer</p>
-			
-			<header><h2>Map:update(dt)</h2></header>
-			<p>Updates all layers in order</p>
-			
-			<header><h2>Map:draw()</h2></header>
-			<p>Draws all layers in order</p>
-			
-			<header><h2>Map:drawLayer(layer)</h2></header>
-			<p>Draws layer callback</p>
-			
-			<header><h2>Map:drawTileLayer(layer)</h2></header>
-			<p>Draw default TileLayer (manually set opacity)</p>
-			
-			<header><h2>Map:drawObjectLayer(layer)</h2></header>
-			<p>Draw default ObjectLayer (manually set opacity)</p>
-			
-			<header><h2>Map:drawImageLayer(layer)</h2></header>
-			<p>Draw default ImageLayer (manually set opacity)</p>
-			
-			<header><h2>Map:createCollisionMap(index)</h2></header>
-			<p>Create a collision map</p>
-			
-			<header><h2>Map:drawCollisionMap()</h2></header>
-			<p>Draws the collision map (useful for debugging)</p>
+			</section>
+			<section>
+				<h2>Map:drawLayer(layer)</h2>
+				<p>Draws layer callback</p>
+				<h3>Parameters</h3>
+				<ul>
+					<li><span>layer:</span> Specific Layer to Draw</li>
+				</ul>
+				<h3>Returns</h3>
+				<ul>
+					<li>none</li>
+				</ul>
+				<pre><code class="language-lua">local sti = require "libs.sti"
+
+function love.load()
+	map = sti.new("assets/maps/map01")
+end
+
+function love.update(dt)
+	map:update(dt)
+end
+
+function love.draw()
+	-- Draw using name
+	map:drawLayer(map.layers["Sprite Layer"])
+	
+	-- Draw using index
+	map:drawLayer(map.layers[2])
+end</code></pre>
+			</section>
+			<section>
+				<h2>Map:drawTileLayer(layer)</h2>
+				<p>Draw default TileLayer (manually set opacity)</p>
+				<h3>Parameters</h3>
+				<ul>
+					<li><span>layer:</span> Specific Layer to Draw</li>
+				</ul>
+				<h3>Returns</h3>
+				<ul>
+					<li>none</li>
+				</ul>
+				<pre><code class="language-lua">local sti = require "libs.sti"
+
+function love.load()
+	map = sti.new("assets/maps/map01")
+end
+
+function love.update(dt)
+	map:update(dt)
+end
+
+function love.draw()
+	-- Draw using name
+	map:drawTileLayer(map.layers["Ground Layer"])
+	
+	-- Draw using index
+	map:drawTileLayer(map.layers[1])
+end</code></pre>
+			</section>
+			<section>
+				<h2>Map:drawObjectLayer(layer)</h2>
+				<p>Draw default ObjectLayer (manually set opacity)</p>
+				<h3>Parameters</h3>
+				<ul>
+					<li><span>layer:</span> Specific Layer to Draw</li>
+				</ul>
+				<h3>Returns</h3>
+				<ul>
+					<li>none</li>
+				</ul>
+				<pre><code class="language-lua">local sti = require "libs.sti"
+
+function love.load()
+	map = sti.new("assets/maps/map01")
+end
+
+function love.update(dt)
+	map:update(dt)
+end
+
+function love.draw()
+	-- Draw using name
+	map:drawObjectLayer(map.layers["Polygons"])
+	
+	-- Draw using index
+	map:drawObjectLayer(map.layers[3])
+end</code></pre>
+			</section>
+			<section>
+				<h2>Map:drawImageLayer(layer)</h2>
+				<p>Draw default ImageLayer (manually set opacity)</p>
+				<h3>Parameters</h3>
+				<ul>
+					<li><span>layer:</span> Specific Layer to Draw</li>
+				</ul>
+				<h3>Returns</h3>
+				<ul>
+					<li>none</li>
+				</ul>
+				<pre><code class="language-lua">local sti = require "libs.sti"
+
+function love.load()
+	map = sti.new("assets/maps/map01")
+end
+
+function love.update(dt)
+	map:update(dt)
+end
+
+function love.draw()
+	-- Draw using name
+	map:drawLayer(map.layers["Watermark"])
+	
+	-- Draw using index
+	map:drawLayer(map.layers[4])
+end</code></pre>
+			</section>
+			<section>
+				<h2>Map:createCollisionMap(index)</h2>
+				<p>Create a collision map</p>
+				<h3>Parameters</h3>
+				<ul>
+					<li><span>index:</span> Layer Name or Index</li>
+				</ul>
+				<h3>Returns</h3>
+				<ul>
+					<li>none</li>
+				</ul>
+				<pre><code class="language-lua">local sti = require "libs.sti"
+
+function love.load()
+	map = sti.new("assets/maps/map01")
+	
+	-- Create using name
+	map:createCollisionMap("Collision Layer")
+	
+	-- Create using index
+	map:createCollisionMap(5)
+end
+
+function love.update(dt)
+	map:update(dt)
+end
+
+function love.draw()
+	map:draw()
+end</code></pre>
+			</section>
+			<section>
+				<h2>Map:drawCollisionMap()</h2>
+				<p>Draws the collision map (useful for debugging)</p>
+				<h3>Parameters</h3>
+				<ul>
+					<li>none</li>
+				</ul>
+				<h3>Returns</h3>
+				<ul>
+					<li>none</li>
+				</ul>
+				<pre><code class="language-lua">local sti = require "libs.sti"
+
+function love.load()
+	map = sti.new("assets/maps/map01")
+	
+	-- Create using name
+	map:createCollisionMap("Collision Layer")
+	
+	-- Create using index
+	map:createCollisionMap(5)
+end
+
+function love.update(dt)
+	map:update(dt)
+end
+
+function love.draw()
+	map:draw()
+	
+	map:drawCollisionMap()
+end</code></pre>
+			</section>
+			<section>
+				<h2>Callbacks</h2>
+				<p>update, draw</p>
+				<pre><code class="language-lua">local sti = require "libs.sti"
+
+function love.load()
+	map = sti.new("assets/maps/map01")
+	map:addCustomLayer("Sprite Layer", 2)
+	
+	local spriteLayer = map.layers["Sprite Layer"]
+	
+	-- Add data to layer
+	spriteLayer.sprite = {
+		image = love.graphics.newImage("assets/sprites/pickle.png"),
+		x = 128,
+		y = 128,
+		r = 0,
+	}
+	
+	-- Override Draw callback
+	function spriteLayer:draw()
+		local x = math.floor(self.sprite.x)
+		local y = math.floor(self.sprite.y)
+		local r = math.rad(self.sprite.r)
+		
+		love.graphics.draw(self.sprite.image, x, y, r)
+	end
+	
+	-- Override Update callback
+	function spriteLayer:update(dt)
+		self.sprite.r = self.sprite.r + 90 * dt
+	end
+end
+
+function love.update(dt)
+	map:update(dt)
+end
+
+function love.draw()
+	map:draw()
+end</code></pre>
+			</section>
 		</div>
 		<footer>
 			<span>&copy; 2014 Landon Manning |</span>
