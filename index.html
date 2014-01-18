@@ -18,17 +18,33 @@
 			<header>
 				<h1>Simple Tiled Implementation</h1>
 				<p>Simple Tiled Implementation is a <a href="http://mapeditor.org/">Tiled Map Editor</a> library designed for the *awesome* <a href="https://love2d.org/">L&Ouml;VE</a> framework.</p>
+				<h3>Navigation</h3>
+				<nav>
+					<li><a href="#new">STI.new</a></li>
+					<li><a href="#addCustomLayer">Map:addCustomLayer</a></li>
+					<li><a href="#convertToCustomLayer">Map:convertToCustomLayer</a></li>
+					<li><a href="#removeLayer">Map:removeLayer</a></li>
+					<li><a href="#update">Map:update</a></li>
+					<li><a href="#draw">Map:draw</a></li>
+					<li><a href="#drawLayer">Map:drawLayer</a></li>
+					<li><a href="#drawTileLayer">Map:drawTileLayer</a></li>
+					<li><a href="#drawObjectLayer">Map:drawObjectLayer</a></li>
+					<li><a href="#drawImageLayer">Map:drawImageLayer</a></li>
+					<li><a href="#createCollisionMap">Map:createCollisionMap</a></li>
+					<li><a href="#drawCollisionMap">Map:drawCollisionMap</a></li>
+					<li><a href="#callbacks">Callbacks</a></li>
+				</nav>
 			</header>
 			<section>
-				<h2>STI.new(map)</h2>
+				<h2><a id="new">STI.new(map)</a></h2>
 				<p>Load map</p>
 				<h3>Parameters</h3>
 				<ul>
-					<li><span>map:</span> Path to Map File (sans file extension)</li>
+					<li><span>map</span> Path to Map File (sans file extension)</li>
 				</ul>
 				<h3>Returns</h3>
 				<ul>
-					<li><span>map:</span> Map table</li>
+					<li><span>map</span> Map table</li>
 				</ul>
 				<pre><code class="language-lua">local sti = require "libs.sti"
 
@@ -37,12 +53,12 @@ function love.load()
 end</code></pre>
 			</section>
 			<section>
-				<h2>Map:addCustomLayer(name, index)</h2>
+				<h2><a id="addCustomLayer">Map:addCustomLayer(name, index)</a></h2>
 				<p>Create a new custom layer</p>
 				<h3>Parameters</h3>
 				<ul>
-					<li><span>name:</span> Name of New Layer</li>
-					<li><span>index:</span> Position within Layers</li>
+					<li><span>name</span> Name of New Layer</li>
+					<li><span>index</span> Position within Layers</li>
 				</ul>
 				<h3>Returns</h3>
 				<ul>
@@ -57,11 +73,11 @@ function love.load()
 end</code></pre>
 			</section>
 			<section>
-				<h2>Map:convertToCustomLayer(index)</h2>
+				<h2><a id="convertToCustomLayer">Map:convertToCustomLayer(index)</a></h2>
 				<p>Convert a layer into a custom layer</p>
 				<h3>Parameters</h3>
 				<ul>
-					<li><span>index:</span> Layer Name or Index</li>
+					<li><span>index</span> Layer Name or Index</li>
 				</ul>
 				<h3>Returns</h3>
 				<ul>
@@ -80,11 +96,11 @@ function love.load()
 end</code></pre>
 			</section>
 			<section>
-				<h2>Map:removeLayer(index)</h2>
+				<h2><a id="removeLayer">Map:removeLayer(index)</a></h2>
 				<p>Remove a layer</p>
 				<h3>Parameters</h3>
 				<ul>
-					<li><span>index:</span> Layer Name or Index</li>
+					<li><span>index</span> Layer Name or Index</li>
 				</ul>
 				<h3>Returns</h3>
 				<ul>
@@ -103,11 +119,11 @@ function love.load()
 end</code></pre>
 			</section>
 			<section>
-				<h2>Map:update(dt)</h2>
+				<h2><a id="update">Map:update(dt)</a></h2>
 				<p>Updates all layers in order</p>
 				<h3>Parameters</h3>
 				<ul>
-					<li><span>dt:</span> Delta Time</li>
+					<li><span>dt</span> Delta Time</li>
 				</ul>
 				<h3>Returns</h3>
 				<ul>
@@ -124,7 +140,7 @@ function love.update(dt)
 end</code></pre>
 			</section>
 			<section>
-				<h2>Map:draw()</h2>
+				<h2><a id="draw">Map:draw()</a></h2>
 				<p>Draws all layers in order</p>
 				<h3>Parameters</h3>
 				<ul>
@@ -149,11 +165,11 @@ function love.draw()
 end</code></pre>
 			</section>
 			<section>
-				<h2>Map:drawLayer(layer)</h2>
+				<h2><a id="drawLayer">Map:drawLayer(layer)</a></h2>
 				<p>Draws layer callback</p>
 				<h3>Parameters</h3>
 				<ul>
-					<li><span>layer:</span> Specific Layer to Draw</li>
+					<li><span>layer</span> Specific Layer to Draw</li>
 				</ul>
 				<h3>Returns</h3>
 				<ul>
@@ -178,11 +194,11 @@ function love.draw()
 end</code></pre>
 			</section>
 			<section>
-				<h2>Map:drawTileLayer(layer)</h2>
+				<h2><a id="drawTileLayer">Map:drawTileLayer(layer)</a></h2>
 				<p>Draw default TileLayer (manually set opacity)</p>
 				<h3>Parameters</h3>
 				<ul>
-					<li><span>layer:</span> Specific Layer to Draw</li>
+					<li><span>layer</span> Specific Layer to Draw</li>
 				</ul>
 				<h3>Returns</h3>
 				<ul>
@@ -207,11 +223,11 @@ function love.draw()
 end</code></pre>
 			</section>
 			<section>
-				<h2>Map:drawObjectLayer(layer)</h2>
+				<h2><a id="drawObjectLayer">Map:drawObjectLayer(layer)</a></h2>
 				<p>Draw default ObjectLayer (manually set opacity)</p>
 				<h3>Parameters</h3>
 				<ul>
-					<li><span>layer:</span> Specific Layer to Draw</li>
+					<li><span>layer</span> Specific Layer to Draw</li>
 				</ul>
 				<h3>Returns</h3>
 				<ul>
@@ -236,11 +252,11 @@ function love.draw()
 end</code></pre>
 			</section>
 			<section>
-				<h2>Map:drawImageLayer(layer)</h2>
+				<h2><a id="drawImageLayer">Map:drawImageLayer(layer)</a></h2>
 				<p>Draw default ImageLayer (manually set opacity)</p>
 				<h3>Parameters</h3>
 				<ul>
-					<li><span>layer:</span> Specific Layer to Draw</li>
+					<li><span>layer</span> Specific Layer to Draw</li>
 				</ul>
 				<h3>Returns</h3>
 				<ul>
@@ -265,11 +281,11 @@ function love.draw()
 end</code></pre>
 			</section>
 			<section>
-				<h2>Map:createCollisionMap(index)</h2>
+				<h2><a id="createCollisionMap">Map:createCollisionMap(index)</a></h2>
 				<p>Create a collision map</p>
 				<h3>Parameters</h3>
 				<ul>
-					<li><span>index:</span> Layer Name or Index</li>
+					<li><span>index</span> Layer Name or Index</li>
 				</ul>
 				<h3>Returns</h3>
 				<ul>
@@ -296,7 +312,7 @@ function love.draw()
 end</code></pre>
 			</section>
 			<section>
-				<h2>Map:drawCollisionMap()</h2>
+				<h2><a id="drawCollisionMap">Map:drawCollisionMap()</a></h2>
 				<p>Draws the collision map (useful for debugging)</p>
 				<h3>Parameters</h3>
 				<ul>
@@ -329,7 +345,7 @@ function love.draw()
 end</code></pre>
 			</section>
 			<section>
-				<h2>Callbacks</h2>
+				<h2><a id="callbacks">Callbacks</a></h2>
 				<p>update, draw</p>
 				<pre><code class="language-lua">local sti = require "libs.sti"
 

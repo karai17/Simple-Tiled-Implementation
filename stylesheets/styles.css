@@ -5,13 +5,15 @@ body {
 	margin: 50px;
 }
 
-section ul {
+header, section { margin-bottom: 50px; }
+nav {
+	font-size: 110%;
+	list-style-type: none;
 	margin-bottom: 20px;
 }
 
-section li {
-	margin: 5px 0 5px 20px;
-}
+section ul { margin-bottom: 20px; }
+nav li, section li { margin: 5px 0 5px 20px; }
 
 section li span {
 	color: #e6db74;
@@ -27,14 +29,13 @@ h1, h2 {
 	margin-bottom: 20px;
 }
 
-h1 { font-size: 240%; }
+h1 { font-size: 280%; }
 h2 { font-size: 180%; }
 h3 { font-size: 140%; }
 
 pre {
 	border: 2px dashed #e0e0e0;
 	font-size: 110%;
-	margin-bottom: 20px;
 	white-space: pre;
 }
 
@@ -55,9 +56,7 @@ footer {
 	width: 900px;
  }
  
-footer a {
-	color: #e0e0e0;
- }
+footer a { color: #e0e0e0; }
 
 #content {
 	background: #272727;
@@ -67,6 +66,4 @@ footer a {
 	width: 800px;
 }
 
-#content a {
-	color: #e0e0e0;
-}
+#content a { color: #e0e0e0; }
