@@ -1,11 +1,9 @@
 Simple Tiled Implementation
 ==
----
 Simple Tiled Implementation is a [**Tiled Map Editor**][Tiled] library designed for the *awesome* [**LÖVE**][LOVE] framework. Please read the library [**documentation**][dox] to learn how it all works!
 
 Quick Example
 --
----
 ```lua     
 local sti = require "sti"
 
@@ -63,7 +61,6 @@ end
 
 License
 --
----
 This code is licensed under the [**MIT Open Source License**][MIT]. Check out the LICENSE file for more information.
 
 [Tiled]: http://www.mapeditor.org/
