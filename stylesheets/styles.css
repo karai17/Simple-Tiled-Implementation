@@ -8,23 +8,29 @@ body {
 header {
 	border-bottom: 2px solid #e0e0e0;
 	color: #e0e0e0;
-	font-size: 240%;
 	margin-bottom: 20px;
 }
+
+h1, h2, h3 { font-weight: 300; }
+h1 { font-size: 240%; }
+h2 { font-size: 180%; }
+h3 { font-size: 140%; }
 
 pre {
 	border: 2px dashed #e0e0e0;
 	font-size: 110%;
-	margin-top: 20px;
+	margin-bottom: 20px;
 	white-space: pre;
 }
 
 p {
 	font-size: 110%;
+	margin-bottom: 20px;
 }
 
 img {
 	border: 2px dashed #e0e0e0;
+	margin-bottom: 20px;
 }
 
 footer {

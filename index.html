@@ -15,7 +15,7 @@
 	</head>
 	<body>
 		<div id="content">
-			<header>Simple Tiled Implementation</header>
+			<header><h1>Simple Tiled Implementation</h1></header>
 			<p>Simple Tiled Implementation is a <a href="http://mapeditor.org/">Tiled Map Editor</a> library designed for the *awesome* <a href="https://love2d.org/">L&Ouml;VE</a> framework.</p>
 			<pre><code class="language-lua">local sti = require "libs.sti"
 
@@ -30,6 +30,44 @@ end
 function love.draw()
 	map:draw()
 end</code></pre>
+			<header><h2>Callbacks</h2></header>
+			<p>update, draw</p>
+			
+			<header><h2>STI.new(map)</h2></header>
+			<p>Load map</p>
+			
+			<header><h2>Map:addCustomLayer(name, index)</h2></header>
+			<p>Create a new custom layer</p>
+			
+			<header><h2>Map:convertToCustomLayer(index)</h2></header>
+			<p>Convert a laye rinto a custom layer</p>
+			
+			<header><h2>Map:removeLayer(index)</h2></header>
+			<p>Remove a layer</p>
+			
+			<header><h2>Map:update(dt)</h2></header>
+			<p>Updates all layers in order</p>
+			
+			<header><h2>Map:draw()</h2></header>
+			<p>Draws all layers in order</p>
+			
+			<header><h2>Map:drawLayer(layer)</h2></header>
+			<p>Draws layer callback</p>
+			
+			<header><h2>Map:drawTileLayer(layer)</h2></header>
+			<p>Draw default TileLayer (manually set opacity)</p>
+			
+			<header><h2>Map:drawObjectLayer(layer)</h2></header>
+			<p>Draw default ObjectLayer (manually set opacity)</p>
+			
+			<header><h2>Map:drawImageLayer(layer)</h2></header>
+			<p>Draw default ImageLayer (manually set opacity)</p>
+			
+			<header><h2>Map:createCollisionMap(index)</h2></header>
+			<p>Create a collision map</p>
+			
+			<header><h2>Map:drawCollisionMap()</h2></header>
+			<p>Draws the collision map (useful for debugging)</p>
 		</div>
 		<footer>
 			<span>&copy; 2014 Landon Manning |</span>
