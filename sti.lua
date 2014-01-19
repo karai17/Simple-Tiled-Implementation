@@ -25,7 +25,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ]]--
 
--- Simple Tiled Implementation v0.5.0
+-- Simple Tiled Implementation v0.6.0
 
 local STI = {}
 local Map = {}
@@ -76,7 +76,7 @@ function STI.new(map)
 				
 				map.tiles[gid] = {
 					gid		= gid,
-					tileset	= tileset,
+					tileset	= i,
 					quad	= love.graphics.newQuad(qx, qy, tw, th, iw, ih),
 				}
 				
@@ -107,7 +107,8 @@ function STI.new(map)
 	-- Add tile structure, images
 	for i, layer in ipairs(map.layers) do
 		if layer.type == "tilelayer" then
-			layer.data = map:addTileLayerData(layer)
+			layer.data = map:setTileLayerData(layer)
+			layer.batches = map:setSpriteBatches(layer)
 			layer.draw = function() map:drawTileLayer(layer) end
 		elseif layer.type == "objectgroup" then
 			layer.x = 0
@@ -127,18 +128,6 @@ function STI.new(map)
 		layer.update = function(dt) return end
 		map.layers[layer.name] = layer
 	end
-	
-	--[[
-	map.spriteBatches = {}
-	for i, tileset in ipairs(map.tilesets) do
-		local image = map.tilesets[i].image
-		local w = tileset.imagewidth / tileset.tilewidth
-		local h = tileset.imageheight / tileset.tileheight
-		local size = w * h
-		
-		map.spriteBatches[i] = love.graphics.newSpriteBatch(image, size)
-	end
-	]]--
 	
 	return map
 end
@@ -161,7 +150,7 @@ function STI.formatPath(path)
 	return string.sub(path, 1, path:len()-1)
 end
 
-function Map:addTileLayerData(layer)
+function Map:setTileLayerData(layer)
 	local i = 1
 	local map = {}
 	
@@ -174,6 +163,46 @@ function Map:addTileLayerData(layer)
 	end
 	
 	return map
+end
+
+function Map:setSpriteBatches(layer)
+	local w			= love.graphics.getWidth() / 2
+	local h			= love.graphics.getHeight() / 2
+	local tw		= self.tilewidth
+	local th		= self.tileheight
+	local bw		= math.ceil(w / tw)
+	local bh		= math.ceil(h / th)
+	local size		= bw * bh
+	local batches	= {}
+	
+	for tileset, _ in ipairs(self.tilesets) do
+		batches[tileset] = {}
+	
+		for y = 1, layer.height do
+			local by = math.ceil(y / bh)
+			batches[tileset][y] = {}
+			
+			for x = 1, layer.width do
+				local tile	= layer.data[y][x]
+				local bx	= math.ceil(x / bw)
+				
+				if tile and tile.tileset == tileset then
+					local image = self.tilesets[tile.tileset].image
+					
+					if not batches[tile.tileset][by][bx] then
+						batches[tile.tileset][by][bx] = love.graphics.newSpriteBatch(image, size)
+					end
+					
+					local batch = batches[tile.tileset][by][bx]
+					local tx = layer.x + x * tw + tile.offset.x
+					local ty = layer.y + y * th + tile.offset.y
+					batch:add(tile.quad, tx, ty)
+				end
+			end
+		end
+	end
+	
+	return batches
 end
 
 function Map:addCustomLayer(name, index)
@@ -240,10 +269,10 @@ function Map:setDrawRange(tx, ty, w, h)
 	local tw = self.tilewidth
 	local th = self.tileheight
 	
-	local ox = math.floor(-tx / tw + 1)
-	local oy = math.floor(-ty / th + 1)
-	local ex = math.floor(ox + w / tw + 1)
-	local ey = math.floor(oy + h / th + 1)
+	local ox = math.ceil(-tx / tw)
+	local oy = math.ceil(-ty / th)
+	local ex = math.ceil(ox + w / tw)
+	local ey = math.ceil(oy + h / th)
 	
 	self.drawRange = {
 		ox = ox,
@@ -268,18 +297,27 @@ function Map:drawLayer(layer)
 end
 
 function Map:drawTileLayer(layer)
-	local tw = self.tilewidth
-	local th = self.tileheight
+	local w			= love.graphics.getWidth() / 2
+	local h			= love.graphics.getHeight() / 2
+	local bw		= math.ceil(w / self.tilewidth)
+	local bh		= math.ceil(h / self.tileheight)
+	local mx		= math.ceil(self.width / bw)
+	local my		= math.ceil(self.height / bh)
 	
-	for y=self.drawRange.oy, self.drawRange.ey do
-		for x=self.drawRange.ox, self.drawRange.ex do
-			if x >= 1 and x <= self.width and y >= 1 and y <= self.height then
-				local tile = layer.data[y][x]
-				
-				if tile then
-					local tx = layer.x + x * tw + tile.offset.x
-					local ty = layer.x + y * th + tile.offset.y
-					love.graphics.draw(tile.tileset.image, tile.quad, tx, ty)
+	local ox = math.ceil(self.drawRange.ox / bw)
+	local oy = math.ceil(self.drawRange.oy / bh)
+	local ex = math.ceil(self.drawRange.ex / bw)
+	local ey = math.ceil(self.drawRange.ey / bh)
+	
+	for by=oy, ey do
+		for bx=ox, ex do
+			if bx >= 1 and bx <= mx and by >= 1 and by <= my then
+				for _, batches in ipairs(layer.batches) do
+					local batch = batches[by][bx]
+					
+					if batch then
+						love.graphics.draw(batch)
+					end
 				end
 			end
 		end
