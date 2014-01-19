@@ -230,14 +230,20 @@ function Map:removeLayer(index)
 	end
 end
 
-function Map:setDrawRange(tx, ty, ww, wh)
+function Map:update(dt)
+	for _, layer in ipairs(self.layers) do
+		layer:update(dt)
+	end
+end
+
+function Map:setDrawRange(tx, ty, w, h)
 	local tw = self.tilewidth
 	local th = self.tileheight
 	
 	local ox = math.floor(-tx / tw + 1)
 	local oy = math.floor(-ty / th + 1)
-	local ex = math.floor(ox + ww / tw + 1)
-	local ey = math.floor(oy + wh / th + 1)
+	local ex = math.floor(ox + w / tw + 1)
+	local ey = math.floor(oy + h / th + 1)
 	
 	self.drawRange = {
 		ox = ox,
@@ -245,12 +251,6 @@ function Map:setDrawRange(tx, ty, ww, wh)
 		ex = ex,
 		ey = ey,
 	}
-end
-
-function Map:update(dt)
-	for _, layer in ipairs(self.layers) do
-		layer:update(dt)
-	end
 end
 
 function Map:draw()
