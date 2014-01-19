@@ -25,7 +25,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ]]--
 
--- Simple Tiled Implementation v0.4.3
+-- Simple Tiled Implementation v0.5.0
 
 local STI = {}
 local Map = {}
@@ -46,6 +46,12 @@ function STI.new(map)
 	
 	map.tiles		= {}
 	map.collision	= {}
+	map.drawRange	= {
+		ox = 1,
+		oy = 1,
+		ex = map.width,
+		ey = map.height,
+	}
 	
 	-- Create array of quads
 	local gid = 1
@@ -224,6 +230,23 @@ function Map:removeLayer(index)
 	end
 end
 
+function Map:setDrawRange(tx, ty, ww, wh)
+	local tw = self.tilewidth
+	local th = self.tileheight
+	
+	local ox = math.floor(-tx / tw + 1)
+	local oy = math.floor(-ty / th + 1)
+	local ex = math.floor(ox + ww / tw + 1)
+	local ey = math.floor(oy + wh / th + 1)
+	
+	self.drawRange = {
+		ox = ox,
+		oy = oy,
+		ex = ex,
+		ey = ey,
+	}
+end
+
 function Map:update(dt)
 	for _, layer in ipairs(self.layers) do
 		layer:update(dt)
@@ -248,12 +271,16 @@ function Map:drawTileLayer(layer)
 	local tw = self.tilewidth
 	local th = self.tileheight
 	
-	for y,tiles in pairs(layer.data) do
-		for x,tile in pairs(tiles) do
-			if tile.gid ~= 0 then
-				local tx = layer.x + x * tw + tile.offset.x
-				local ty = layer.y + y * th + tile.offset.y
-				love.graphics.draw(tile.tileset.image, tile.quad, tx, ty)
+	for y=self.drawRange.oy, self.drawRange.ey do
+		for x=self.drawRange.ox, self.drawRange.ex do
+			if x >= 1 and x <= self.width and y >= 1 and y <= self.height then
+				local tile = layer.data[y][x]
+				
+				if tile then
+					local tx = layer.x + x * tw + tile.offset.x
+					local ty = layer.x + y * th + tile.offset.y
+					love.graphics.draw(tile.tileset.image, tile.quad, tx, ty)
+				end
 			end
 		end
 	end
