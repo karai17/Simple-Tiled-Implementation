@@ -25,6 +25,7 @@
 					<li><a href="#convertToCustomLayer">Map:convertToCustomLayer</a></li>
 					<li><a href="#removeLayer">Map:removeLayer</a></li>
 					<li><a href="#update">Map:update</a></li>
+					<li><a href="#setDrawRange">Map:setDrawRange</a></li>
 					<li><a href="#draw">Map:draw</a></li>
 					<li><a href="#drawLayer">Map:drawLayer</a></li>
 					<li><a href="#drawTileLayer">Map:drawTileLayer</a></li>
@@ -143,6 +144,44 @@ end
 
 function love.update(dt)
 	map:update(dt)
+end</code></pre>
+			</section>
+			<section>
+				<h2><a id="setDrawRange">Map:setDrawRange(tx, ty, w, h)</a></h2>
+				<p>Set a Range for Tiles to be Drawn</p>
+				<h3>Parameters</h3>
+				<ul>
+					<li><span>tx</span> X position of Window Translation</li>
+					<li><span>ty</span> Y position of Window Translation</li>
+					<li><span>w</span> Width of Draw Area</li>
+					<li><span>h</span> Height of Draw Area</li>
+				</ul>
+				<h3>Returns</h3>
+				<ul>
+					<li>none</li>
+				</ul>
+				<h3>Example</h3>
+				<pre><code class="language-lua">local sti = require "libs.sti"
+
+function love.load()
+	map = sti.new("assets/maps/map01")
+end
+
+function love.update(dt)
+	map:update(dt)
+end
+
+function love.draw()
+	local tx = -53
+	local ty = -92
+	local w = love.graphics.getWidth()
+	local h = love.graphics.getHeight()
+	
+	-- Move the top-left-most x/y position by tx/ty, respectively
+	love.graphics.translate(tx, ty)
+	
+	-- Draw only the tiles on screen
+	map:setDrawRange(tx, ty, w, h)
 end</code></pre>
 			</section>
 			<section>
