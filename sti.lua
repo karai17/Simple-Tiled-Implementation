@@ -25,7 +25,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ]]--
 
--- Simple Tiled Implementation v0.6.0
+-- Simple Tiled Implementation v0.6.1
 
 local STI = {}
 local Map = {}
@@ -426,23 +426,23 @@ end
 function Map:createCollisionMap(index)
 	local layer	= self.layers[index]
 	
-	if layer.type == "tilelayer" then
-		local w		= self.width
-		local h		= self.height
-		local i		= 1
-		local map	= {
-			opacity	= 0.5,
-			data	= {},
-		}
-		
-		for y=1, h do
-			map.data[y] = {}
-			for x=1, w do
-				if layer.data[y][x] == nil then
-					map.data[y][x] = 0
-				else
-					map.data[y][x] = 1
-				end
+	if layer.type ~= "tilelayer" then return end
+	
+	local w		= self.width
+	local h		= self.height
+	local i		= 1
+	local map	= {
+		opacity	= 0.5,
+		data	= {},
+	}
+	
+	for y=1, h do
+		map.data[y] = {}
+		for x=1, w do
+			if layer.data[y][x] == nil then
+				map.data[y][x] = 0
+			else
+				map.data[y][x] = 1
 			end
 		end
 	end

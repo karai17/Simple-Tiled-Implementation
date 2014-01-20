@@ -2,6 +2,11 @@
 Simple Tiled Implementation Change Log
 ======================================
 -------------------
+2014-01-19 : v0.6.1
+-------------------
+* Fixed:	A bug causing the Collision Map to be nil
+
+-------------------
 2014-01-19 : v0.6.0
 -------------------
 * Added:	Sprite Batches
