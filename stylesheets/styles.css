@@ -1,5 +1,7 @@
 body {
-	background: #060606;
+	background-attachment: fixed;
+	background-color: #060606;
+	background-image: url("../images/nami.png");
 	font-family: Helvetica, Arial, sans-serif;
 	font-size: 10pt;
 	margin: 50px;
@@ -24,7 +26,6 @@ section li span {
 }
 
 h1, h2, h3 { font-weight: 300; }
-
 h1, h2 {
 	border-bottom: 2px solid #e0e0e0;
 	margin-bottom: 20px;
@@ -56,6 +57,7 @@ img {
 footer {
 	color: #e0e0e0;
 	margin: 0 auto;
+	padding-top: 3px;
 	text-align: right;
 	width: 900px;
  }
@@ -63,7 +65,8 @@ footer {
 footer a { color: #e0e0e0; }
 
 #content {
-	background: #272727;
+	background: rgba(39, 39, 39, 0.5);
+	box-shadow: 0 0 10px #000000;
 	color: #e0e0e0;
 	margin: 0 auto;
 	padding: 50px;
