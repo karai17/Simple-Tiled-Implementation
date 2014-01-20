@@ -25,7 +25,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ]]--
 
--- Simple Tiled Implementation v0.6.1
+-- Simple Tiled Implementation v0.6.2
 
 local STI = {}
 local Map = {}
@@ -173,7 +173,10 @@ function Map:setSpriteBatches(layer)
 	local bw		= math.ceil(w / tw)
 	local bh		= math.ceil(h / th)
 	local size		= bw * bh
-	local batches	= {}
+	local batches	= {
+		width = bw,
+		height = bh,
+	}
 	
 	for tileset, _ in ipairs(self.tilesets) do
 		batches[tileset] = {}
@@ -297,17 +300,14 @@ function Map:drawLayer(layer)
 end
 
 function Map:drawTileLayer(layer)
-	local w			= love.graphics.getWidth() / 2
-	local h			= love.graphics.getHeight() / 2
-	local bw		= math.ceil(w / self.tilewidth)
-	local bh		= math.ceil(h / self.tileheight)
-	local mx		= math.ceil(self.width / bw)
-	local my		= math.ceil(self.height / bh)
-	
+	local bw = layer.batches.width
+	local bh = layer.batches.height
 	local ox = math.ceil(self.drawRange.ox / bw)
 	local oy = math.ceil(self.drawRange.oy / bh)
 	local ex = math.ceil(self.drawRange.ex / bw)
 	local ey = math.ceil(self.drawRange.ey / bh)
+	local mx = math.ceil(self.width / bw)
+	local my = math.ceil(self.height / bh)
 	
 	for by=oy, ey do
 		for bx=ox, ex do
