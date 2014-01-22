@@ -25,8 +25,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ]]--
 
--- Simple Tiled Implementation v0.6.2
+-- Simple Tiled Implementation v0.6.3
 
+local bit = require "bit"
 local STI = {}
 local Map = {}
 
@@ -78,6 +79,9 @@ function STI.new(map)
 					gid		= gid,
 					tileset	= i,
 					quad	= love.graphics.newQuad(qx, qy, tw, th, iw, ih),
+					sx		= 1,
+					sy		= 1,
+					r		= 0,
 				}
 				
 				--[[ THIS IS A TEMPORARY FIX FOR 0.9.1 ]]--
@@ -157,7 +161,52 @@ function Map:setTileLayerData(layer)
 	for y = 1, layer.height do
 		map[y] = {}
 		for x = 1, layer.width do
-			map[y][x] = self.tiles[layer.data[i]]
+			local gid = layer.data[i]
+			local tile = self.tiles[gid]
+			
+			if tile then
+				map[y][x] = tile
+			else
+				local _31 = bitStatus(gid, 31)
+				local _30 = bitStatus(gid, 30)
+				local _29 = bitStatus(gid, 29)
+				
+				local realgid = bit.band(gid, bit.bnot(bit.bor(2^31, 2^30, 2^29)))
+				
+				local data = {}
+				local tile = self.tiles[realgid]
+				
+				if tile then
+					data.gid		= tile.gid
+					data.tileset	= tile.tileset
+					data.offset		= tile.offset
+					data.quad		= tile.quad
+					data.sx			= tile.sx
+					data.sy			= tile.sy
+					data.r			= tile.r
+					
+					if _31 then
+						if _29 then
+							data.r = math.rad(90)
+						elseif _30 then
+							data.sx = -1
+							data.sy = -1
+						else
+							data.sx = -1
+						end
+					elseif _30 then
+						if _29 then
+							data.r = math.rad(-90)
+						else
+							data.sy = -1
+						end
+					end
+					
+					self.tiles[gid] = data
+					map[y][x] = self.tiles[gid]
+				end
+			end
+			
 			i = i + 1
 		end
 	end
@@ -199,7 +248,13 @@ function Map:setSpriteBatches(layer)
 					local batch = batches[tile.tileset][by][bx]
 					local tx = layer.x + x * tw + tile.offset.x
 					local ty = layer.y + y * th + tile.offset.y
-					batch:add(tile.quad, tx, ty)
+					
+					if tile.sx < 0 then tx = tx + tw end
+					if tile.sy < 0 then ty = ty + th end
+					if tile.r > 0 then tx = tx + tw end
+					if tile.r < 0 then ty = ty + th end
+					
+					batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
 				end
 			end
 		end
@@ -352,7 +407,7 @@ function Map:drawObjectLayer(layer)
 				love.graphics.pop()
 			end
 			
-			local function drawLineEllipse(x, y, rx, ry, color)
+			local function drawEllipseOutline(x, y, rx, ry, color)
 				local segments = 100
 				local vertices = {}
 				
@@ -371,8 +426,8 @@ function Map:drawObjectLayer(layer)
 			end
 			
 			drawEllipse("fill", x, y, object.width, object.height, fill)
-			drawLineEllipse(x+1, y+1, object.width, object.height, shadow)
-			drawLineEllipse(x, y, object.width, object.height, line)
+			drawEllipseOutline(x+1, y+1, object.width, object.height, shadow)
+			drawEllipseOutline(x, y, object.width, object.height, line)
 		elseif object.shape == "polygon" then
 			local points = {{},{}}
 			
@@ -493,6 +548,10 @@ function string.split(s, d)
 	end
 	
 	return t
+end
+
+function bitStatus(num, digit)
+	return bit.band(num, bit.lshift(1, digit)) ~= 0
 end
 
 return STI

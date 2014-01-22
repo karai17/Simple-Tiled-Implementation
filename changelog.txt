@@ -2,6 +2,11 @@
 Simple Tiled Implementation Change Log
 ======================================
 -------------------
+2014-01-20 : v0.6.3
+-------------------
+* Added:	Tile Flags (flip/rotation)
+
+-------------------
 2014-01-20 : v0.6.2
 -------------------
 * Fixed:	A scaling bug
