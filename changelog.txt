@@ -59,7 +59,7 @@ Simple Tiled Implementation Change Log
 2014-01-16 : v0.3.2
 -------------------
 * Fixed:	Crash if using Tiled 0.9.1
-* Changed:	Map structure to remove "map"table
+* Changed:	Map structure to remove "map" table
 
 -------------------
 2014-01-16 : v0.3.1
