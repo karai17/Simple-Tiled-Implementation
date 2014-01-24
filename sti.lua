@@ -25,7 +25,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ]]--
 
--- Simple Tiled Implementation v0.6.5
+-- Simple Tiled Implementation v0.6.6
 
 local bit = require "bit"
 local STI = {}
@@ -68,12 +68,12 @@ function STI.new(map)
 		
 		for y = 1, h do
 			for x = 1, w do
-				local qx = x * tw + m - tw
-				local qy = y * th + m - th
+				local qx = (x - 1) * tw + m
+				local qy = (y - 1) * th + m
 				
 				-- Spacing does not affect the first row/col
-				if x > 1 then qx = qx + s end
-				if y > 1 then qy = qy + s end
+				if x > 1 then qx = qx + s * x - s end
+				if y > 1 then qy = qy + s * y - s end
 				
 				map.tiles[gid] = {
 					gid		= gid,

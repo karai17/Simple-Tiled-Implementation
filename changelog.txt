@@ -2,6 +2,11 @@
 Simple Tiled Implementation Change Log
 ======================================
 -------------------
+2014-01-24 : v0.6.6
+-------------------
+* Fixed:	Spacing wasn't calculated properly
+
+-------------------
 2014-01-24 : v0.6.5
 -------------------
 * Added:	Staggered Maps
