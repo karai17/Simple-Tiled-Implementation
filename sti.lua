@@ -25,7 +25,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ]]--
 
--- Simple Tiled Implementation v0.6.4
+-- Simple Tiled Implementation v0.6.5
 
 local bit = require "bit"
 local STI = {}
@@ -264,7 +264,16 @@ function Map:setSpriteBatches(layer)
 						
 						batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
 					elseif self.orientation =="staggered" then
-						return
+						local tx, ty
+						if y % 2 == 0 then
+							tx = (x * tw) + (tw / 2) + layer.x + tile.offset.x
+							ty = y * th / 2 + layer.y + tile.offset.y
+						else
+							tx = x * tw + layer.x + tile.offset.x
+							ty = y * th / 2 + layer.y + tile.offset.y
+						end
+						
+						batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
 					end
 				end
 			end
@@ -335,25 +344,29 @@ function Map:update(dt)
 end
 
 function Map:setDrawRange(tx, ty, w, h)
+	tx = -tx
+	ty = -ty
 	local tw = self.tilewidth
 	local th = self.tileheight
 	local ox, oy, ex, ey
 	
 	if self.orientation == "orthogonal" then
-		ox = math.ceil(-tx / tw)
-		oy = math.ceil(-ty / th)
+		ox = math.ceil(tx / tw)
+		oy = math.ceil(ty / th)
 		ex = math.ceil(ox + w / tw)
 		ey = math.ceil(oy + h / th)
 	elseif self.orientation == "isometric" then
-		ox = math.ceil(((-ty / (th / 2)) + (-tx / (tw / 2))) / 2)
-		oy = math.ceil(((-ty / (th / 2)) - (-tx / (tw / 2))) / 2 - h / th)
+		ox = math.ceil(((ty / (th / 2)) + (tx / (tw / 2))) / 2)
+		oy = math.ceil(((ty / (th / 2)) - (tx / (tw / 2))) / 2 - h / th)
 		ex = math.ceil(ox + (h / th) + (w / tw))
 		ey = math.ceil(oy + (h / th) * 2 + (w / tw))
 	elseif self.orientation == "staggered" then
-		return
+		ox = math.ceil(tx / tw - 1)
+		oy = math.ceil(ty / th)
+		ex = math.ceil(ox + w / tw + 1)
+		ey = math.ceil(oy + h / th * 2)
 	end
 	
-	--print(ox, oy, ex, ey)
 	self.drawRange = {
 		ox = ox,
 		oy = oy,
