@@ -25,7 +25,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ]]--
 
--- Simple Tiled Implementation v0.6.3
+-- Simple Tiled Implementation v0.6.4
 
 local bit = require "bit"
 local STI = {}
@@ -82,19 +82,20 @@ function STI.new(map)
 					sx		= 1,
 					sy		= 1,
 					r		= 0,
-				}
-				
-				--[[ THIS IS A TEMPORARY FIX FOR 0.9.1 ]]--
-				if tileset.tileoffset then
-					map.tiles[gid].offset	= {
-						x = tileset.tileoffset.x - map.tilewidth,
-						y = tileset.tileoffset.y - tileset.tileheight,
-					}
-				else
-					map.tiles[gid].offset	= {
+					offset	= {
 						x = -map.tilewidth,
 						y = -tileset.tileheight,
-					}
+					},
+				}
+				
+				if map.orientation == "isometric" then
+					map.tiles[gid].offset.x = -map.tilewidth / 2
+				end
+			
+				--[[ THIS IS A TEMPORARY FIX FOR 0.9.1 ]]--
+				if tileset.tileoffset then
+					map.tiles[gid].offset.x = map.tiles[gid].offset.x + tileset.tileoffset.x
+					map.tiles[gid].offset.y = map.tiles[gid].offset.y + tileset.tileoffset.y
 				end
 				
 				gid = gid + 1
@@ -167,9 +168,9 @@ function Map:setTileLayerData(layer)
 			if tile then
 				map[y][x] = tile
 			else
-				local _31 = bitStatus(gid, 31)
-				local _30 = bitStatus(gid, 30)
-				local _29 = bitStatus(gid, 29)
+				local _31 = bit.status(gid, 31)
+				local _30 = bit.status(gid, 30)
+				local _29 = bit.status(gid, 29)
 				
 				local realgid = bit.band(gid, bit.bnot(bit.bor(2^31, 2^30, 2^29)))
 				
@@ -246,15 +247,25 @@ function Map:setSpriteBatches(layer)
 					end
 					
 					local batch = batches[tile.tileset][by][bx]
-					local tx = layer.x + x * tw + tile.offset.x
-					local ty = layer.y + y * th + tile.offset.y
 					
-					if tile.sx < 0 then tx = tx + tw end
-					if tile.sy < 0 then ty = ty + th end
-					if tile.r > 0 then tx = tx + tw end
-					if tile.r < 0 then ty = ty + th end
-					
-					batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
+					if self.orientation == "orthogonal" then
+						local tx = x * tw + layer.x + tile.offset.x
+						local ty = y * th + layer.y + tile.offset.y
+						
+						if tile.sx < 0 then tx = tx + tw end
+						if tile.sy < 0 then ty = ty + th end
+						if tile.r > 0 then tx = tx + tw end
+						if tile.r < 0 then ty = ty + th end
+						
+						batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
+					elseif self.orientation == "isometric" then
+						local tx = (x - y) * (tw / 2) + layer.x + tile.offset.x
+						local ty = (x + y) * (th / 2) + layer.y + tile.offset.y
+						
+						batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
+					elseif self.orientation =="staggered" then
+						return
+					end
 				end
 			end
 		end
@@ -326,12 +337,23 @@ end
 function Map:setDrawRange(tx, ty, w, h)
 	local tw = self.tilewidth
 	local th = self.tileheight
+	local ox, oy, ex, ey
 	
-	local ox = math.ceil(-tx / tw)
-	local oy = math.ceil(-ty / th)
-	local ex = math.ceil(ox + w / tw)
-	local ey = math.ceil(oy + h / th)
+	if self.orientation == "orthogonal" then
+		ox = math.ceil(-tx / tw)
+		oy = math.ceil(-ty / th)
+		ex = math.ceil(ox + w / tw)
+		ey = math.ceil(oy + h / th)
+	elseif self.orientation == "isometric" then
+		ox = math.ceil(((-ty / (th / 2)) + (-tx / (tw / 2))) / 2)
+		oy = math.ceil(((-ty / (th / 2)) - (-tx / (tw / 2))) / 2 - h / th)
+		ex = math.ceil(ox + (h / th) + (w / tw))
+		ey = math.ceil(oy + (h / th) * 2 + (w / tw))
+	elseif self.orientation == "staggered" then
+		return
+	end
 	
+	--print(ox, oy, ex, ey)
 	self.drawRange = {
 		ox = ox,
 		oy = oy,
@@ -550,7 +572,7 @@ function string.split(s, d)
 	return t
 end
 
-function bitStatus(num, digit)
+function bit.status(num, digit)
 	return bit.band(num, bit.lshift(1, digit)) ~= 0
 end
 
