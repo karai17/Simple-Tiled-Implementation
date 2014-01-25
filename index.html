@@ -21,17 +21,18 @@
 				<h3>Navigation</h3>
 				<nav>
 					<li><a href="#new">STI.new</a></li>
+					<li><a href="#setSpriteBatches">Map:setSpriteBatches</a></li>
+					<li><a href="#setDrawRange">Map:setDrawRange</a></li>
+					<li><a href="#setCollisionMap">Map:setCollisionMap</a></li>
 					<li><a href="#addCustomLayer">Map:addCustomLayer</a></li>
 					<li><a href="#convertToCustomLayer">Map:convertToCustomLayer</a></li>
 					<li><a href="#removeLayer">Map:removeLayer</a></li>
 					<li><a href="#update">Map:update</a></li>
-					<li><a href="#setDrawRange">Map:setDrawRange</a></li>
 					<li><a href="#draw">Map:draw</a></li>
 					<li><a href="#drawLayer">Map:drawLayer</a></li>
 					<li><a href="#drawTileLayer">Map:drawTileLayer</a></li>
 					<li><a href="#drawObjectLayer">Map:drawObjectLayer</a></li>
 					<li><a href="#drawImageLayer">Map:drawImageLayer</a></li>
-					<li><a href="#createCollisionMap">Map:createCollisionMap</a></li>
 					<li><a href="#drawCollisionMap">Map:drawCollisionMap</a></li>
 					<li><a href="#callbacks">Callbacks</a></li>
 					<li><a href="#properties">Properties</a></li>
@@ -53,6 +54,100 @@
 
 function love.load()
 	map = sti.new("assets/maps/map01")
+end</code></pre>
+			</section>
+			<section>
+				<h2><a id="setSpriteBatches">Map:setSpriteBatches(layer)</a></h2>
+				<p>Generate Sprite Batches for a Tile Layer. This is used internally when initializing a new map, but can be used to force Batch regeneration when a screen is resized. Use with caution.</p>
+				<h3>Parameters</h3>
+				<ul>
+					<li><span>layer</span> Specific Layer to generate Batches for</li>
+				</ul>
+				<h3>Returns</h3>
+				<ul>
+					<li>none</li>
+				</ul>
+				<h3>Example</h3>
+				<pre><code class="language-lua">local sti = require "libs.sti"
+
+function love.load()
+	map = sti.new("assets/maps/map01")
+end
+
+function love.resize(w, h)
+	for _, layer in pairs(map.layers) do
+		map:setSpriteBatches(layer)
+	end
+end</code></pre>
+			</section>
+			<section>
+				<h2><a id="setDrawRange">Map:setDrawRange(tx, ty, w, h)</a></h2>
+				<p>Set a Range for Tiles to be Drawn</p>
+				<h3>Parameters</h3>
+				<ul>
+					<li><span>tx</span> X position of Window Translation</li>
+					<li><span>ty</span> Y position of Window Translation</li>
+					<li><span>w</span> Width of Draw Area</li>
+					<li><span>h</span> Height of Draw Area</li>
+				</ul>
+				<h3>Returns</h3>
+				<ul>
+					<li>none</li>
+				</ul>
+				<h3>Example</h3>
+				<pre><code class="language-lua">local sti = require "libs.sti"
+
+function love.load()
+	map = sti.new("assets/maps/map01")
+end
+
+function love.update(dt)
+	map:update(dt)
+end
+
+function love.draw()
+	local tx = -53
+	local ty = -92
+	local w = love.graphics.getWidth()
+	local h = love.graphics.getHeight()
+	
+	-- Move the top-left-most x/y position by tx/ty, respectively
+	love.graphics.translate(tx, ty)
+	
+	-- Draw only the tiles on screen
+	map:setDrawRange(tx, ty, w, h)
+end</code></pre>
+			</section>
+			<section>
+				<h2><a id="setCollisionMap">Map:setCollisionMap(index)</a></h2>
+				<p>Use a Tile Layer to create a Collision Map. The Collision Map is simply a Binary Map and does not have any collision detection built in.</p>
+				<h3>Parameters</h3>
+				<ul>
+					<li><span>index</span> Layer Name or Index</li>
+				</ul>
+				<h3>Returns</h3>
+				<ul>
+					<li>none</li>
+				</ul>
+				<h3>Example</h3>
+				<pre><code class="language-lua">local sti = require "libs.sti"
+
+function love.load()
+	map = sti.new("assets/maps/map01")
+	
+	-- Set using name
+	map:setCollisionMap("Collision Layer")
+	
+	-- Set using index
+	map:setCollisionMap(5)
+end
+
+function love.update(dt)
+	map:update(dt)
+end
+
+function love.draw()
+	map:draw()
 end</code></pre>
 			</section>
 			<section>
@@ -144,44 +239,6 @@ end
 
 function love.update(dt)
 	map:update(dt)
-end</code></pre>
-			</section>
-			<section>
-				<h2><a id="setDrawRange">Map:setDrawRange(tx, ty, w, h)</a></h2>
-				<p>Set a Range for Tiles to be Drawn</p>
-				<h3>Parameters</h3>
-				<ul>
-					<li><span>tx</span> X position of Window Translation</li>
-					<li><span>ty</span> Y position of Window Translation</li>
-					<li><span>w</span> Width of Draw Area</li>
-					<li><span>h</span> Height of Draw Area</li>
-				</ul>
-				<h3>Returns</h3>
-				<ul>
-					<li>none</li>
-				</ul>
-				<h3>Example</h3>
-				<pre><code class="language-lua">local sti = require "libs.sti"
-
-function love.load()
-	map = sti.new("assets/maps/map01")
-end
-
-function love.update(dt)
-	map:update(dt)
-end
-
-function love.draw()
-	local tx = -53
-	local ty = -92
-	local w = love.graphics.getWidth()
-	local h = love.graphics.getHeight()
-	
-	-- Move the top-left-most x/y position by tx/ty, respectively
-	love.graphics.translate(tx, ty)
-	
-	-- Draw only the tiles on screen
-	map:setDrawRange(tx, ty, w, h)
 end</code></pre>
 			</section>
 			<section>
@@ -343,38 +400,6 @@ function love.draw()
 end</code></pre>
 			</section>
 			<section>
-				<h2><a id="createCollisionMap">Map:createCollisionMap(index)</a></h2>
-				<p>Use a Tile Layer to create a Collision Map. The Collision Map is simply a Binary Map and does not have any collision detection built in.</p>
-				<h3>Parameters</h3>
-				<ul>
-					<li><span>index</span> Layer Name or Index</li>
-				</ul>
-				<h3>Returns</h3>
-				<ul>
-					<li>none</li>
-				</ul>
-				<h3>Example</h3>
-				<pre><code class="language-lua">local sti = require "libs.sti"
-
-function love.load()
-	map = sti.new("assets/maps/map01")
-	
-	-- Create using name
-	map:createCollisionMap("Collision Layer")
-	
-	-- Create using index
-	map:createCollisionMap(5)
-end
-
-function love.update(dt)
-	map:update(dt)
-end
-
-function love.draw()
-	map:draw()
-end</code></pre>
-			</section>
-			<section>
 				<h2><a id="drawCollisionMap">Map:drawCollisionMap()</a></h2>
 				<p>Draw the Collision Map. This can be useful for debugging your collision detection code.</p>
 				<h3>Parameters</h3>
@@ -391,11 +416,11 @@ end</code></pre>
 function love.load()
 	map = sti.new("assets/maps/map01")
 	
-	-- Create using name
-	map:createCollisionMap("Collision Layer")
+	-- Set using name
+	map:setCollisionMap("Collision Layer")
 	
-	-- Create using index
-	map:createCollisionMap(5)
+	-- Set using index
+	map:setCollisionMap(5)
 end
 
 function love.update(dt)
@@ -405,6 +430,7 @@ end
 function love.draw()
 	map:draw()
 	
+	-- Draw last so it is on top
 	map:drawCollisionMap()
 end</code></pre>
 			</section>
@@ -432,16 +458,18 @@ function love.load()
 	
 	-- Override Update callback
 	function spriteLayer:update(dt)
-		self.sprite.r = self.sprite.r + 90 * dt
+		self.sprite.r = self.sprite.r + math.rad(90 * dt)
 	end
 	
 	-- Override Draw callback
 	function spriteLayer:draw()
-		local x = math.floor(self.sprite.x)
-		local y = math.floor(self.sprite.y)
-		local r = math.rad(self.sprite.r)
+		local sprite = self.sprite
+		local image = sprite.image
+		local x = math.floor(sprite.x)
+		local y = math.floor(sprite.y)
+		local r = sprite.r
 		
-		love.graphics.draw(self.sprite.image, x, y, r)
+		love.graphics.draw(image, x, y, r)
 	end
 end
 
@@ -464,7 +492,7 @@ function love.load()
 	
 	local groundLayer = map.layers["Ground"]
 	
-	-- Change a tile
+	-- Change a tile  --[[ THIS DOES NOT WORK ANYMORE AND WILL BE REPLACED WITH A NEW FUNCTION SOON! ]]--
 	local x = 8 -- x coordinate of the tile
 	local y = 15 -- y coordinate of the tile
 	local gid = 572 -- Global ID of the new tile
