@@ -25,7 +25,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ]]--
 
--- Simple Tiled Implementation v0.6.9
+-- Simple Tiled Implementation v0.6.10
 
 local bit = require "bit"
 local STI = {}
@@ -219,67 +219,69 @@ function Map:setTileData(layer)
 end
 
 function Map:setSpriteBatches(layer)
-	local w			= love.graphics.getWidth() / 2
-	local h			= love.graphics.getHeight() / 2
+	local newBatch	= love.graphics.newSpriteBatch
+	local w			= love.graphics.getWidth()
+	local h			= love.graphics.getHeight()
 	local tw		= self.tilewidth
 	local th		= self.tileheight
 	local bw		= math.ceil(w / tw)
 	local bh		= math.ceil(h / th)
+	
+	-- Minimum of 400 tiles per batch
+	if bw < 20 then bw = 20 end
+	if bh < 20 then bh = 20 end
+	
 	local size		= bw * bh
 	local batches	= {
 		width = bw,
 		height = bh,
 	}
 	
-	for tileset, _ in ipairs(self.tilesets) do
-		batches[tileset] = {}
-	
-		for y = 1, layer.height do
-			local by = math.ceil(y / bh)
-			batches[tileset][y] = {}
+	for y = 1, layer.height do
+		local by = math.ceil(y / bh)
+		
+		for x = 1, layer.width do
+			local tile	= layer.data[y][x]
+			local bx	= math.ceil(x / bw)
 			
-			for x = 1, layer.width do
-				local tile	= layer.data[y][x]
-				local bx	= math.ceil(x / bw)
+			if tile then
+				local ts = tile.tileset
+				local image = self.tilesets[tile.tileset].image
 				
-				if tile and tile.tileset == tileset then
-					local image = self.tilesets[tile.tileset].image
+				batches[ts] = batches[ts] or {}
+				batches[ts][by] = batches[ts][by] or {}
+				batches[ts][by][bx] = batches[ts][by][bx] or newBatch(image, size)
+				
+				local batch = batches[ts][by][bx]
+				
+				if self.orientation == "orthogonal" then
+					local tx = x * tw + tile.offset.x
+					local ty = y * th + tile.offset.y
 					
-					if not batches[tile.tileset][by][bx] then
-						batches[tile.tileset][by][bx] = love.graphics.newSpriteBatch(image, size)
+					-- Compensation for scale/rotation shift
+					if tile.sx	< 0 then tx = tx + tw end
+					if tile.sy	< 0 then ty = ty + th end
+					if tile.r	> 0 then tx = tx + tw end
+					if tile.r	< 0 then ty = ty + th end
+					
+					batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
+				elseif self.orientation == "isometric" then
+					local tx = (x - y) * (tw / 2) + tile.offset.x
+					local ty = (x + y) * (th / 2) + tile.offset.y
+					
+					batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
+				elseif self.orientation == "staggered" then
+					local tx, ty
+					
+					if y % 2 == 0 then
+						tx = x * tw + tw / 2 + tile.offset.x
+						ty = y * th / 2 + tile.offset.y
+					else
+						tx = x * tw + tile.offset.x
+						ty = y * th / 2 + tile.offset.y
 					end
 					
-					local batch = batches[tile.tileset][by][bx]
-					
-					if self.orientation == "orthogonal" then
-						local tx = x * tw + tile.offset.x
-						local ty = y * th + tile.offset.y
-						
-						-- Compensation for scale/rotation shift
-						if tile.sx	< 0 then tx = tx + tw end
-						if tile.sy	< 0 then ty = ty + th end
-						if tile.r	> 0 then tx = tx + tw end
-						if tile.r	< 0 then ty = ty + th end
-						
-						batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
-					elseif self.orientation == "isometric" then
-						local tx = (x - y) * (tw / 2) + tile.offset.x
-						local ty = (x + y) * (th / 2) + tile.offset.y
-						
-						batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
-					elseif self.orientation =="staggered" then
-						local tx, ty
-						
-						if y % 2 == 0 then
-							tx = x * tw + tw / 2 + tile.offset.x
-							ty = y * th / 2 + tile.offset.y
-						else
-							tx = x * tw + tile.offset.x
-							ty = y * th / 2 + tile.offset.y
-						end
-						
-						batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
-					end
+					batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
 				end
 			end
 		end
@@ -428,18 +430,10 @@ end
 function Map:drawTileLayer(layer)
 	local bw = layer.batches.width
 	local bh = layer.batches.height
-	local sx = math.ceil(self.drawRange.sx / bw)
-	local sy = math.ceil(self.drawRange.sy / bh)
-	local ex = math.ceil(self.drawRange.ex / bw)
-	local ey = math.ceil(self.drawRange.ey / bh)
-	print(sx,sy,ex,ey)
-	
 	local sx = math.ceil((self.drawRange.sx - layer.x / self.tilewidth	- 1) / bw)
 	local sy = math.ceil((self.drawRange.sy - layer.y / self.tileheight	- 1) / bh)
 	local ex = math.ceil((self.drawRange.ex - layer.x / self.tilewidth	+ 1) / bw)
 	local ey = math.ceil((self.drawRange.ey - layer.y / self.tileheight	+ 1) / bh)
-	print(sx,sy,ex,ey)
-	
 	local mx = math.ceil(self.width / bw)
 	local my = math.ceil(self.height / bh)
 	
