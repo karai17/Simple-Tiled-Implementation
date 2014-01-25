@@ -233,8 +233,9 @@ function Map:setSpriteBatches(layer)
 	
 	local size		= bw * bh
 	local batches	= {
-		width = bw,
-		height = bh,
+		width	= bw,
+		height	= bh,
+		data	= {},
 	}
 	
 	for y = 1, layer.height do
@@ -248,11 +249,11 @@ function Map:setSpriteBatches(layer)
 				local ts = tile.tileset
 				local image = self.tilesets[tile.tileset].image
 				
-				batches[ts] = batches[ts] or {}
-				batches[ts][by] = batches[ts][by] or {}
-				batches[ts][by][bx] = batches[ts][by][bx] or newBatch(image, size)
+				batches.data[ts] = batches.data[ts] or {}
+				batches.data[ts][by] = batches.data[ts][by] or {}
+				batches.data[ts][by][bx] = batches.data[ts][by][bx] or newBatch(image, size)
 				
-				local batch = batches[ts][by][bx]
+				local batch = batches.data[ts][by][bx]
 				
 				if self.orientation == "orthogonal" then
 					local tx = x * tw + tile.offset.x
@@ -440,8 +441,8 @@ function Map:drawTileLayer(layer)
 	for by=sy, ey do
 		for bx=sx, ex do
 			if bx >= 1 and bx <= mx and by >= 1 and by <= my then
-				for _, batches in ipairs(layer.batches) do
-					local batch = batches[by][bx]
+				for _, batches in pairs(layer.batches.data) do
+					local batch = batches[by] and batches[by][bx]
 					
 					if batch then
 						love.graphics.draw(batch, math.floor(layer.x), math.floor(layer.y))
