@@ -25,7 +25,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ]]--
 
--- Simple Tiled Implementation v0.6.7
+-- Simple Tiled Implementation v0.6.8
 
 local bit = require "bit"
 local STI = {}
@@ -48,89 +48,23 @@ function STI.new(map)
 	map.tiles		= {}
 	map.collision	= {}
 	map.drawRange	= {
-		ox = 1,
-		oy = 1,
+		sx = 1,
+		sy = 1,
 		ex = map.width,
 		ey = map.height,
 	}
 	
-	-- Create array of quads
+	-- Set tiles, images
 	local gid = 1
-	for i, tileset in ipairs(map.tilesets) do
-		local iw		= tileset.imagewidth
-		local ih		= tileset.imageheight
-		local tw		= tileset.tilewidth
-		local th		= tileset.tileheight
-		local s			= tileset.spacing
-		local m			= tileset.margin
-		local w			= math.floor((iw - m) / (tw + s))
-		local h			= math.floor((ih - m) / (th + s))
-		
-		for y = 1, h do
-			for x = 1, w do
-				local qx = (x - 1) * tw + m
-				local qy = (y - 1) * th + m
-				
-				-- Spacing does not affect the first row/col
-				if x > 1 then qx = qx + s * x - s end
-				if y > 1 then qy = qy + s * y - s end
-				
-				map.tiles[gid] = {
-					gid		= gid,
-					tileset	= i,
-					quad	= love.graphics.newQuad(qx, qy, tw, th, iw, ih),
-					sx		= 1,
-					sy		= 1,
-					r		= 0,
-					offset	= {
-						x = -map.tilewidth,
-						y = -tileset.tileheight,
-					},
-				}
-				
-				if map.orientation == "isometric" then
-					map.tiles[gid].offset.x = -map.tilewidth / 2
-				end
-			
-				--[[ THIS IS A TEMPORARY FIX FOR 0.9.1 ]]--
-				if tileset.tileoffset then
-					map.tiles[gid].offset.x = map.tiles[gid].offset.x + tileset.tileoffset.x
-					map.tiles[gid].offset.y = map.tiles[gid].offset.y + tileset.tileoffset.y
-				end
-				
-				gid = gid + 1
-			end
-		end
-	end
-	
-	-- Add images
 	for i, tileset in ipairs(map.tilesets) do
 		local image = STI.formatPath(path..tileset.image)
 		tileset.image = love.graphics.newImage(image)
+		gid = map:setTiles(i, tileset, gid)
 	end
 	
-	-- Add tile structure, images
+	-- Set layers
 	for i, layer in ipairs(map.layers) do
-		if layer.type == "tilelayer" then
-			layer.data = map:setTileLayerData(layer)
-			layer.batches = map:setSpriteBatches(layer)
-			layer.draw = function() map:drawTileLayer(layer) end
-		elseif layer.type == "objectgroup" then
-			layer.x = 0
-			layer.y = 0
-			layer.draw = function() map:drawObjectLayer(layer) end
-		elseif layer.type == "imagelayer" then
-			local image = STI.formatPath(path..layer.image)
-			if layer.image ~= "" then
-				layer.image = love.graphics.newImage(image)
-			end
-			
-			layer.x = 0
-			layer.y = 0
-			layer.draw = function() map:drawImageLayer(layer) end
-		end
-		
-		layer.update = function(dt) return end
+		layer = map:setLayer(layer, path)
 		map.layers[layer.name] = layer
 	end
 	
@@ -155,7 +89,78 @@ function STI.formatPath(path)
 	return string.sub(path, 1, path:len()-1)
 end
 
-function Map:setTileLayerData(layer)
+function Map:setTiles(index, tileset, gid)
+	local quad	= love.graphics.newQuad
+	local mw	= self.tilewidth
+	local iw	= tileset.imagewidth
+	local ih	= tileset.imageheight
+	local tw	= tileset.tilewidth
+	local th	= tileset.tileheight
+	local s		= tileset.spacing
+	local m		= tileset.margin
+	local w		= math.floor((iw - m) / (tw + s))
+	local h		= math.floor((ih - m) / (th + s))
+	
+	for y = 1, h do
+		for x = 1, w do
+			local qx = (x - 1) * tw + m + (x - 1) * s
+			local qy = (y - 1) * th + m + (y - 1) * s
+			
+			local tile = {
+				gid		= gid,
+				tileset	= index,
+				quad	= quad(qx, qy, tw, th, iw, ih),
+				sx		= 1,
+				sy		= 1,
+				r		= 0,
+				offset	= {
+					x = -mw,
+					y = -th,
+				},
+			}
+			
+			if self.orientation == "isometric" then
+				tile.offset.x = -mw / 2
+			end
+		
+			--[[ THIS IS A TEMPORARY FIX FOR 0.9.1 ]]--
+			if tileset.tileoffset then
+				tile.offset.x = tile.offset.x + tileset.tileoffset.x
+				tile.offset.y = tile.offset.y + tileset.tileoffset.y
+			end
+			
+			self.tiles[gid] = tile
+			gid = gid + 1
+		end
+	end
+	
+	return gid
+end
+
+function Map:setLayer(layer, path)
+	layer.x = layer.x or 0
+	layer.y = layer.y or 0
+	layer.update = function(dt) return end
+	
+	if layer.type == "tilelayer" then
+		layer.data = self:setTileData(layer)
+		layer.batches = self:setSpriteBatches(layer)
+		layer.draw = function() self:drawTileLayer(layer) end
+	elseif layer.type == "objectgroup" then
+		layer.draw = function() self:drawObjectLayer(layer) end
+	elseif layer.type == "imagelayer" then
+		layer.draw = function() self:drawImageLayer(layer) end
+		
+		local image = STI.formatPath(path..layer.image)
+		if layer.image ~= "" then
+			layer.image = love.graphics.newImage(image)
+		end
+	end
+	
+	return layer
+end
+
+function Map:setTileData(layer)
 	local i = 1
 	local map = {}
 	
@@ -163,28 +168,27 @@ function Map:setTileLayerData(layer)
 		map[y] = {}
 		for x = 1, layer.width do
 			local gid = layer.data[i]
-			local tile = self.tiles[gid]
 			
-			if tile then
-				map[y][x] = tile
-			else
-				local _31 = bit.status(gid, 31)
-				local _30 = bit.status(gid, 30)
-				local _29 = bit.status(gid, 29)
-				
-				local realgid = bit.band(gid, bit.bnot(bit.bor(2^31, 2^30, 2^29)))
-				
-				local data = {}
-				local tile = self.tiles[realgid]
+			if gid > 0 then
+				local tile = self.tiles[gid]
 				
 				if tile then
-					data.gid		= tile.gid
-					data.tileset	= tile.tileset
-					data.offset		= tile.offset
-					data.quad		= tile.quad
-					data.sx			= tile.sx
-					data.sy			= tile.sy
-					data.r			= tile.r
+					map[y][x] = tile
+				else
+					local _31 = bit.status(gid, 31)
+					local _30 = bit.status(gid, 30)
+					local _29 = bit.status(gid, 29)
+					local realgid = bit.band(gid, bit.bnot(bit.bor(2^31, 2^30, 2^29)))
+					local tile = self.tiles[realgid]
+					local data = {
+						gid		= tile.gid,
+						tileset	= tile.tileset,
+						offset	= tile.offset,
+						quad	= tile.quad,
+						sx		= tile.sx,
+						sy		= tile.sy,
+						r		= tile.r,
+					}
 					
 					if _31 then
 						if _29 then
@@ -252,10 +256,11 @@ function Map:setSpriteBatches(layer)
 						local tx = x * tw + layer.x + tile.offset.x
 						local ty = y * th + layer.y + tile.offset.y
 						
-						if tile.sx < 0 then tx = tx + tw end
-						if tile.sy < 0 then ty = ty + th end
-						if tile.r > 0 then tx = tx + tw end
-						if tile.r < 0 then ty = ty + th end
+						-- Compensation for scale/rotation shift
+						if tile.sx	< 0 then tx = tx + tw end
+						if tile.sy	< 0 then ty = ty + th end
+						if tile.r	> 0 then tx = tx + tw end
+						if tile.r	< 0 then ty = ty + th end
 						
 						batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
 					elseif self.orientation == "isometric" then
@@ -265,8 +270,9 @@ function Map:setSpriteBatches(layer)
 						batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
 					elseif self.orientation =="staggered" then
 						local tx, ty
+						
 						if y % 2 == 0 then
-							tx = (x * tw) + (tw / 2) + layer.x + tile.offset.x
+							tx = x * tw + tw / 2 + layer.x + tile.offset.x
 							ty = y * th / 2 + layer.y + tile.offset.y
 						else
 							tx = x * tw + layer.x + tile.offset.x
@@ -283,6 +289,64 @@ function Map:setSpriteBatches(layer)
 	return batches
 end
 
+function Map:setDrawRange(tx, ty, w, h)
+	tx = -tx
+	ty = -ty
+	local tw = self.tilewidth
+	local th = self.tileheight
+	local sx, sy, ex, ey
+	
+	if self.orientation == "orthogonal" then
+		sx = math.ceil(tx / tw)
+		sy = math.ceil(ty / th)
+		ex = math.ceil(sx + w / tw)
+		ey = math.ceil(sy + h / th)
+	elseif self.orientation == "isometric" then
+		sx = math.ceil(((ty / (th / 2)) + (tx / (tw / 2))) / 2)
+		sy = math.ceil(((ty / (th / 2)) - (tx / (tw / 2))) / 2 - h / th)
+		ex = math.ceil(sx + (h / th) + (w / tw))
+		ey = math.ceil(sy + (h / th) * 2 + (w / tw))
+	elseif self.orientation == "staggered" then
+		sx = math.ceil(tx / tw - 1)
+		sy = math.ceil(ty / th)
+		ex = math.ceil(sx + w / tw + 1)
+		ey = math.ceil(sy + h / th * 2)
+	end
+	
+	self.drawRange = {
+		sx = sx,
+		sy = sy,
+		ex = ex,
+		ey = ey,
+	}
+end
+
+function Map:setCollisionMap(index)
+	local layer	= self.layers[index]
+	
+	if not layer or layer.type ~= "tilelayer" then return end
+	
+	local w		= self.width
+	local h		= self.height
+	local map	= {
+		opacity	= 0.5,
+		data	= {},
+	}
+	
+	for y=1, h do
+		map.data[y] = {}
+		for x=1, w do
+			if layer.data[y][x] == nil then
+				map.data[y][x] = 0
+			else
+				map.data[y][x] = 1
+			end
+		end
+	end
+	
+	self.collision = map
+end
+
 function Map:addCustomLayer(name, index)
 	local layer = {
       type = "customlayer",
@@ -291,6 +355,7 @@ function Map:addCustomLayer(name, index)
       opacity = 1,
       properties = {},
     }
+	
 	function layer:draw() return end
 	function layer:update(dt) return end
 	
@@ -301,39 +366,43 @@ end
 function Map:convertToCustomLayer(index)
 	local layer = self.layers[index]
 	
-	if layer.type == "tilelayer" then
+	if layer then
+		layer.type		= "customlayer"
 		layer.x			= nil
 		layer.y			= nil
 		layer.width		= nil
 		layer.height	= nil
 		layer.encoding	= nil
 		layer.data		= nil
-	elseif layer.type == "objectgroup" then
 		layer.objects	= nil
-	elseif layer.type == "imagelayer" then
 		layer.image		= nil
+		
+		function layer:draw() return end
+		function layer:update(dt) return end
 	else
-		return -- invalid layer!
+		-- throw an error
 	end
-	
-	layer.type		= "customlayer"
-	function layer:draw() return end
-	function layer:update(dt) return end
 end
 
 function Map:removeLayer(index)
-	if type(index) == "string" then
-		for i, layer in ipairs(self.layers) do
-			if layer.name == index then
-				table.remove(self.layers, i)
-				self.layers[index] = nil
-				break
+	local layer = self.layers[index]
+	
+	if layer then
+		if type(index) == "string" then
+			for i, layer in ipairs(self.layers) do
+				if layer.name == index then
+					table.remove(self.layers, i)
+					table.remove(self.layers, index)
+					break
+				end
 			end
+		else
+			local name = self.layers[index].name
+			table.remove(self.layers, index)
+			table.remove(self.layers, name)
 		end
 	else
-		local name = self.layers[index].name
-		table.remove(self.layers, index)
-		self.layers[name] = nil
+		-- throw an error
 	end
 end
 
@@ -343,41 +412,9 @@ function Map:update(dt)
 	end
 end
 
-function Map:setDrawRange(tx, ty, w, h)
-	tx = -tx
-	ty = -ty
-	local tw = self.tilewidth
-	local th = self.tileheight
-	local ox, oy, ex, ey
-	
-	if self.orientation == "orthogonal" then
-		ox = math.ceil(tx / tw)
-		oy = math.ceil(ty / th)
-		ex = math.ceil(ox + w / tw)
-		ey = math.ceil(oy + h / th)
-	elseif self.orientation == "isometric" then
-		ox = math.ceil(((ty / (th / 2)) + (tx / (tw / 2))) / 2)
-		oy = math.ceil(((ty / (th / 2)) - (tx / (tw / 2))) / 2 - h / th)
-		ex = math.ceil(ox + (h / th) + (w / tw))
-		ey = math.ceil(oy + (h / th) * 2 + (w / tw))
-	elseif self.orientation == "staggered" then
-		ox = math.ceil(tx / tw - 1)
-		oy = math.ceil(ty / th)
-		ex = math.ceil(ox + w / tw + 1)
-		ey = math.ceil(oy + h / th * 2)
-	end
-	
-	self.drawRange = {
-		ox = ox,
-		oy = oy,
-		ex = ex,
-		ey = ey,
-	}
-end
-
 function Map:draw()
 	for _, layer in ipairs(self.layers) do
-		if layer.visible then
+		if layer.visible and layer.opacity > 0 then
 			self:drawLayer(layer)
 		end
 	end
@@ -392,15 +429,15 @@ end
 function Map:drawTileLayer(layer)
 	local bw = layer.batches.width
 	local bh = layer.batches.height
-	local ox = math.ceil(self.drawRange.ox / bw)
-	local oy = math.ceil(self.drawRange.oy / bh)
+	local sx = math.ceil(self.drawRange.sx / bw)
+	local sy = math.ceil(self.drawRange.sy / bh)
 	local ex = math.ceil(self.drawRange.ex / bw)
 	local ey = math.ceil(self.drawRange.ey / bh)
 	local mx = math.ceil(self.width / bw)
 	local my = math.ceil(self.height / bh)
 	
-	for by=oy, ey do
-		for bx=ox, ex do
+	for by=sy, ey do
+		for bx=sx, ex do
 			if bx >= 1 and bx <= mx and by >= 1 and by <= my then
 				for _, batches in ipairs(layer.batches) do
 					local batch = batches[by][bx]
@@ -433,36 +470,9 @@ function Map:drawObjectLayer(layer)
 			love.graphics.setColor(line)
 			love.graphics.rectangle("line", x, y, object.width, object.height)
 		elseif object.shape == "ellipse" then
-			local function drawEllipse(mode, x, y, w, h, color)
-				love.graphics.push()
-				love.graphics.translate(x + w/2, y + h/2)
-				love.graphics.scale(w/2, h/2)
-				love.graphics.setColor(color)
-				love.graphics.circle(mode, 0, 0, 1, 100)
-				love.graphics.pop()
-			end
-			
-			local function drawEllipseOutline(x, y, rx, ry, color)
-				local segments = 100
-				local vertices = {}
-				
-				for i=0, segments do
-					local angle = (i / segments) * math.pi * 2
-					
-					local px = x + rx / 2 + math.cos(angle) * rx / 2
-					local py = y + ry / 2 + math.sin(angle) * ry / 2
-					
-					vertices[#vertices+1] = px
-					vertices[#vertices+1] = py
-				end
-				
-				love.graphics.setColor(color)
-				love.graphics.line(vertices)
-			end
-			
-			drawEllipse("fill", x, y, object.width, object.height, fill)
-			drawEllipseOutline(x+1, y+1, object.width, object.height, shadow)
-			drawEllipseOutline(x, y, object.width, object.height, line)
+			self:drawEllipse("fill", x, y, object.width, object.height, fill)
+			self:drawEllipseOutline(x+1, y+1, object.width, object.height, shadow)
+			self:drawEllipseOutline(x, y, object.width, object.height, line)
 		elseif object.shape == "polygon" then
 			local points = {{},{}}
 			
@@ -513,33 +523,6 @@ function Map:drawImageLayer(layer)
 	end
 end
 
-function Map:createCollisionMap(index)
-	local layer	= self.layers[index]
-	
-	if layer.type ~= "tilelayer" then return end
-	
-	local w		= self.width
-	local h		= self.height
-	local i		= 1
-	local map	= {
-		opacity	= 0.5,
-		data	= {},
-	}
-	
-	for y=1, h do
-		map.data[y] = {}
-		for x=1, w do
-			if layer.data[y][x] == nil then
-				map.data[y][x] = 0
-			else
-				map.data[y][x] = 1
-			end
-		end
-	end
-	
-	self.collision = map
-end
-
 function Map:drawCollisionMap()
 	local tw = self.tilewidth
 	local th = self.tileheight
@@ -559,6 +542,34 @@ function Map:drawCollisionMap()
 	end
 	
 	love.graphics.setColor(255, 255, 255, 255)
+end
+
+function Map:drawEllipse(mode, x, y, w, h, color)
+	local segments = 100
+	
+	love.graphics.push()
+	love.graphics.translate(x + w/2, y + h/2)
+	love.graphics.scale(w/2, h/2)
+	love.graphics.setColor(color)
+	love.graphics.circle(mode, 0, 0, 1, segments)
+	love.graphics.pop()
+end
+
+function Map:drawEllipseOutline(x, y, rx, ry, color)
+	local segments = 100
+	local vertices = {}
+	
+	for i=0, segments do
+		local angle = (i / segments) * math.pi * 2
+		local px = x + rx / 2 + math.cos(angle) * rx / 2
+		local py = y + ry / 2 + math.sin(angle) * ry / 2
+		
+		vertices[#vertices+1] = px
+		vertices[#vertices+1] = py
+	end
+	
+	love.graphics.setColor(color)
+	love.graphics.line(vertices)
 end
 
 -- http://wiki.interfaceware.com/534.html

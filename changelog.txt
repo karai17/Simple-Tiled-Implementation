@@ -2,6 +2,13 @@
 Simple Tiled Implementation Change Log
 ======================================
 -------------------
+2014-01-25 : v0.6.8
+-------------------
+* Changed:	Revised and restructured code
+* Changed:	createCollisionMap() renamed to setCollisionMap()
+* Changed:	newCustomLayer() renamed to addCustomLayer()
+
+-------------------
 2014-01-24 : v0.6.7
 -------------------
 * Fixed:	Number of tiles wasn't calculated properly
