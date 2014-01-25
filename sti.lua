@@ -25,7 +25,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ]]--
 
--- Simple Tiled Implementation v0.6.6
+-- Simple Tiled Implementation v0.6.7
 
 local bit = require "bit"
 local STI = {}
@@ -63,8 +63,8 @@ function STI.new(map)
 		local th		= tileset.tileheight
 		local s			= tileset.spacing
 		local m			= tileset.margin
-		local w			= math.floor((iw - m - s) / (tw + s))
-		local h			= math.floor((ih - m - s) / (th + s))
+		local w			= math.floor((iw - m) / (tw + s))
+		local h			= math.floor((ih - m) / (th + s))
 		
 		for y = 1, h do
 			for x = 1, w do
