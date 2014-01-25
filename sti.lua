@@ -25,7 +25,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ]]--
 
--- Simple Tiled Implementation v0.6.8
+-- Simple Tiled Implementation v0.6.9
 
 local bit = require "bit"
 local STI = {}
@@ -64,8 +64,7 @@ function STI.new(map)
 	
 	-- Set layers
 	for i, layer in ipairs(map.layers) do
-		layer = map:setLayer(layer, path)
-		map.layers[layer.name] = layer
+		map:setLayer(layer, path)
 	end
 	
 	return map
@@ -143,8 +142,8 @@ function Map:setLayer(layer, path)
 	layer.update = function(dt) return end
 	
 	if layer.type == "tilelayer" then
-		layer.data = self:setTileData(layer)
-		layer.batches = self:setSpriteBatches(layer)
+		self:setTileData(layer)
+		self:setSpriteBatches(layer)
 		layer.draw = function() self:drawTileLayer(layer) end
 	elseif layer.type == "objectgroup" then
 		layer.draw = function() self:drawObjectLayer(layer) end
@@ -157,7 +156,7 @@ function Map:setLayer(layer, path)
 		end
 	end
 	
-	return layer
+	self.layers[layer.name] = layer
 end
 
 function Map:setTileData(layer)
@@ -216,7 +215,7 @@ function Map:setTileData(layer)
 		end
 	end
 	
-	return map
+	layer.data = map
 end
 
 function Map:setSpriteBatches(layer)
@@ -253,8 +252,8 @@ function Map:setSpriteBatches(layer)
 					local batch = batches[tile.tileset][by][bx]
 					
 					if self.orientation == "orthogonal" then
-						local tx = x * tw + layer.x + tile.offset.x
-						local ty = y * th + layer.y + tile.offset.y
+						local tx = x * tw + tile.offset.x
+						local ty = y * th + tile.offset.y
 						
 						-- Compensation for scale/rotation shift
 						if tile.sx	< 0 then tx = tx + tw end
@@ -264,19 +263,19 @@ function Map:setSpriteBatches(layer)
 						
 						batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
 					elseif self.orientation == "isometric" then
-						local tx = (x - y) * (tw / 2) + layer.x + tile.offset.x
-						local ty = (x + y) * (th / 2) + layer.y + tile.offset.y
+						local tx = (x - y) * (tw / 2) + tile.offset.x
+						local ty = (x + y) * (th / 2) + tile.offset.y
 						
 						batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
 					elseif self.orientation =="staggered" then
 						local tx, ty
 						
 						if y % 2 == 0 then
-							tx = x * tw + tw / 2 + layer.x + tile.offset.x
-							ty = y * th / 2 + layer.y + tile.offset.y
+							tx = x * tw + tw / 2 + tile.offset.x
+							ty = y * th / 2 + tile.offset.y
 						else
-							tx = x * tw + layer.x + tile.offset.x
-							ty = y * th / 2 + layer.y + tile.offset.y
+							tx = x * tw + tile.offset.x
+							ty = y * th / 2 + tile.offset.y
 						end
 						
 						batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
@@ -286,7 +285,7 @@ function Map:setSpriteBatches(layer)
 		end
 	end
 	
-	return batches
+	layer.batches = batches
 end
 
 function Map:setDrawRange(tx, ty, w, h)
@@ -433,6 +432,14 @@ function Map:drawTileLayer(layer)
 	local sy = math.ceil(self.drawRange.sy / bh)
 	local ex = math.ceil(self.drawRange.ex / bw)
 	local ey = math.ceil(self.drawRange.ey / bh)
+	print(sx,sy,ex,ey)
+	
+	local sx = math.ceil((self.drawRange.sx - layer.x / self.tilewidth	- 1) / bw)
+	local sy = math.ceil((self.drawRange.sy - layer.y / self.tileheight	- 1) / bh)
+	local ex = math.ceil((self.drawRange.ex - layer.x / self.tilewidth	+ 1) / bw)
+	local ey = math.ceil((self.drawRange.ey - layer.y / self.tileheight	+ 1) / bh)
+	print(sx,sy,ex,ey)
+	
 	local mx = math.ceil(self.width / bw)
 	local my = math.ceil(self.height / bh)
 	
@@ -443,7 +450,7 @@ function Map:drawTileLayer(layer)
 					local batch = batches[by][bx]
 					
 					if batch then
-						love.graphics.draw(batch)
+						love.graphics.draw(batch, math.floor(layer.x), math.floor(layer.y))
 					end
 				end
 			end

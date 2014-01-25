@@ -2,6 +2,11 @@
 Simple Tiled Implementation Change Log
 ======================================
 -------------------
+2014-01-25 : v0.6.9
+-------------------
+* Fixed:	Parallax Scrolling
+
+-------------------
 2014-01-25 : v0.6.8
 -------------------
 * Changed:	Revised and restructured code
