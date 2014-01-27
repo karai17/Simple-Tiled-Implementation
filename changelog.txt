@@ -2,6 +2,12 @@
 Simple Tiled Implementation Change Log
 ======================================
 --------------------
+2014-01-26 : v0.6.11
+--------------------
+* Added:	Descriptive error messages
+* Fixed:	Image filters for scaling
+
+--------------------
 2014-01-25 : v0.6.10
 --------------------
 * Fixed:	Optimized load time

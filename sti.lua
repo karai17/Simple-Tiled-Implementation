@@ -25,7 +25,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ]]--
 
--- Simple Tiled Implementation v0.6.10
+-- Simple Tiled Implementation v0.6.11
 
 local bit = require "bit"
 local STI = {}
@@ -59,6 +59,7 @@ function STI.new(map)
 	for i, tileset in ipairs(map.tilesets) do
 		local image = STI.formatPath(path..tileset.image)
 		tileset.image = love.graphics.newImage(image)
+		tileset.image:setFilter("nearest", "nearest")
 		gid = map:setTiles(i, tileset, gid)
 	end
 	
@@ -324,9 +325,9 @@ function Map:setDrawRange(tx, ty, w, h)
 end
 
 function Map:setCollisionMap(index)
-	local layer	= self.layers[index]
+	local layer	= assert(self.layers[index], "Layer not found: " .. index)
 	
-	if not layer or layer.type ~= "tilelayer" then return end
+	assert(layer.type == "tilelayer", "Invalid layer type: " .. layer.type .. ". Layer must be of type: tilelayer")
 	
 	local w		= self.width
 	local h		= self.height
@@ -366,45 +367,37 @@ function Map:addCustomLayer(name, index)
 end
 
 function Map:convertToCustomLayer(index)
-	local layer = self.layers[index]
+	local layer = assert(self.layers[index], "Layer not found: " .. index)
 	
-	if layer then
-		layer.type		= "customlayer"
-		layer.x			= nil
-		layer.y			= nil
-		layer.width		= nil
-		layer.height	= nil
-		layer.encoding	= nil
-		layer.data		= nil
-		layer.objects	= nil
-		layer.image		= nil
-		
-		function layer:draw() return end
-		function layer:update(dt) return end
-	else
-		-- throw an error
-	end
+	layer.type		= "customlayer"
+	layer.x			= nil
+	layer.y			= nil
+	layer.width		= nil
+	layer.height	= nil
+	layer.encoding	= nil
+	layer.data		= nil
+	layer.objects	= nil
+	layer.image		= nil
+	
+	function layer:draw() return end
+	function layer:update(dt) return end
 end
 
 function Map:removeLayer(index)
-	local layer = self.layers[index]
+	local layer = assert(self.layers[index], "Layer not found: " .. index)
 	
-	if layer then
-		if type(index) == "string" then
-			for i, layer in ipairs(self.layers) do
-				if layer.name == index then
-					table.remove(self.layers, i)
-					table.remove(self.layers, index)
-					break
-				end
+	if type(index) == "string" then
+		for i, layer in ipairs(self.layers) do
+			if layer.name == index then
+				table.remove(self.layers, i)
+				table.remove(self.layers, index)
+				break
 			end
-		else
-			local name = self.layers[index].name
-			table.remove(self.layers, index)
-			table.remove(self.layers, name)
 		end
 	else
-		-- throw an error
+		local name = self.layers[index].name
+		table.remove(self.layers, index)
+		table.remove(self.layers, name)
 	end
 end
 
@@ -429,6 +422,8 @@ function Map:drawLayer(layer)
 end
 
 function Map:drawTileLayer(layer)
+	assert(layer.type == "tilelayer", "Invalid layer type: " .. layer.type .. ". Layer must be of type: tilelayer")
+	
 	local bw = layer.batches.width
 	local bh = layer.batches.height
 	local sx = math.ceil((self.drawRange.sx - layer.x / self.tilewidth	- 1) / bw)
@@ -454,6 +449,8 @@ function Map:drawTileLayer(layer)
 end
 
 function Map:drawObjectLayer(layer)
+	assert(layer.type == "objectgroup", "Invalid layer type: " .. layer.type .. ". Layer must be of type: objectgroup")
+	
 	local line		= { 160, 160, 160, 255 * layer.opacity }
 	local fill		= { 160, 160, 160, 255 * layer.opacity * 0.2 }
 	local shadow	= { 0, 0, 0, 255 * layer.opacity }
@@ -520,12 +517,16 @@ function Map:drawObjectLayer(layer)
 end
 
 function Map:drawImageLayer(layer)
+	assert(layer.type == "imagelayer", "Invalid layer type: " .. layer.type .. ". Layer must be of type: imagelayer")
+	
 	if layer.image ~= "" then
 		love.graphics.draw(layer.image, layer.x, layer.y)
 	end
 end
 
 function Map:drawCollisionMap()
+	assert(self.collision ~= {}, "Collision Map must be set before it can be drawn")
+	
 	local tw = self.tilewidth
 	local th = self.tileheight
 	
