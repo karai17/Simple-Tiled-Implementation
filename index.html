@@ -23,7 +23,7 @@
 					<li><a href="#new">STI.new</a></li>
 					<li><a href="#setSpriteBatches">Map:setSpriteBatches</a></li>
 					<li><a href="#setDrawRange">Map:setDrawRange</a></li>
-					<li><a href="#setCollisionMap">Map:setCollisionMap</a></li>
+					<li><a href="#getCollisionMap">Map:getCollisionMap</a></li>
 					<li><a href="#addCustomLayer">Map:addCustomLayer</a></li>
 					<li><a href="#convertToCustomLayer">Map:convertToCustomLayer</a></li>
 					<li><a href="#removeLayer">Map:removeLayer</a></li>
@@ -119,7 +119,7 @@ function love.draw()
 end</code></pre>
 			</section>
 			<section>
-				<h2><a id="setCollisionMap">Map:setCollisionMap(index)</a></h2>
+				<h2><a id="getCollisionMap">Map:getCollisionMap(index)</a></h2>
 				<p>Use a Tile Layer to create a Collision Map. The Collision Map is simply a Binary Map and does not have any collision detection built in.</p>
 				<h3>Parameters</h3>
 				<ul>
@@ -127,7 +127,7 @@ end</code></pre>
 				</ul>
 				<h3>Returns</h3>
 				<ul>
-					<li>none</li>
+					<li><span>table</span> Collision Map data structure</li>
 				</ul>
 				<h3>Example</h3>
 				<pre><code class="language-lua">local sti = require "libs.sti"
@@ -136,10 +136,10 @@ function love.load()
 	map = sti.new("assets/maps/map01")
 	
 	-- Set using name
-	map:setCollisionMap("Collision Layer")
+	collision = map:getCollisionMap("Collision Layer")
 	
 	-- Set using index
-	map:setCollisionMap(5)
+	collision = map:getCollisionMap(5)
 end
 
 function love.update(dt)
@@ -400,11 +400,11 @@ function love.draw()
 end</code></pre>
 			</section>
 			<section>
-				<h2><a id="drawCollisionMap">Map:drawCollisionMap()</a></h2>
+				<h2><a id="drawCollisionMap">Map:drawCollisionMap(layer)</a></h2>
 				<p>Draw the Collision Map. This can be useful for debugging your collision detection code.</p>
 				<h3>Parameters</h3>
 				<ul>
-					<li>none</li>
+					<li><span>layer</span> Collision Map data structure</li>
 				</ul>
 				<h3>Returns</h3>
 				<ul>
@@ -417,10 +417,10 @@ function love.load()
 	map = sti.new("assets/maps/map01")
 	
 	-- Set using name
-	map:setCollisionMap("Collision Layer")
+	collision = map:getCollisionMap("Collision Layer")
 	
 	-- Set using index
-	map:setCollisionMap(5)
+	collision = map:getCollisionMap(5)
 end
 
 function love.update(dt)
@@ -431,7 +431,7 @@ function love.draw()
 	map:draw()
 	
 	-- Draw last so it is on top
-	map:drawCollisionMap()
+	map:drawCollisionMap(collision)
 end</code></pre>
 			</section>
 			<section>
