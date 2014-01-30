@@ -2,6 +2,16 @@
 Simple Tiled Implementation Change Log
 ======================================
 --------------------
+2014-01-29 : v0.6.12
+--------------------
+* Added:	drawCollisionMap() now supports Isometric and Staggered maps
+* Changed:	drawCollisionMap() now requires a collision map parameter
+* Changed:	setCollisionMap() renamed to getCollisionMap()
+* Changed:	getCollisionMap() now returns the collision map
+* Fixed:	Tile properties not being added
+* Removed:	Map.collision table removed
+
+--------------------
 2014-01-26 : v0.6.11
 --------------------
 * Added:	Descriptive error messages

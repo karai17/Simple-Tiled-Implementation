@@ -25,7 +25,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ]]--
 
--- Simple Tiled Implementation v0.6.11
+-- Simple Tiled Implementation v0.6.12
 
 local bit = require "bit"
 local STI = {}
@@ -46,7 +46,6 @@ function STI.new(map)
 	map = setmetatable(map(), {__index = Map})
 	
 	map.tiles		= {}
-	map.collision	= {}
 	map.drawRange	= {
 		sx = 1,
 		sy = 1,
@@ -105,15 +104,25 @@ function Map:setTiles(index, tileset, gid)
 		for x = 1, w do
 			local qx = (x - 1) * tw + m + (x - 1) * s
 			local qy = (y - 1) * th + m + (y - 1) * s
+			local properties
+			
+			if #tileset.tiles > 0 then
+				for _, tile in pairs(tileset.tiles) do
+					if tile.id == gid then
+						properties = tile.properties
+					end
+				end
+			end
 			
 			local tile = {
-				gid		= gid,
-				tileset	= index,
-				quad	= quad(qx, qy, tw, th, iw, ih),
-				sx		= 1,
-				sy		= 1,
-				r		= 0,
-				offset	= {
+				gid			= gid,
+				tileset		= index,
+				quad		= quad(qx, qy, tw, th, iw, ih),
+				properties	= properties,
+				sx			= 1,
+				sy			= 1,
+				r			= 0,
+				offset		= {
 					x = -mw,
 					y = -th,
 				},
@@ -181,13 +190,14 @@ function Map:setTileData(layer)
 					local realgid = bit.band(gid, bit.bnot(bit.bor(2^31, 2^30, 2^29)))
 					local tile = self.tiles[realgid]
 					local data = {
-						gid		= tile.gid,
-						tileset	= tile.tileset,
-						offset	= tile.offset,
-						quad	= tile.quad,
-						sx		= tile.sx,
-						sy		= tile.sy,
-						r		= tile.r,
+						gid			= tile.gid,
+						tileset		= tile.tileset,
+						offset		= tile.offset,
+						quad		= tile.quad,
+						properties	= tile.properties,
+						sx			= tile.sx,
+						sy			= tile.sy,
+						r			= tile.r,
 					}
 					
 					if _31 then
@@ -255,36 +265,31 @@ function Map:setSpriteBatches(layer)
 				batches.data[ts][by][bx] = batches.data[ts][by][bx] or newBatch(image, size)
 				
 				local batch = batches.data[ts][by][bx]
+				local tx, ty
 				
 				if self.orientation == "orthogonal" then
-					local tx = x * tw + tile.offset.x
-					local ty = y * th + tile.offset.y
+					tx = x * tw + tile.offset.x
+					ty = y * th + tile.offset.y
 					
 					-- Compensation for scale/rotation shift
 					if tile.sx	< 0 then tx = tx + tw end
 					if tile.sy	< 0 then ty = ty + th end
 					if tile.r	> 0 then tx = tx + tw end
 					if tile.r	< 0 then ty = ty + th end
-					
-					batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
 				elseif self.orientation == "isometric" then
-					local tx = (x - y) * (tw / 2) + tile.offset.x
-					local ty = (x + y) * (th / 2) + tile.offset.y
-					
-					batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
+					tx = (x - y) * (tw / 2) + tile.offset.x
+					ty = (x + y) * (th / 2) + tile.offset.y
 				elseif self.orientation == "staggered" then
-					local tx, ty
-					
 					if y % 2 == 0 then
 						tx = x * tw + tw / 2 + tile.offset.x
-						ty = y * th / 2 + tile.offset.y
 					else
 						tx = x * tw + tile.offset.x
-						ty = y * th / 2 + tile.offset.y
 					end
 					
-					batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
+					ty = y * th / 2 + tile.offset.y
 				end
+				
+				batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
 			end
 		end
 	end
@@ -324,7 +329,7 @@ function Map:setDrawRange(tx, ty, w, h)
 	}
 end
 
-function Map:setCollisionMap(index)
+function Map:getCollisionMap(index)
 	local layer	= assert(self.layers[index], "Layer not found: " .. index)
 	
 	assert(layer.type == "tilelayer", "Invalid layer type: " .. layer.type .. ". Layer must be of type: tilelayer")
@@ -332,8 +337,11 @@ function Map:setCollisionMap(index)
 	local w		= self.width
 	local h		= self.height
 	local map	= {
-		opacity	= 0.5,
-		data	= {},
+		type		= layer.type,
+		orientation	= layer.orientation,
+		collision	= true,
+		opacity		= 0.5,
+		data		= {},
 	}
 	
 	for y=1, h do
@@ -347,7 +355,7 @@ function Map:setCollisionMap(index)
 		end
 	end
 	
-	self.collision = map
+	return map
 end
 
 function Map:addCustomLayer(name, index)
@@ -524,19 +532,37 @@ function Map:drawImageLayer(layer)
 	end
 end
 
-function Map:drawCollisionMap()
-	assert(self.collision ~= {}, "Collision Map must be set before it can be drawn")
+function Map:drawCollisionMap(layer)
+	assert(layer.type == "tilelayer", "Invalid layer type: " .. layer.type .. ". Layer must be of type: tilelayer")
+	assert(layer.collision, "This is not a collision layer")
 	
 	local tw = self.tilewidth
 	local th = self.tileheight
 	
-	love.graphics.setColor(255, 255, 255, 255 * self.collision.opacity)
+	love.graphics.setColor(255, 255, 255, 255 * layer.opacity)
 	
 	for y=1, self.height do
 		for x=1, self.width do
-			local tx = x * tw - tw
-			local ty = y * th - th
-			if self.collision.data[y][x] == 1 then
+			local tx, ty
+			
+			if self.orientation == "orthogonal" then
+				tx = (x - 1) * tw
+				ty = (y - 1) * th
+			elseif self.orientation == "isometric" then
+				tx = (x - y) * (tw / 2) - self.tilewidth / 2
+				ty = (x + y) * (th / 2) - self.tileheight
+			elseif self.orientation == "staggered" then
+				if y % 2 == 0 then
+					tx = x * tw + tw / 2 - self.tilewidth
+				else
+					tx = x * tw - self.tilewidth
+				end
+				
+				ty = y * th / 2 - self.tileheight
+			end
+			
+			
+			if layer.data[y][x] == 1 then
 				love.graphics.rectangle("fill", tx, ty, tw, th)
 			else
 				love.graphics.rectangle("line", tx, ty, tw, th)
