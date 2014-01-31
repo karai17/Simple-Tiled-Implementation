@@ -16,7 +16,7 @@ function love.load()
 	map = sti.new("assets/maps/map01")
 	
 	-- Set a Collision Map to use with your own collision code
-	map:setCollisionMap("Collision Layer")
+	collision = map:getCollisionMap("Collision Layer")
 	
 	-- Create a Custom Layer
 	map:addCustomLayer("Sprite Layer", 3)
@@ -65,7 +65,7 @@ function love.draw()
 	map:draw()
 	
 	-- Draw Collision Map (useful for debugging)
-	map:drawCollisionMap()
+	map:drawCollisionMap(collision)
 end
 
 ```
