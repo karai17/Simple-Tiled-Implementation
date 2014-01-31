@@ -25,7 +25,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ]]--
 
--- Simple Tiled Implementation v0.6.12
+-- Simple Tiled Implementation v0.6.13
 
 local bit = require "bit"
 local STI = {}
@@ -184,10 +184,10 @@ function Map:setTileData(layer)
 				if tile then
 					map[y][x] = tile
 				else
-					local _31 = bit.status(gid, 31)
-					local _30 = bit.status(gid, 30)
-					local _29 = bit.status(gid, 29)
-					local realgid = bit.band(gid, bit.bnot(bit.bor(2^31, 2^30, 2^29)))
+					local flipX		= bit.status(gid, 31)
+					local flipY		= bit.status(gid, 30)
+					local flipD		= bit.status(gid, 29)
+					local realgid	= bit.band(gid, bit.bnot(bit.bor(2^31, 2^30, 2^29)))
 					local tile = self.tiles[realgid]
 					local data = {
 						gid			= tile.gid,
@@ -200,21 +200,24 @@ function Map:setTileData(layer)
 						r			= tile.r,
 					}
 					
-					if _31 then
-						if _29 then
-							data.r = math.rad(90)
-						elseif _30 then
+					if flipX then
+						if flipY then
 							data.sx = -1
 							data.sy = -1
+						elseif flipD then
+							data.r = math.rad(90)
 						else
 							data.sx = -1
 						end
-					elseif _30 then
-						if _29 then
+					elseif flipY then
+						if flipD then
 							data.r = math.rad(-90)
 						else
 							data.sy = -1
 						end
+					elseif flipD then
+						data.r = math.rad(90)
+						data.sy = -1
 					end
 					
 					self.tiles[gid] = data

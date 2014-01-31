@@ -2,6 +2,11 @@
 Simple Tiled Implementation Change Log
 ======================================
 --------------------
+2014-01-29 : v0.6.13
+--------------------
+* Added:	Missing Tile Flag
+
+--------------------
 2014-01-29 : v0.6.12
 --------------------
 * Added:	drawCollisionMap() now supports Isometric and Staggered maps
