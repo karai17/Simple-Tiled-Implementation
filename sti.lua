@@ -25,7 +25,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ]]--
 
--- Simple Tiled Implementation v0.6.13
+-- Simple Tiled Implementation v0.6.14
 
 local bit = require "bit"
 local STI = {}
@@ -106,11 +106,9 @@ function Map:setTiles(index, tileset, gid)
 			local qy = (y - 1) * th + m + (y - 1) * s
 			local properties
 			
-			if #tileset.tiles > 0 then
-				for _, tile in pairs(tileset.tiles) do
-					if tile.id == gid then
-						properties = tile.properties
-					end
+			for _, tile in pairs(tileset.tiles) do
+				if tile.id == gid - tileset.firstgid + 1 then
+					properties = tile.properties
 				end
 			end
 			

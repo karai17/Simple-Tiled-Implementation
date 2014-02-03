@@ -2,6 +2,11 @@
 Simple Tiled Implementation Change Log
 ======================================
 --------------------
+2014-02-02 : v0.6.14
+--------------------
+* Fixed:	Tile properties ACTUALLY being added now!
+
+--------------------
 2014-01-29 : v0.6.13
 --------------------
 * Added:	Missing Tile Flag
