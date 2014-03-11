@@ -25,7 +25,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ]]--
 
--- Simple Tiled Implementation v0.6.15
+-- Simple Tiled Implementation v0.6.16
 
 local bit = require "bit"
 local STI = {}
@@ -477,6 +477,25 @@ function Map:drawObjectLayer(layer)
 	local fill		= { 160, 160, 160, 255 * layer.opacity * 0.2 }
 	local shadow	= { 0, 0, 0, 255 * layer.opacity }
 	
+	local function drawEllipse(mode, x, y, rx, ry)
+		local segments = 100
+		local vertices = {}
+		
+		table.insert(vertices, x + rx / 2)
+		table.insert(vertices, y + ry / 2)
+		
+		for i=0, segments do
+			local angle = (i / segments) * math.pi * 2
+			local px = x + rx / 2 + math.cos(angle) * rx / 2
+			local py = y + ry / 2 + math.sin(angle) * ry / 2
+			
+			table.insert(vertices, px)
+			table.insert(vertices, py)
+		end
+		
+		love.graphics.polygon(mode, vertices)
+	end
+	
 	for _, object in ipairs(layer.objects) do
 		local x = layer.x + object.x
 		local y = layer.y + object.y
@@ -491,9 +510,14 @@ function Map:drawObjectLayer(layer)
 			love.graphics.setColor(line)
 			love.graphics.rectangle("line", x, y, object.width, object.height)
 		elseif object.shape == "ellipse" then
-			self:drawEllipse("fill", x, y, object.width, object.height, fill)
-			self:drawEllipseOutline(x+1, y+1, object.width, object.height, shadow)
-			self:drawEllipseOutline(x, y, object.width, object.height, line)
+			love.graphics.setColor(fill)
+			drawEllipse("fill", x, y, object.width, object.height)
+			
+			love.graphics.setColor(shadow)
+			drawEllipse("line", x+1, y+1, object.width, object.height)
+			
+			love.graphics.setColor(line)
+			drawEllipse("line", x, y, object.width, object.height)
 		elseif object.shape == "polygon" then
 			local points = {{},{}}
 			
@@ -585,34 +609,6 @@ function Map:drawCollisionMap(layer)
 	end
 	
 	love.graphics.setColor(255, 255, 255, 255)
-end
-
-function Map:drawEllipse(mode, x, y, w, h, color)
-	local segments = 100
-	
-	love.graphics.push()
-	love.graphics.translate(x + w/2, y + h/2)
-	love.graphics.scale(w/2, h/2)
-	love.graphics.setColor(color)
-	love.graphics.circle(mode, 0, 0, 1, segments)
-	love.graphics.pop()
-end
-
-function Map:drawEllipseOutline(x, y, rx, ry, color)
-	local segments = 100
-	local vertices = {}
-	
-	for i=0, segments do
-		local angle = (i / segments) * math.pi * 2
-		local px = x + rx / 2 + math.cos(angle) * rx / 2
-		local py = y + ry / 2 + math.sin(angle) * ry / 2
-		
-		vertices[#vertices+1] = px
-		vertices[#vertices+1] = py
-	end
-	
-	love.graphics.setColor(color)
-	love.graphics.line(vertices)
 end
 
 -- http://wiki.interfaceware.com/534.html

@@ -2,6 +2,11 @@
 Simple Tiled Implementation Change Log
 ======================================
 --------------------
+2014-03-11 : v0.6.16
+--------------------
+* Changed:	Ellipses now use polygons instead of... Not polygons.
+
+--------------------
 2014-03-11 : v0.6.15
 --------------------
 * Fixed:	Tile spacing calculated properly in all cases
