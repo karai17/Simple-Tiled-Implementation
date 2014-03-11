@@ -25,7 +25,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ]]--
 
--- Simple Tiled Implementation v0.6.14
+-- Simple Tiled Implementation v0.6.15
 
 local bit = require "bit"
 local STI = {}
@@ -89,6 +89,19 @@ function STI.formatPath(path)
 end
 
 function Map:setTiles(index, tileset, gid)
+	local function getTiles(i, t, m, s)
+		i = i - m
+		local n = 0
+		
+		while i >= t do
+			i = i - t
+			if n ~= 0 then i = i - s end
+			if i >= 0 then n = n + 1 end
+		end
+		
+		return n
+	end
+	
 	local quad	= love.graphics.newQuad
 	local mw	= self.tilewidth
 	local iw	= tileset.imagewidth
@@ -97,8 +110,8 @@ function Map:setTiles(index, tileset, gid)
 	local th	= tileset.tileheight
 	local s		= tileset.spacing
 	local m		= tileset.margin
-	local w		= math.floor((iw - m) / (tw + s))
-	local h		= math.floor((ih - m) / (th + s))
+	local w		= getTiles(iw, tw, m, s)
+	local h		= getTiles(ih, th, m, s)
 	
 	for y = 1, h do
 		for x = 1, w do
