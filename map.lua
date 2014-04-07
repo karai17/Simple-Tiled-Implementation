@@ -1,76 +1,24 @@
---[[
-------------------------------------------------------------------------------
-Simple Tiled Implementation is licensed under the MIT Open Source License.
-(http://www.opensource.org/licenses/mit-license.html)
-------------------------------------------------------------------------------
-
-Copyright (c) 2014 Landon Manning - LManning17@gmail.com - LandonManning.com
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-]]--
-
--- Simple Tiled Implementation v0.6.16
-
-local bit = require "bit"
-local STI = {}
 local Map = {}
+local framework
 
-function STI.new(map)
-	map = map .. ".lua"
-	
-	-- Get path to map
-	local path = map:reverse():find("[/\\]") or ""
-	if path ~= "" then
-		path = map:sub(1, 1 + (#map - path))
-	end
-	
-	-- Load map
-	map = assert(love.filesystem.load(map), "File not found: " .. map)
-	setfenv(map, {})
-	map = setmetatable(map(), {__index = Map})
-	
-	map.tiles		= {}
-	map.drawRange	= {
-		sx = 1,
-		sy = 1,
-		ex = map.width,
-		ey = map.height,
-	}
+function Map:init(path, fw)
+	framework = fw
 	
 	-- Set tiles, images
 	local gid = 1
-	for i, tileset in ipairs(map.tilesets) do
-		local image = STI.formatPath(path..tileset.image)
-		tileset.image = love.graphics.newImage(image)
-		tileset.image:setFilter("nearest", "nearest")
-		gid = map:setTiles(i, tileset, gid)
+	for i, tileset in ipairs(self.tilesets) do
+		local image = self.formatPath(path .. tileset.image)
+		tileset.image = framework.newImage(image)
+		gid = self:setTiles(i, tileset, gid)
 	end
 	
 	-- Set layers
-	for i, layer in ipairs(map.layers) do
-		map:setLayer(layer, path)
+	for i, layer in ipairs(self.layers) do
+		self:setLayer(layer, path)
 	end
-	
-	return map
 end
 
-function STI.formatPath(path)
+function Map.formatPath(path)
 	local str = string.split(path, "/")
 	
 	for i, segment in pairs(str) do
@@ -102,7 +50,7 @@ function Map:setTiles(index, tileset, gid)
 		return n
 	end
 	
-	local quad	= love.graphics.newQuad
+	local quad	= framework.newQuad
 	local mw	= self.tilewidth
 	local iw	= tileset.imagewidth
 	local ih	= tileset.imageheight
@@ -171,9 +119,9 @@ function Map:setLayer(layer, path)
 	elseif layer.type == "imagelayer" then
 		layer.draw = function() self:drawImageLayer(layer) end
 		
-		local image = STI.formatPath(path..layer.image)
 		if layer.image ~= "" then
-			layer.image = love.graphics.newImage(image)
+			local image = self.formatPath(path..layer.image)
+			layer.image = framework.newImage(image)
 		end
 	end
 	
@@ -244,9 +192,9 @@ function Map:setTileData(layer)
 end
 
 function Map:setSpriteBatches(layer)
-	local newBatch	= love.graphics.newSpriteBatch
-	local w			= love.graphics.getWidth()
-	local h			= love.graphics.getHeight()
+	local newBatch	= framework.newSpriteBatch
+	local w			= framework.getWidth()
+	local h			= framework.getHeight()
 	local tw		= self.tilewidth
 	local th		= self.tileheight
 	local bw		= math.ceil(w / tw)
@@ -438,9 +386,9 @@ function Map:draw()
 end
 
 function Map:drawLayer(layer)
-	love.graphics.setColor(255, 255, 255, 255 * layer.opacity)
+	framework.setColor(255, 255, 255, 255 * layer.opacity)
 	layer:draw()
-	love.graphics.setColor(255, 255, 255, 255)
+	framework.setColor(255, 255, 255, 255)
 end
 
 function Map:drawTileLayer(layer)
@@ -462,7 +410,7 @@ function Map:drawTileLayer(layer)
 					local batch = batches[by] and batches[by][bx]
 					
 					if batch then
-						love.graphics.draw(batch, math.floor(layer.x), math.floor(layer.y))
+						framework.draw(batch, math.floor(layer.x), math.floor(layer.y))
 					end
 				end
 			end
@@ -493,7 +441,7 @@ function Map:drawObjectLayer(layer)
 			table.insert(vertices, py)
 		end
 		
-		love.graphics.polygon(mode, vertices)
+		framework.polygon(mode, vertices)
 	end
 	
 	for _, object in ipairs(layer.objects) do
@@ -501,22 +449,22 @@ function Map:drawObjectLayer(layer)
 		local y = layer.y + object.y
 		
 		if object.shape == "rectangle" then
-			love.graphics.setColor(fill)
-			love.graphics.rectangle("fill", x, y, object.width, object.height)
+			framework.setColor(fill)
+			framework.rectangle("fill", x, y, object.width, object.height)
 			
-			love.graphics.setColor(shadow)
-			love.graphics.rectangle("line", x+1, y+1, object.width, object.height)
+			framework.setColor(shadow)
+			framework.rectangle("line", x+1, y+1, object.width, object.height)
 			
-			love.graphics.setColor(line)
-			love.graphics.rectangle("line", x, y, object.width, object.height)
+			framework.setColor(line)
+			framework.rectangle("line", x, y, object.width, object.height)
 		elseif object.shape == "ellipse" then
-			love.graphics.setColor(fill)
+			framework.setColor(fill)
 			drawEllipse("fill", x, y, object.width, object.height)
 			
-			love.graphics.setColor(shadow)
+			framework.setColor(shadow)
 			drawEllipse("line", x+1, y+1, object.width, object.height)
 			
-			love.graphics.setColor(line)
+			framework.setColor(line)
 			drawEllipse("line", x, y, object.width, object.height)
 		elseif object.shape == "polygon" then
 			local points = {{},{}}
@@ -528,21 +476,21 @@ function Map:drawObjectLayer(layer)
 				table.insert(points[2], y + point.y+1)
 			end
 			
-			love.graphics.setColor(fill)
-			if not love.math.isConvex(points[1]) then
-				local triangles = love.math.triangulate(points[1])
+			framework.setColor(fill)
+			if not framework.isConvex(points[1]) then
+				local triangles = framework.triangulate(points[1])
 				for _, triangle in ipairs(triangles) do
-					love.graphics.polygon("fill", triangle)
+					framework.polygon("fill", triangle)
 				end
 			else
-				love.graphics.polygon("fill", points[1])
+				framework.polygon("fill", points[1])
 			end
 			
-			love.graphics.setColor(shadow)
-			love.graphics.polygon("line", points[2])
+			framework.setColor(shadow)
+			framework.polygon("line", points[2])
 			
-			love.graphics.setColor(line)
-			love.graphics.polygon("line", points[1])
+			framework.setColor(line)
+			framework.polygon("line", points[1])
 		elseif object.shape == "polyline" then
 			local points = {{},{}}
 			
@@ -553,11 +501,11 @@ function Map:drawObjectLayer(layer)
 				table.insert(points[2], y + point.y+1)
 			end
 			
-			love.graphics.setColor(shadow)
-			love.graphics.line(points[2])
+			framework.setColor(shadow)
+			framework.line(points[2])
 			
-			love.graphics.setColor(line)
-			love.graphics.line(points[1])
+			framework.setColor(line)
+			framework.line(points[1])
 		end
 	end
 end
@@ -566,7 +514,7 @@ function Map:drawImageLayer(layer)
 	assert(layer.type == "imagelayer", "Invalid layer type: " .. layer.type .. ". Layer must be of type: imagelayer")
 	
 	if layer.image ~= "" then
-		love.graphics.draw(layer.image, layer.x, layer.y)
+		framework.draw(layer.image, layer.x, layer.y)
 	end
 end
 
@@ -577,7 +525,7 @@ function Map:drawCollisionMap(layer)
 	local tw = self.tilewidth
 	local th = self.tileheight
 	
-	love.graphics.setColor(255, 255, 255, 255 * layer.opacity)
+	framework.setColor(255, 255, 255, 255 * layer.opacity)
 	
 	for y=1, self.height do
 		for x=1, self.width do
@@ -601,42 +549,14 @@ function Map:drawCollisionMap(layer)
 			
 			
 			if layer.data[y][x] == 1 then
-				love.graphics.rectangle("fill", tx, ty, tw, th)
+				framework.rectangle("fill", tx, ty, tw, th)
 			else
-				love.graphics.rectangle("line", tx, ty, tw, th)
+				framework.rectangle("line", tx, ty, tw, th)
 			end
 		end
 	end
 	
-	love.graphics.setColor(255, 255, 255, 255)
+	framework.setColor(255, 255, 255, 255)
 end
 
--- http://wiki.interfaceware.com/534.html
-function string.split(s, d)
-	local t = {}
-	local i = 0
-	local f
-	local match = '(.-)' .. d .. '()'
-	
-	if string.find(s, d) == nil then
-		return {s}
-	end
-	
-	for sub, j in string.gmatch(s, match) do
-		i = i + 1
-		t[i] = sub
-		f = j
-	end
-	
-	if i ~= 0 then
-		t[i+1] = string.sub(s, f)
-	end
-	
-	return t
-end
-
-function bit.status(num, digit)
-	return bit.band(num, bit.lshift(1, digit)) ~= 0
-end
-
-return STI
+return Map

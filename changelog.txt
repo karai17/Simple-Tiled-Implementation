@@ -1,6 +1,13 @@
 ======================================
 Simple Tiled Implementation Change Log
 ======================================
+-------------------
+2014-04-07 : v0.7.0
+-------------------
+* Added:	Files for Corona and Pure Lua implementation
+* Changed:	Restructured sti.lua into several files
+* Changed:	Library is now LOVE agnostic and should allow for implementation of other frameworks
+
 --------------------
 2014-03-11 : v0.6.16
 --------------------
