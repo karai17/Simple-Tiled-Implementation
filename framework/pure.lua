@@ -1,26 +1,28 @@
-local lua = {}
+local framework = {}
 
-function lua:load(file)
+framework.version = "Lua"
+
+function framework:load(file)
 	return assert(love.filesystem.load(file), "File not found: " .. file)
 end
 
-function lua.newImage(path)
+function framework.newImage(path)
 	local image = love.graphics.newImage(path)
 	image:setFilter("nearest", "nearest")
 	
 	return image
 end
 
-lua.newQuad			= love.graphics.newQuad
-lua.setColor		= love.graphics.setColor
-lua.draw			= love.graphics.draw
-lua.polygon			= love.graphics.polygon
-lua.rectangle		= love.graphics.rectangle
-lua.isConvex		= love.math.isConvex
-lua.triangulate		= love.math.triangulate
-lua.line			= love.graphics.line
-lua.newSpriteBatch	= love.graphics.newSpriteBatch
-lua.getWidth		= love.graphics.getWidth
-lua.getHeight		= love.graphics.getHeight
+framework.newQuad			= love.graphics.newQuad
+framework.setColor			= love.graphics.setColor
+framework.draw				= love.graphics.draw
+framework.polygon			= love.graphics.polygon
+framework.rectangle			= love.graphics.rectangle
+framework.isConvex			= love.math.isConvex
+framework.triangulate		= love.math.triangulate
+framework.line				= love.graphics.line
+framework.newSpriteBatch	= love.graphics.newSpriteBatch
+framework.getWidth			= love.graphics.getWidth
+framework.getHeight			= love.graphics.getHeight
 
-return lua
+return framework
