@@ -377,12 +377,22 @@ function Map:update(dt)
 	end
 end
 
-function Map:draw()
+function Map:draw(sx, sy)
+	framework.setCanvas(self.canvas)
+	framework.clear(self.canvas)
+	
 	for _, layer in ipairs(self.layers) do
 		if layer.visible and layer.opacity > 0 then
 			self:drawLayer(layer)
 		end
 	end
+	
+	framework.setCanvas()
+	
+	framework.push()
+	framework.origin()
+	framework.draw(self.canvas, 0, 0, 0, sx, sy)
+	framework.pop()
 end
 
 function Map:drawLayer(layer)
@@ -557,6 +567,10 @@ function Map:drawCollisionMap(layer)
 	end
 	
 	framework.setColor(255, 255, 255, 255)
+end
+
+function Map:resize(w, h)
+	self.canvas = framework.newCanvas(w, h)
 end
 
 return Map

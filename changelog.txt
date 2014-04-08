@@ -2,6 +2,13 @@
 Simple Tiled Implementation Change Log
 ======================================
 -------------------
+2014-04-08 : v0.7.1
+-------------------
+* Added:	Map:resize(w, h)
+* Changed:	Map:draw() now takes two optional arguments: ScaleX and ScaleY
+* Changed:	STI now draws to a Canvas before drawing to screen (fixes scaling oddities)
+
+-------------------
 2014-04-07 : v0.7.0
 -------------------
 * Added:	Files for Corona and Pure Lua implementation
