@@ -143,10 +143,29 @@ function Map:setTileData(layer)
 				if tile then
 					map[y][x] = tile
 				else
-					local flipX		= bit.status(gid, 31)
-					local flipY		= bit.status(gid, 30)
-					local flipD		= bit.status(gid, 29)
-					local realgid	= bit.band(gid, bit.bnot(bit.bor(2^31, 2^30, 2^29)))
+					local bit31	= 2147483648
+					local bit30	= 1073741824
+					local bit29	= 536870912
+					local flipX		= false
+					local flipY		= false
+					local flipD		= false
+					local realgid	= gid
+					
+					if realgid >= bit31 then
+						realgid = realgid - bit31
+						flipX = not flipX
+					end
+					
+					if realgid >= bit30 then
+						realgid = realgid - bit30
+						flipY = not flipY
+					end
+					
+					if realgid >= bit29 then
+						realgid = realgid - bit29
+						flipD = not flipD
+					end
+					
 					local tile = self.tiles[realgid]
 					local data = {
 						gid			= tile.gid,

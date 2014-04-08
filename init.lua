@@ -27,22 +27,18 @@ THE SOFTWARE.
 
 local STI = {}
 
-STI.version = "0.7.1"
+STI.version = "0.7.2"
 
 local path = ...
 local Map = require(path .. ".map")
 local framework
-local bit
 
 if love then
 	framework = require(path .. ".framework.love")
-	bit = require "bit"
 elseif corona then -- I don't think this works
 	framework = require(path .. ".framework.corona")
-	bit = require "plugin.bit"
 else
 	framework = require(path .. ".framework.pure")
-	bit = {}
 end
 
 function STI.new(map)
@@ -95,10 +91,6 @@ function string.split(s, d)
 	end
 	
 	return t
-end
-
-function bit.status(num, digit)
-	return bit.band(num, bit.lshift(1, digit)) ~= 0
 end
 
 return STI
