@@ -34,6 +34,7 @@
 					<li><a href="#drawObjectLayer">Map:drawObjectLayer</a></li>
 					<li><a href="#drawImageLayer">Map:drawImageLayer</a></li>
 					<li><a href="#drawCollisionMap">Map:drawCollisionMap</a></li>
+					<li><a href="#resize">Map:resize</a></li>
 					<li><a href="#callbacks">Callbacks</a></li>
 					<li><a href="#properties">Properties</a></li>
 				</nav>
@@ -242,11 +243,12 @@ function love.update(dt)
 end</code></pre>
 			</section>
 			<section>
-				<h2><a id="draw">Map:draw()</a></h2>
+				<h2><a id="draw">Map:draw(sx, sy)</a></h2>
 				<p>Draw all Layers in order of Index.</p>
 				<h3>Parameters</h3>
 				<ul>
-					<li>none</li>
+					<li><span>sx</span> Scale Factor for Width</li>
+					<li><span>sy</span> Scale Factor for Height</li>
 				</ul>
 				<h3>Returns</h3>
 				<ul>
@@ -264,7 +266,7 @@ function love.update(dt)
 end
 
 function love.draw()
-	map:draw()
+	map:draw(1.3, 1.5) -- defaults to 1, 1 if omitted
 end</code></pre>
 			</section>
 			<section>
@@ -432,6 +434,37 @@ function love.draw()
 	
 	-- Draw last so it is on top
 	map:drawCollisionMap(collision)
+end</code></pre>
+			</section>
+			<section>
+				<h2><a id="resize">Map:resize(w, h)</a></h2>
+				<p>Resize Canvas</p>
+				<h3>Parameters</h3>
+				<ul>
+					<li><span>w</span> New Width of Canvas</li>
+					<li><span>h</span> New Height of Canvas</li>
+				</ul>
+				<h3>Returns</h3>
+				<ul>
+					<li>none</li>
+				</ul>
+				<h3>Example</h3>
+				<pre><code class="language-lua">local sti = require "libs.sti"
+
+function love.load()
+	map = sti.new("assets/maps/map01")
+end
+
+function love.update(dt)
+	map:update(dt)
+end
+
+function love.draw()
+	map:draw()
+end
+
+function love.resize(w, h)
+	map:resize(w, h)
 end</code></pre>
 			</section>
 			<section>
