@@ -5,7 +5,7 @@ local framework = {}
 
 framework.version = "LOVE"
 
-function framework:load(file)
+function framework.load(file)
 	return assert(lf.load(file), "File not found: " .. file)
 end
 
@@ -16,12 +16,18 @@ function framework.newImage(path)
 	return image
 end
 
+function framework:newCanvas()
+	local canvas = lg.newCanvas(self.getWidth(), self.getHeight())
+	canvas:setFilter("nearest", "nearest")
+
+	return canvas
+end
+
 framework.clear				= lg.clear
 framework.draw				= lg.draw
 framework.getHeight			= lg.getHeight
 framework.getWidth			= lg.getWidth
 framework.line				= lg.line
-framework.newCanvas			= lg.newCanvas
 framework.newSpriteBatch	= lg.newSpriteBatch
 framework.newQuad			= lg.newQuad
 framework.polygon			= lg.polygon
