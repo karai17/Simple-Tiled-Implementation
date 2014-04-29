@@ -589,7 +589,7 @@ function Map:drawCollisionMap(layer)
 end
 
 function Map:resize(w, h)
-	self.canvas = framework.newCanvas(w, h)
+	self.canvas = framework:newCanvas(w, h)
 end
 
 return Map

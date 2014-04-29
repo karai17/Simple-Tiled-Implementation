@@ -16,8 +16,10 @@ function framework.newImage(path)
 	return image
 end
 
-function framework:newCanvas()
-	local canvas = lg.newCanvas(self.getWidth(), self.getHeight())
+function framework:newCanvas(w, h)
+	w = w or self.getWidth()
+	h = h or self.getHeight()
+	local canvas = lg.newCanvas(w, h)
 	canvas:setFilter("nearest", "nearest")
 
 	return canvas

@@ -2,6 +2,11 @@
 Simple Tiled Implementation Change Log
 ======================================
 -------------------
+2014-04-28 : v0.7.4
+-------------------
+* Fixed:	Canvas resize type
+
+-------------------
 2014-04-18 : v0.7.3
 -------------------
 * Fixed:	Canvas using wrong filter
