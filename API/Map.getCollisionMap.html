@@ -43,7 +43,7 @@
                     </div>
                     <div id="sub-nav-collapse" class="sub-nav-collapse">
                         <!-- Navigation -->
-                        <ul class="nav nav-list"><li><a href=".././Getting_Started.html">Getting Started</a></li><li class="open"><a href="#" class="aj-nav folder">API</a><ul class="nav nav-list"><li><a href="../API/./STI.new.html">STI.new</a></li><li><a href="../API/./Map:update.html">Map:update</a></li><li><a href="../API/./Map:draw.html">Map:draw</a></li><li><a href="../API/./Map:resize.html">Map:resize</a></li><li><a href="../API/./Map:setDrawRange.html">Map:setDrawRange</a></li><li><a href="../API/./Map:getCollisionMap.html">Map:getCollisionMap</a></li><li><a href="../API/./Map:addCustomLayer.html">Map:addCustomLayer</a></li><li><a href="../API/./Map:convertToCustomLayer.html">Map:convertToCustomLayer</a></li><li><a href="../API/./Map:removeLayer.html">Map:removeLayer</a></li><li><a href="../API/./Map:drawLayer.html">Map:drawLayer</a></li><li><a href="../API/./Map:drawTileLayer.html">Map:drawTileLayer</a></li><li><a href="../API/./Map:drawObjectLayer.html">Map:drawObjectLayer</a></li><li><a href="../API/./Map:drawImageLayer.html">Map:drawImageLayer</a></li><li><a href="../API/./Map:drawCollisionMap.html">Map:drawCollisionMap</a></li><li><a href="../API/./Map:setSpriteBatches.html">Map:setSpriteBatches</a></li></ul></li><li><a href="#" class="aj-nav folder">Layers</a><ul class="nav nav-list"><li><a href="../Layers/./Layer_Callbacks.html">Layer Callbacks</a></li><li><a href="../Layers/./Layer_Properties.html">Layer Properties</a></li></ul></li></ul>                                                    <div class="well well-sidebar">
+                        <ul class="nav nav-list"><li><a href=".././Getting_Started.html">Getting Started</a></li><li class="open"><a href="#" class="aj-nav folder">API</a><ul class="nav nav-list"><li><a href="../API/./STI.new.html">STI.new</a></li><li><a href="../API/./Map.update.html">Map.update</a></li><li><a href="../API/./Map.draw.html">Map.draw</a></li><li><a href="../API/./Map.resize.html">Map.resize</a></li><li><a href="../API/./Map.setDrawRange.html">Map.setDrawRange</a></li><li><a href="../API/./Map.getCollisionMap.html">Map.getCollisionMap</a></li><li><a href="../API/./Map.addCustomLayer.html">Map.addCustomLayer</a></li><li><a href="../API/./Map.convertToCustomLayer.html">Map.convertToCustomLayer</a></li><li><a href="../API/./Map.removeLayer.html">Map.removeLayer</a></li><li><a href="../API/./Map.drawLayer.html">Map.drawLayer</a></li><li><a href="../API/./Map.drawTileLayer.html">Map.drawTileLayer</a></li><li><a href="../API/./Map.drawObjectLayer.html">Map.drawObjectLayer</a></li><li><a href="../API/./Map.drawImageLayer.html">Map.drawImageLayer</a></li><li><a href="../API/./Map.drawCollisionMap.html">Map.drawCollisionMap</a></li><li><a href="../API/./Map.setSpriteBatches.html">Map.setSpriteBatches</a></li></ul></li><li><a href="#" class="aj-nav folder">Layers</a><ul class="nav nav-list"><li><a href="../Layers/./Layer_Callbacks.html">Layer Callbacks</a></li><li><a href="../Layers/./Layer_Properties.html">Layer Properties</a></li></ul></li></ul>                                                    <div class="well well-sidebar">
                                 <!-- Links -->
                                                                     <a href="https://github.com/karai17/Simple-Tiled-Implementation/archive/master.zip" target="_blank">Download</a><br>
                                                                     <a href="https://github.com/karai17/Simple-Tiled-Implementation" target="_blank">GitHub Repo</a><br>
@@ -58,39 +58,37 @@
                     <div class="content-page">
                         <article>
                                                             <div class="page-header sub-header clearfix">
-                                    <h1>Map:draw                                                                            </h1>
+                                    <h1>Map.getCollisionMap                                                                            </h1>
                                         <span style="float: left; font-size: 10px; color: gray;">
                                             Saturday, May 31, 2014                                        </span>
                                         <span style="float: right; font-size: 10px; color: gray;">
-                                            2:20 AM                                        </span>
+                                            12:42 AM                                        </span>
                                 </div>
-                                                        <p>Drawing your map is the main goal of this library, and it does so very efficiently, and very quickly. A simple draw call is all you need to get a map on screen.</p>
+                                                        <p>STI has a built in binary collision map creator. It does not, however, have any collision logic. You can use this function to generate a collision map and to buuld your own logic around it.</p>
 <h2>Arguments</h2>
-<h3>scaleX</h3>
+<h3>self</h3>
 <ul>
-<li>Scale factor (defaults to 1)</li>
+<li>Map object</li>
 </ul>
-<h3>scaleY</h3>
+<h3>index</h3>
 <ul>
-<li>Scale factor (defaults to 1)</li>
+<li>Name or Index (from bottom) of layer</li>
 </ul>
 <h2>Returns</h2>
-<h3>nil</h3>
+<h3>table</h3>
+<ul>
+<li>A binary collision map</li>
+</ul>
 <pre><code class="language-lua">local sti = require("sti")
 
 function love.load()
     map = sti.new("assets/maps/map01")
-end
 
-function love.update(dt)
-    map:update(dt)
-end
+    -- Get map using layer name
+    collision = map:getCollisionMap("Collision Layer")
 
-function love.draw()
-    local scaleX = 1.1
-    local scaleY = 1.3
-
-    map:draw(scaleX, scaleY)
+    -- Get map using layer index
+    collision = map:getCollisionMap(5)
 end</code></pre>                                                    </article>
                     </div>
                 </div>

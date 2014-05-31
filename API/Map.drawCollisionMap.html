@@ -43,7 +43,7 @@
                     </div>
                     <div id="sub-nav-collapse" class="sub-nav-collapse">
                         <!-- Navigation -->
-                        <ul class="nav nav-list"><li><a href=".././Getting_Started.html">Getting Started</a></li><li class="open"><a href="#" class="aj-nav folder">API</a><ul class="nav nav-list"><li><a href="../API/./STI.new.html">STI.new</a></li><li><a href="../API/./Map:update.html">Map:update</a></li><li><a href="../API/./Map:draw.html">Map:draw</a></li><li><a href="../API/./Map:resize.html">Map:resize</a></li><li><a href="../API/./Map:setDrawRange.html">Map:setDrawRange</a></li><li><a href="../API/./Map:getCollisionMap.html">Map:getCollisionMap</a></li><li><a href="../API/./Map:addCustomLayer.html">Map:addCustomLayer</a></li><li><a href="../API/./Map:convertToCustomLayer.html">Map:convertToCustomLayer</a></li><li><a href="../API/./Map:removeLayer.html">Map:removeLayer</a></li><li><a href="../API/./Map:drawLayer.html">Map:drawLayer</a></li><li><a href="../API/./Map:drawTileLayer.html">Map:drawTileLayer</a></li><li><a href="../API/./Map:drawObjectLayer.html">Map:drawObjectLayer</a></li><li><a href="../API/./Map:drawImageLayer.html">Map:drawImageLayer</a></li><li><a href="../API/./Map:drawCollisionMap.html">Map:drawCollisionMap</a></li><li><a href="../API/./Map:setSpriteBatches.html">Map:setSpriteBatches</a></li></ul></li><li><a href="#" class="aj-nav folder">Layers</a><ul class="nav nav-list"><li><a href="../Layers/./Layer_Callbacks.html">Layer Callbacks</a></li><li><a href="../Layers/./Layer_Properties.html">Layer Properties</a></li></ul></li></ul>                                                    <div class="well well-sidebar">
+                        <ul class="nav nav-list"><li><a href=".././Getting_Started.html">Getting Started</a></li><li class="open"><a href="#" class="aj-nav folder">API</a><ul class="nav nav-list"><li><a href="../API/./STI.new.html">STI.new</a></li><li><a href="../API/./Map.update.html">Map.update</a></li><li><a href="../API/./Map.draw.html">Map.draw</a></li><li><a href="../API/./Map.resize.html">Map.resize</a></li><li><a href="../API/./Map.setDrawRange.html">Map.setDrawRange</a></li><li><a href="../API/./Map.getCollisionMap.html">Map.getCollisionMap</a></li><li><a href="../API/./Map.addCustomLayer.html">Map.addCustomLayer</a></li><li><a href="../API/./Map.convertToCustomLayer.html">Map.convertToCustomLayer</a></li><li><a href="../API/./Map.removeLayer.html">Map.removeLayer</a></li><li><a href="../API/./Map.drawLayer.html">Map.drawLayer</a></li><li><a href="../API/./Map.drawTileLayer.html">Map.drawTileLayer</a></li><li><a href="../API/./Map.drawObjectLayer.html">Map.drawObjectLayer</a></li><li><a href="../API/./Map.drawImageLayer.html">Map.drawImageLayer</a></li><li><a href="../API/./Map.drawCollisionMap.html">Map.drawCollisionMap</a></li><li><a href="../API/./Map.setSpriteBatches.html">Map.setSpriteBatches</a></li></ul></li><li><a href="#" class="aj-nav folder">Layers</a><ul class="nav nav-list"><li><a href="../Layers/./Layer_Callbacks.html">Layer Callbacks</a></li><li><a href="../Layers/./Layer_Properties.html">Layer Properties</a></li></ul></li></ul>                                                    <div class="well well-sidebar">
                                 <!-- Links -->
                                                                     <a href="https://github.com/karai17/Simple-Tiled-Implementation/archive/master.zip" target="_blank">Download</a><br>
                                                                     <a href="https://github.com/karai17/Simple-Tiled-Implementation" target="_blank">GitHub Repo</a><br>
@@ -58,17 +58,21 @@
                     <div class="content-page">
                         <article>
                                                             <div class="page-header sub-header clearfix">
-                                    <h1>Map:removeLayer                                                                            </h1>
+                                    <h1>Map.drawCollisionMap                                                                            </h1>
                                         <span style="float: left; font-size: 10px; color: gray;">
                                             Saturday, May 31, 2014                                        </span>
                                         <span style="float: right; font-size: 10px; color: gray;">
-                                            2:21 AM                                        </span>
+                                            1:15 AM                                        </span>
                                 </div>
-                                                        <p>If you no longer need a layer or any of its data, you can purge it from your map.</p>
+                                                        <p>This is mostly a debugging feature that allows you to visualize a binary collision map.</p>
 <h2>Arguments</h2>
-<h3>index</h3>
+<h3>self</h3>
 <ul>
-<li>Name or Index (from bottom) of layer</li>
+<li>Map object</li>
+</ul>
+<h3>map</h3>
+<ul>
+<li>Collision map</li>
 </ul>
 <h2>Returns</h2>
 <h3>nil</h3>
@@ -77,12 +81,21 @@
 function love.load()
     map = sti.new("assets/maps/map01")
 
-    -- Remove using layer name
-    map:removeLayer("Sprite Layer")
+    -- Get map using layer name
+    collision = map:getCollisionMap("Collision Layer")
 
-    -- Remove using layer index
-    map:removeLayer(2)
-end</code></pre>                                                    </article>
+    -- Get map using layer index
+    collision = map:getCollisionMap(5)
+end
+
+function love.draw()
+    map:draw()
+
+    -- Draw after the main map draw so that it shows up on top!
+    map:drawCollisionMap(collision)
+end</code></pre>
+<p><em>Note:</em></p>
+<p><em>This currently only accurately depicts orthogonal maps and tile layers. This will (eventually) be updated to support other map types and layer types.</em></p>                                                    </article>
                     </div>
                 </div>
             </div>
