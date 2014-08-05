@@ -70,7 +70,7 @@ function Map:setTiles(index, tileset, gid)
 			local properties
 			
 			for _, tile in pairs(tileset.tiles) do
-				if tile.id == gid - tileset.firstgid + 1 then
+				if tile.id == gid - tileset.firstgid then
 					properties = tile.properties
 				end
 			end
@@ -423,6 +423,10 @@ function Map:drawLayer(layer)
 end
 
 function Map:drawTileLayer(layer)
+	if type(layer) == "string" or type(layer) == "number" then
+		layer = self.layers[layer]
+	end
+
 	assert(layer.type == "tilelayer", "Invalid layer type: " .. layer.type .. ". Layer must be of type: tilelayer")
 	
 	local bw = layer.batches.width
@@ -450,6 +454,10 @@ function Map:drawTileLayer(layer)
 end
 
 function Map:drawObjectLayer(layer)
+	if type(layer) == "string" or type(layer) == "number" then
+		layer = self.layers[layer]
+	end
+
 	assert(layer.type == "objectgroup", "Invalid layer type: " .. layer.type .. ". Layer must be of type: objectgroup")
 	
 	local line		= { 160, 160, 160, 255 * layer.opacity }
@@ -542,6 +550,10 @@ function Map:drawObjectLayer(layer)
 end
 
 function Map:drawImageLayer(layer)
+	if type(layer) == "string" or type(layer) == "number" then
+		layer = self.layers[layer]
+	end
+
 	assert(layer.type == "imagelayer", "Invalid layer type: " .. layer.type .. ". Layer must be of type: imagelayer")
 	
 	if layer.image ~= "" then
