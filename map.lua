@@ -92,12 +92,6 @@ function Map:setTiles(index, tileset, gid)
 			if self.orientation == "isometric" then
 				tile.offset.x = -mw / 2
 			end
-		
-			--[[ THIS IS A TEMPORARY FIX FOR 0.9.1 ]]--
-			if tileset.tileoffset then
-				tile.offset.x = tile.offset.x + tileset.tileoffset.x
-				tile.offset.y = tile.offset.y + tileset.tileoffset.y
-			end
 			
 			self.tiles[gid] = tile
 			gid = gid + 1
@@ -260,7 +254,7 @@ function Map:setSpriteBatches(layer)
 					if tile.r	> 0 then tx = tx + tw end
 					if tile.r	< 0 then ty = ty + th end
 				elseif self.orientation == "isometric" then
-					tx = (x - y) * (tw / 2) + tile.offset.x
+					tx = (x - y) * (tw / 2) + tile.offset.x + layer.width * tw / 2
 					ty = (x + y) * (th / 2) + tile.offset.y
 				elseif self.orientation == "staggered" then
 					if y % 2 == 0 then
@@ -269,7 +263,7 @@ function Map:setSpriteBatches(layer)
 						tx = x * tw + tile.offset.x
 					end
 					
-					ty = y * th / 2 + tile.offset.y
+					ty = y * th / 2 + tile.offset.y + th / 2
 				end
 				
 				batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
@@ -486,25 +480,51 @@ function Map:drawObjectLayer(layer)
 	for _, object in ipairs(layer.objects) do
 		local x = layer.x + object.x
 		local y = layer.y + object.y
+		local w = object.width
+		local h = object.height
+		local r = object.rotation
+
+		if self.orientation == "isometric" then
+			x = x + self.width * self.tilewidth / 2
+		end
 		
 		if object.shape == "rectangle" then
+			local points = {{},{}}
+			table.insert(points[1], x)
+			table.insert(points[1], y)
+			table.insert(points[1], x + w)
+			table.insert(points[1], y)
+			table.insert(points[1], x + w)
+			table.insert(points[1], y + h)
+			table.insert(points[1], x)
+			table.insert(points[1], y + h)
+
+			table.insert(points[2], x + 1)
+			table.insert(points[2], y + 1)
+			table.insert(points[2], x + w + 1)
+			table.insert(points[2], y + 1)
+			table.insert(points[2], x + w + 1)
+			table.insert(points[2], y + h + 1)
+			table.insert(points[2], x + 1)
+			table.insert(points[2], y + h + 1)
+			
 			framework.setColor(fill)
-			framework.rectangle("fill", x, y, object.width, object.height)
+			framework.polygon("fill", points[1])
 			
 			framework.setColor(shadow)
-			framework.rectangle("line", x+1, y+1, object.width, object.height)
+			framework.polygon("line", points[2])
 			
 			framework.setColor(line)
-			framework.rectangle("line", x, y, object.width, object.height)
+			framework.polygon("line", points[1])
 		elseif object.shape == "ellipse" then
 			framework.setColor(fill)
-			drawEllipse("fill", x, y, object.width, object.height)
+			drawEllipse("fill", x, y, w, h)
 			
 			framework.setColor(shadow)
-			drawEllipse("line", x+1, y+1, object.width, object.height)
+			drawEllipse("line", x+1, y+1, w, h)
 			
 			framework.setColor(line)
-			drawEllipse("line", x, y, object.width, object.height)
+			drawEllipse("line", x, y, w, h)
 		elseif object.shape == "polygon" then
 			local points = {{},{}}
 			

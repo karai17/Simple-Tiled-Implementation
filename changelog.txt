@@ -2,6 +2,11 @@
 Simple Tiled Implementation Change Log
 ======================================
 -------------------
+2014-09-17 : v0.7.6
+-------------------
+* Fixed:	Adjusted map positioning for Isometric and Staggered maps
+
+-------------------
 2014-08-05 : v0.7.5
 -------------------
 * Fixed:	Properties offset by 1
