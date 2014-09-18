@@ -4,7 +4,12 @@ Simple Tiled Implementation Change Log
 -------------------
 2014-09-17 : v0.7.6
 -------------------
+* Added:	Map:convertToIsometric and Map:convertFromIsometric
+* Added:	Map:setObjectCoordinates
+* Added:	Map:rotateVertex
 * Fixed:	Adjusted map positioning for Isometric and Staggered maps
+* Fixed:	Object positioning in Isometric maps
+* Removed:	Temporary fix for Tiled 0.9.1
 
 -------------------
 2014-08-05 : v0.7.5

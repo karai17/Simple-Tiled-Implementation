@@ -84,8 +84,8 @@ function Map:setTiles(index, tileset, gid)
 				sy			= 1,
 				r			= 0,
 				offset		= {
-					x = -mw,
-					y = -th,
+					x = -mw + tileset.tileoffset.x,
+					y = -th + tileset.tileoffset.y,
 				},
 			}
 			
@@ -111,6 +111,7 @@ function Map:setLayer(layer, path)
 		self:setSpriteBatches(layer)
 		layer.draw = function() self:drawTileLayer(layer) end
 	elseif layer.type == "objectgroup" then
+		self:setObjectCoordinates(layer)
 		layer.draw = function() self:drawObjectLayer(layer) end
 	elseif layer.type == "imagelayer" then
 		layer.draw = function() self:drawImageLayer(layer) end
@@ -204,6 +205,94 @@ function Map:setTileData(layer)
 	end
 	
 	layer.data = map
+end
+
+function Map:setObjectCoordinates(layer)
+	for _, object in ipairs(layer.objects) do
+		local x = layer.x + object.x
+		local y = layer.y + object.y
+		local w = object.width
+		local h = object.height
+		local r = object.rotation
+		local cos = math.cos(math.rad(r))
+		local sin = math.sin(math.rad(r))
+
+		if object.shape == "rectangle" then
+			object.rectangle = {}
+
+			local vertices = {
+				{ x=x,		y=y },
+				{ x=x + w,	y=y },
+				{ x=x + w,	y=y + h },
+				{ x=x,		y=y + h },
+			}
+
+			for _, vertex in ipairs(vertices) do
+				local bx, by = x, y
+
+				if self.orientation == "isometric" then
+					bx, by = self:convertToIsometric(x, y)
+					vertex.x, vertex.y = self:convertToIsometric(vertex.x, vertex.y)
+				end
+
+				vertex.x, vertex.y = self:rotateVertex(vertex, bx, by, cos, sin)
+				table.insert(object.rectangle, { x = vertex.x, y = vertex.y })
+			end
+		elseif object.shape == "ellipse" then
+			object.ellipse = {}
+
+			local segments = 100
+			local vertices = {}
+			
+			table.insert(vertices, { x = x + w / 2, y = y + h / 2 })
+			
+			for i=0, segments do
+				local angle = (i / segments) * math.pi * 2
+				local px = x + w / 2 + math.cos(angle) * w / 2
+				local py = y + h / 2 + math.sin(angle) * h / 2
+				
+				table.insert(vertices, { x = px, y = py })
+			end
+			
+			for _, vertex in ipairs(vertices) do
+				local bx, by = x, y
+
+				if self.orientation == "isometric" then
+					bx, by = self:convertToIsometric(x, y)
+					vertex.x, vertex.y = self:convertToIsometric(vertex.x, vertex.y)
+				end
+
+				vertex.x, vertex.y = self:rotateVertex(vertex, bx, by, cos, sin)
+				table.insert(object.ellipse, { x = vertex.x, y = vertex.y })
+			end
+		elseif object.shape == "polygon" then
+			for _, vertex in ipairs(object.polygon) do
+				vertex.x = x + vertex.x
+				vertex.y = y + vertex.y
+				local bx, by = x, y
+
+				if self.orientation == "isometric" then
+					bx, by = self:convertToIsometric(x, y)
+					vertex.x, vertex.y = self:convertToIsometric(vertex.x, vertex.y)
+				end
+
+				vertex.x, vertex.y = self:rotateVertex(vertex, bx, by, cos, sin)
+			end
+		elseif object.shape == "polyline" then
+			for _, vertex in ipairs(object.polyline) do
+				vertex.x = x + vertex.x
+				vertex.y = y + vertex.y
+				local bx, by = x, y
+
+				if self.orientation == "isometric" then
+					bx, by = self:convertToIsometric(x, y)
+					vertex.x, vertex.y = self:convertToIsometric(vertex.x, vertex.y)
+				end
+
+				vertex.x, vertex.y = self:rotateVertex(vertex, bx, by, cos, sin)
+			end
+		end
+	end
 end
 
 function Map:setSpriteBatches(layer)
@@ -457,18 +546,18 @@ function Map:drawObjectLayer(layer)
 	local line		= { 160, 160, 160, 255 * layer.opacity }
 	local fill		= { 160, 160, 160, 255 * layer.opacity * 0.2 }
 	local shadow	= { 0, 0, 0, 255 * layer.opacity }
-	
-	local function drawEllipse(mode, x, y, rx, ry)
+
+	local function drawEllipse(mode, x, y, w, h)
 		local segments = 100
 		local vertices = {}
 		
-		table.insert(vertices, x + rx / 2)
-		table.insert(vertices, y + ry / 2)
+		table.insert(vertices, x + w / 2)
+		table.insert(vertices, y + h / 2)
 		
 		for i=0, segments do
 			local angle = (i / segments) * math.pi * 2
-			local px = x + rx / 2 + math.cos(angle) * rx / 2
-			local py = y + ry / 2 + math.sin(angle) * ry / 2
+			local px = x + w / 2 + math.cos(angle) * w / 2
+			local py = y + h / 2 + math.sin(angle) * h / 2
 			
 			table.insert(vertices, px)
 			table.insert(vertices, py)
@@ -483,88 +572,83 @@ function Map:drawObjectLayer(layer)
 		local w = object.width
 		local h = object.height
 		local r = object.rotation
-
-		if self.orientation == "isometric" then
-			x = x + self.width * self.tilewidth / 2
-		end
 		
 		if object.shape == "rectangle" then
-			local points = {{},{}}
-			table.insert(points[1], x)
-			table.insert(points[1], y)
-			table.insert(points[1], x + w)
-			table.insert(points[1], y)
-			table.insert(points[1], x + w)
-			table.insert(points[1], y + h)
-			table.insert(points[1], x)
-			table.insert(points[1], y + h)
+			local vertices = {{},{}}
 
-			table.insert(points[2], x + 1)
-			table.insert(points[2], y + 1)
-			table.insert(points[2], x + w + 1)
-			table.insert(points[2], y + 1)
-			table.insert(points[2], x + w + 1)
-			table.insert(points[2], y + h + 1)
-			table.insert(points[2], x + 1)
-			table.insert(points[2], y + h + 1)
-			
+			for _, vertex in ipairs(object.rectangle) do
+				table.insert(vertices[1], vertex.x)
+				table.insert(vertices[1], vertex.y)
+				table.insert(vertices[2], vertex.x+1)
+				table.insert(vertices[2], vertex.y+1)
+			end
+
 			framework.setColor(fill)
-			framework.polygon("fill", points[1])
+			framework.polygon("fill", vertices[1])
 			
 			framework.setColor(shadow)
-			framework.polygon("line", points[2])
+			framework.polygon("line", vertices[2])
 			
 			framework.setColor(line)
-			framework.polygon("line", points[1])
+			framework.polygon("line", vertices[1])
 		elseif object.shape == "ellipse" then
+			local vertices = {{},{}}
+
+			for _, vertex in ipairs(object.ellipse) do
+				table.insert(vertices[1], vertex.x)
+				table.insert(vertices[1], vertex.y)
+				table.insert(vertices[2], vertex.x+1)
+				table.insert(vertices[2], vertex.y+1)
+			end
+
 			framework.setColor(fill)
-			drawEllipse("fill", x, y, w, h)
+			framework.polygon("fill", vertices[1])
 			
 			framework.setColor(shadow)
-			drawEllipse("line", x+1, y+1, w, h)
+			framework.polygon("line", vertices[2])
 			
 			framework.setColor(line)
-			drawEllipse("line", x, y, w, h)
+			framework.polygon("line", vertices[1])
 		elseif object.shape == "polygon" then
-			local points = {{},{}}
+			local vertices = {{},{}}
 			
-			for _, point in ipairs(object.polygon) do
-				table.insert(points[1], x + point.x)
-				table.insert(points[1], y + point.y)
-				table.insert(points[2], x + point.x+1)
-				table.insert(points[2], y + point.y+1)
+			for _, vertex in ipairs(object.polygon) do
+				table.insert(vertices[1], vertex.x)
+				table.insert(vertices[1], vertex.y)
+				table.insert(vertices[2], vertex.x+1)
+				table.insert(vertices[2], vertex.y+1)
 			end
 			
 			framework.setColor(fill)
-			if not framework.isConvex(points[1]) then
-				local triangles = framework.triangulate(points[1])
+			if not framework.isConvex(vertices[1]) then
+				local triangles = framework.triangulate(vertices[1])
 				for _, triangle in ipairs(triangles) do
 					framework.polygon("fill", triangle)
 				end
 			else
-				framework.polygon("fill", points[1])
+				framework.polygon("fill", vertices[1])
 			end
 			
 			framework.setColor(shadow)
-			framework.polygon("line", points[2])
+			framework.polygon("line", vertices[2])
 			
 			framework.setColor(line)
-			framework.polygon("line", points[1])
+			framework.polygon("line", vertices[1])
 		elseif object.shape == "polyline" then
-			local points = {{},{}}
+			local vertices = {{},{}}
 			
-			for _, point in ipairs(object.polyline) do
-				table.insert(points[1], x + point.x)
-				table.insert(points[1], y + point.y)
-				table.insert(points[2], x + point.x+1)
-				table.insert(points[2], y + point.y+1)
+			for _, vertex in ipairs(object.polyline) do
+				table.insert(vertices[1], vertex.x)
+				table.insert(vertices[1], vertex.y)
+				table.insert(vertices[2], vertex.x+1)
+				table.insert(vertices[2], vertex.y+1)
 			end
 			
 			framework.setColor(shadow)
-			framework.line(points[2])
+			framework.line(vertices[2])
 			
 			framework.setColor(line)
-			framework.line(points[1])
+			framework.line(vertices[1])
 		end
 	end
 end
@@ -624,6 +708,45 @@ end
 
 function Map:resize(w, h)
 	self.canvas = framework:newCanvas(w, h)
+end
+
+function Map:convertToIsometric(x, y)
+	local mw = self.width
+	local mh = self.height
+	local tw = self.tilewidth
+	local th = self.tileheight
+
+	local vx = (x - y) + mw * tw / 2
+	local vy = (y + x) / 2
+
+	return vx, vy
+end
+
+function Map:convertFromIsometric(x, y)
+	local mw = self.width
+	local mh = self.height
+	local tw = self.tilewidth
+	local th = self.tileheight
+
+	local vx = (x / 2 + y) - mw * tw / 4
+	local vy = -x / 2 + y + mh * th / 2
+
+	return vx, vy
+end
+
+function Map:rotateVertex(v, x, y, cos, sin)
+	local vertex = {
+		x = v.x,
+		y = v.y,
+	}
+
+	vertex.x = vertex.x - x
+	vertex.y = vertex.y - y
+
+	local vx = cos * vertex.x - sin * vertex.y
+	local vy = sin * vertex.x + cos * vertex.y
+
+	return vx + x, vy + y
 end
 
 return Map
