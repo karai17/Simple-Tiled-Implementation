@@ -231,8 +231,8 @@ function Map:setObjectCoordinates(layer)
 				local bx, by = x, y
 
 				if self.orientation == "isometric" then
-					bx, by = self:convertToIsometric(x, y)
-					vertex.x, vertex.y = self:convertToIsometric(vertex.x, vertex.y)
+					bx, by = self:convertIsometricToScreen(x, y)
+					vertex.x, vertex.y = self:convertIsometricToScreen(vertex.x, vertex.y)
 				end
 
 				vertex.x, vertex.y = self:rotateVertex(vertex, bx, by, cos, sin)
@@ -258,8 +258,8 @@ function Map:setObjectCoordinates(layer)
 				local bx, by = x, y
 
 				if self.orientation == "isometric" then
-					bx, by = self:convertToIsometric(x, y)
-					vertex.x, vertex.y = self:convertToIsometric(vertex.x, vertex.y)
+					bx, by = self:convertIsometricToScreen(x, y)
+					vertex.x, vertex.y = self:convertIsometricToScreen(vertex.x, vertex.y)
 				end
 
 				vertex.x, vertex.y = self:rotateVertex(vertex, bx, by, cos, sin)
@@ -272,8 +272,8 @@ function Map:setObjectCoordinates(layer)
 				local bx, by = x, y
 
 				if self.orientation == "isometric" then
-					bx, by = self:convertToIsometric(x, y)
-					vertex.x, vertex.y = self:convertToIsometric(vertex.x, vertex.y)
+					bx, by = self:convertIsometricToScreen(x, y)
+					vertex.x, vertex.y = self:convertIsometricToScreen(vertex.x, vertex.y)
 				end
 
 				vertex.x, vertex.y = self:rotateVertex(vertex, bx, by, cos, sin)
@@ -285,8 +285,8 @@ function Map:setObjectCoordinates(layer)
 				local bx, by = x, y
 
 				if self.orientation == "isometric" then
-					bx, by = self:convertToIsometric(x, y)
-					vertex.x, vertex.y = self:convertToIsometric(vertex.x, vertex.y)
+					bx, by = self:convertIsometricToScreen(x, y)
+					vertex.x, vertex.y = self:convertIsometricToScreen(vertex.x, vertex.y)
 				end
 
 				vertex.x, vertex.y = self:rotateVertex(vertex, bx, by, cos, sin)
@@ -710,7 +710,7 @@ function Map:resize(w, h)
 	self.canvas = framework:newCanvas(w, h)
 end
 
-function Map:convertToIsometric(x, y)
+function Map:convertIsometricToScreen(x, y)
 	local mw = self.width
 	local mh = self.height
 	local tw = self.tilewidth
@@ -722,7 +722,7 @@ function Map:convertToIsometric(x, y)
 	return vx, vy
 end
 
-function Map:convertFromIsometric(x, y)
+function Map:convertScreenToIsometric(x, y)
 	local mw = self.width
 	local mh = self.height
 	local tw = self.tilewidth
