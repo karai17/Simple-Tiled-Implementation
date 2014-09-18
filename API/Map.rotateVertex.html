@@ -58,32 +58,66 @@
                     <div class="content-page">
                         <article>
                                                             <div class="page-header sub-header clearfix">
-                                    <h1>Map.update                                                                            </h1>
+                                    <h1>Map.rotateVertex                                                                            </h1>
                                         <span style="float: left; font-size: 10px; color: gray;">
-                                            Saturday, May 31, 2014                                        </span>
+                                            Thursday, September 18, 2014                                        </span>
                                         <span style="float: right; font-size: 10px; color: gray;">
-                                            12:32 AM                                        </span>
+                                            1:42 AM                                        </span>
                                 </div>
-                                                        <p>If you have any custom map data, then you will need to use this function to update your data. This does not update the map itself, and can be omitted on simple, static map environments.</p>
+                                                        <p>Rotate an individual vertex on an object</p>
 <h2>Arguments</h2>
 <h3>self</h3>
 <ul>
 <li>Map object</li>
 </ul>
-<h3>dt</h3>
+<h3>v</h3>
 <ul>
-<li>Delta Time (time since last frame)</li>
+<li>The vertex to be rotated</li>
+</ul>
+<h3>x</h3>
+<ul>
+<li>The x origin of the object</li>
+</ul>
+<h3>y</h3>
+<ul>
+<li>The y origin of the object</li>
+</ul>
+<h3>cos</h3>
+<ul>
+<li>A pre-calculation of the rotation angle</li>
+</ul>
+<h3>sin</h3>
+<ul>
+<li>A pre-calculation of the rotation angle</li>
 </ul>
 <h2>Returns</h2>
-<h3>nil</h3>
+<h3>x</h3>
+<ul>
+<li>The new x point of the vertex</li>
+</ul>
+<h3>y</h3>
+<ul>
+<li>The new y point of the vertex</li>
+</ul>
 <pre><code class="language-lua">local sti = require("sti")
 
 function love.load()
     map = sti.new("assets/maps/map01")
-end
 
-function love.update(dt)
-    map:update(dt)
+    local object = {
+        x = 35,
+        y = 27,
+        r = 45,
+        vertices = {
+            { x = 0, y = 0 },
+            { x = 50, y = 75 }
+        }
+    }
+
+    local v = object.vertices[1]
+    local cos = math.cos(math.rad(object.r))
+    local cos = math.sin(math.rad(object.r))
+    local vx, vy = map:rotateVertex(v, object.x, object.y, cos, sin)
 end</code></pre>                                                    </article>
                     </div>
                 </div>
