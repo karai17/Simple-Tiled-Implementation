@@ -75,6 +75,13 @@ function Map:setTiles(index, tileset, gid)
 				end
 			end
 			
+			local tstox,tstoy = 0,0
+			if tileset.tileoffset then
+				tstox = tileset.tileoffset.x
+				tstoy = tileset.tileoffset.y
+			end
+
+
 			local tile = {
 				gid			= gid,
 				tileset		= index,
@@ -84,8 +91,8 @@ function Map:setTiles(index, tileset, gid)
 				sy			= 1,
 				r			= 0,
 				offset		= {
-					x = -mw + tileset.tileoffset.x,
-					y = -th + tileset.tileoffset.y,
+					x = -mw + tstox,
+					y = -th + tstoy,
 				},
 			}
 			
