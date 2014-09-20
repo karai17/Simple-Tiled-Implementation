@@ -70,6 +70,10 @@ end
 
 ```
 
+Requirements
+--
+This library requires LÖVE 0.9.1 and Tiled 0.10.0. If you are updating from an older version of Tiled, please re-export your Lua map files.
+
 License
 --
 This code is licensed under the [**MIT Open Source License**][MIT]. Check out the LICENSE file for more information.
