@@ -70,6 +70,11 @@ end
 
 ```
 
+Requirements
+--
+This library requires löve 0.91 and Tiled 0.10.0.
+
+
 License
 --
 This code is licensed under the [**MIT Open Source License**][MIT]. Check out the LICENSE file for more information.
