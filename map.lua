@@ -3,6 +3,16 @@ local framework
 
 function Map:init(path, fw)
 	framework = fw
+
+	self.canvas			= framework:newCanvas()
+	self.tiles			= {}
+	self.tileInstances	= {}
+	self.drawRange		= {
+		sx = 1,
+		sy = 1,
+		ex = self.width,
+		ey = self.height,
+	}
 	
 	-- Set tiles, images
 	local gid = 1
@@ -35,6 +45,7 @@ function Map.formatPath(path)
 		path,k = path:gsub(np_pat1,'')
 	until k == 0
 	if path == '' then path = '.' end
+
 	return path
 end
 
@@ -241,18 +252,7 @@ function Map:setObjectCoordinates(layer)
 		elseif object.shape == "ellipse" then
 			object.ellipse = {}
 
-			local segments = 100
-			local vertices = {}
-			
-			table.insert(vertices, { x = x + w / 2, y = y + h / 2 })
-			
-			for i=0, segments do
-				local angle = (i / segments) * math.pi * 2
-				local px = x + w / 2 + math.cos(angle) * w / 2
-				local py = y + h / 2 + math.sin(angle) * h / 2
-				
-				table.insert(vertices, { x = px, y = py })
-			end
+			local vertices = self:convertEllipseToPolygon(x, y, w, h)
 			
 			for _, vertex in ipairs(vertices) do
 				local bx, by = x, y
@@ -356,6 +356,10 @@ function Map:setSpriteBatches(layer)
 				end
 				
 				batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
+
+				self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
+				table.insert(self.tileInstances[tile.gid], { x=tx, y=ty })
+
 			end
 		end
 	end
@@ -747,6 +751,158 @@ function Map:rotateVertex(v, x, y, cos, sin)
 	local vy = sin * vertex.x + cos * vertex.y
 
 	return vx + x, vy + y
+end
+
+function Map:enableCollision(world)
+	local body = love.physics.newBody(world)
+	local collision = {
+		body = body,
+	}
+
+	for _, tileset in ipairs(self.tilesets) do
+		for _, tile in ipairs(tileset.tiles) do
+			if tile.objectGroup then
+				local gid = tileset.firstgid + tile.id
+
+				for _, instance in ipairs(self.tileInstances[gid]) do
+					for _, object in ipairs(tile.objectGroup.objects) do
+						local x = object.x
+						local y = object.y
+						local w = object.width
+						local h = object.height
+
+						if object.shape == "rectangle" then
+							local vertices = {
+								instance.x + x,		instance.y + y,
+								instance.x + x + w,	instance.y + y,
+								instance.x + x + w,	instance.y + y + h,
+								instance.x + x,		instance.y + y + h,
+							}
+
+							local shape = love.physics.newPolygonShape(unpack(vertices))
+							local fixture = love.physics.newFixture(body, shape)
+							local obj = {
+								shape = shape,
+								fixture = fixture,
+							}
+
+							table.insert(collision, obj)
+
+						elseif object.shape == "ellipse" then
+							local vertices = self:convertEllipseToPolygon(object.x, object.y, object.width, object.height, 25)
+							local polygon = {}
+							for _, vertex in ipairs(vertices) do
+								table.insert(polygon, instance.x + vertex.x + x)
+								table.insert(polygon, instance.y + vertex.y + y)
+							end
+
+							local triangles = love.math.triangulate(polygon)
+
+							for _, triangle in ipairs(triangles) do
+								local shape = love.physics.newPolygonShape(unpack(triangle))
+								local fixture = love.physics.newFixture(body, shape)
+								local obj = {
+									shape = shape,
+									fixture = fixture,
+								}
+
+								table.insert(collision, obj)
+							end
+
+						elseif object.shape == "polygon" then
+							local polygon = {}
+							for _, vertex in ipairs(object.polygon) do
+								table.insert(polygon, instance.x + vertex.x + x)
+								table.insert(polygon, instance.y + vertex.y + y)
+							end
+
+							local triangles = love.math.triangulate(polygon)
+
+							for _, triangle in ipairs(triangles) do
+								local shape = love.physics.newPolygonShape(unpack(triangle))
+								local fixture = love.physics.newFixture(body, shape)
+								local obj = {
+									shape = shape,
+									fixture = fixture,
+								}
+
+								table.insert(collision, obj)
+							end
+
+						elseif object.shape == "polyline" then
+							local polyline = {}
+							for _, vertex in ipairs(object.polyline) do
+								table.insert(polyline, instance.x + vertex.x + x)
+								table.insert(polyline, instance.y + vertex.y + y)
+							end
+
+							local shape = love.physics.newChainShape(false, unpack(polyline))
+							local fixture = love.physics.newFixture(body, shape)
+							local obj = {
+								shape = shape,
+								fixture = fixture,
+							}
+
+							table.insert(collision, obj)
+						end
+					end
+				end
+			end
+		end
+	end
+
+	return collision
+end
+
+function Map:convertEllipseToPolygon(x, y, w, h)
+	local function calc_segments(segments)
+		local function vdist(a, b)
+			local c = {
+				x = a.x - b.x,
+				y = a.y - b.y,
+			}
+			
+			return c.x * c.x + c.y * c.y
+		end
+
+		segments = segments or 64
+		local vertices = {}
+
+		local v = { 1, 2, math.ceil(segments/4-1), math.ceil(segments/4) }
+
+		for _, i in ipairs(v) do
+			local angle = (i / segments) * math.pi * 2
+			local px = x + w / 2 + math.cos(angle) * w / 2
+			local py = y + h / 2 + math.sin(angle) * h / 2
+			
+			table.insert(vertices, { x = px / love.physics.getMeter(), y = py / love.physics.getMeter() })
+		end
+
+		local dist1 = vdist(vertices[1], vertices[2])
+		local dist2 = vdist(vertices[3], vertices[4])
+
+		-- Box2D hard-coded threshold
+		if dist1 < 0.0025 or dist2 < 0.0025 then
+			return calc_segments(segments-2)
+		end
+
+		return segments
+	end
+
+	local segments = calc_segments()
+	local vertices = {}
+	
+	table.insert(vertices, { x = x + w / 2, y = y + h / 2 })
+	
+	for i=0, segments do
+		local angle = (i / segments) * math.pi * 2
+		local px = x + w / 2 + math.cos(angle) * w / 2
+		local py = y + h / 2 + math.sin(angle) * h / 2
+		
+		table.insert(vertices, { x = px, y = py })
+	end
+
+	return vertices
 end
 
 return Map

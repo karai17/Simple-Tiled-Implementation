@@ -27,7 +27,7 @@ THE SOFTWARE.
 
 local STI = {}
 
-STI.version = "0.7.6"
+STI.version = "0.8.0"
 
 local path = ...
 local Map = require(path .. ".map")
@@ -54,15 +54,6 @@ function STI.new(map)
 	map = framework.load(map)
 	setfenv(map, {})
 	map = setmetatable(map(), {__index = Map})
-	
-	map.canvas		= framework:newCanvas()
-	map.tiles		= {}
-	map.drawRange	= {
-		sx = 1,
-		sy = 1,
-		ex = map.width,
-		ey = map.height,
-	}
 	
 	map:init(path, framework)
 	
