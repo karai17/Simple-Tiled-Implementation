@@ -13,7 +13,7 @@ function Map:init(path, fw)
 		ex = self.width,
 		ey = self.height,
 	}
-	
+
 	-- Set tiles, images
 	local gid = 1
 	for i, tileset in ipairs(self.tilesets) do
@@ -21,7 +21,7 @@ function Map:init(path, fw)
 		tileset.image = framework.newImage(image)
 		gid = self:setTiles(i, tileset, gid)
 	end
-	
+
 	-- Set layers
 	for i, layer in ipairs(self.layers) do
 		self:setLayer(layer, path)
@@ -53,16 +53,16 @@ function Map:setTiles(index, tileset, gid)
 	local function getTiles(i, t, m, s)
 		i = i - m
 		local n = 0
-		
+
 		while i >= t do
 			i = i - t
 			if n ~= 0 then i = i - s end
 			if i >= 0 then n = n + 1 end
 		end
-		
+
 		return n
 	end
-	
+
 	local quad	= framework.newQuad
 	local mw	= self.tilewidth
 	local iw	= tileset.imagewidth
@@ -73,19 +73,19 @@ function Map:setTiles(index, tileset, gid)
 	local m		= tileset.margin
 	local w		= getTiles(iw, tw, m, s)
 	local h		= getTiles(ih, th, m, s)
-	
+
 	for y = 1, h do
 		for x = 1, w do
 			local qx = (x - 1) * tw + m + (x - 1) * s
 			local qy = (y - 1) * th + m + (y - 1) * s
 			local properties
-			
+
 			for _, tile in pairs(tileset.tiles) do
 				if tile.id == gid - tileset.firstgid then
 					properties = tile.properties
 				end
 			end
-			
+
 			local tile = {
 				gid			= gid,
 				tileset		= index,
@@ -99,16 +99,16 @@ function Map:setTiles(index, tileset, gid)
 					y = -th + tileset.tileoffset.y,
 				},
 			}
-			
+
 			if self.orientation == "isometric" then
 				tile.offset.x = -mw / 2
 			end
-			
+
 			self.tiles[gid] = tile
 			gid = gid + 1
 		end
 	end
-	
+
 	return gid
 end
 
@@ -116,38 +116,39 @@ function Map:setLayer(layer, path)
 	layer.x = layer.x or 0
 	layer.y = layer.y or 0
 	layer.update = function(dt) return end
-	
+
 	if layer.type == "tilelayer" then
 		self:setTileData(layer)
 		self:setSpriteBatches(layer)
 		layer.draw = function() self:drawTileLayer(layer) end
 	elseif layer.type == "objectgroup" then
 		self:setObjectCoordinates(layer)
+		self:setSpriteBatchesForObjectLayer(layer)
 		layer.draw = function() self:drawObjectLayer(layer) end
 	elseif layer.type == "imagelayer" then
 		layer.draw = function() self:drawImageLayer(layer) end
-		
+
 		if layer.image ~= "" then
 			local image = self.formatPath(path..layer.image)
 			layer.image = framework.newImage(image)
 		end
 	end
-	
+
 	self.layers[layer.name] = layer
 end
 
 function Map:setTileData(layer)
 	local i = 1
 	local map = {}
-	
+
 	for y = 1, layer.height do
 		map[y] = {}
 		for x = 1, layer.width do
 			local gid = layer.data[i]
-			
+
 			if gid > 0 then
 				local tile = self.tiles[gid]
-				
+
 				if tile then
 					map[y][x] = tile
 				else
@@ -158,22 +159,22 @@ function Map:setTileData(layer)
 					local flipY		= false
 					local flipD		= false
 					local realgid	= gid
-					
+
 					if realgid >= bit31 then
 						realgid = realgid - bit31
 						flipX = not flipX
 					end
-					
+
 					if realgid >= bit30 then
 						realgid = realgid - bit30
 						flipY = not flipY
 					end
-					
+
 					if realgid >= bit29 then
 						realgid = realgid - bit29
 						flipD = not flipD
 					end
-					
+
 					local tile = self.tiles[realgid]
 					local data = {
 						gid			= tile.gid,
@@ -185,7 +186,7 @@ function Map:setTileData(layer)
 						sy			= tile.sy,
 						r			= tile.r,
 					}
-					
+
 					if flipX then
 						if flipY then
 							data.sx = -1
@@ -205,18 +206,19 @@ function Map:setTileData(layer)
 						data.r = math.rad(90)
 						data.sy = -1
 					end
-					
+
 					self.tiles[gid] = data
 					map[y][x] = self.tiles[gid]
 				end
 			end
-			
+
 			i = i + 1
 		end
 	end
-	
+
 	layer.data = map
 end
+
 
 function Map:setObjectCoordinates(layer)
 	for _, object in ipairs(layer.objects) do
@@ -253,7 +255,7 @@ function Map:setObjectCoordinates(layer)
 			object.ellipse = {}
 
 			local vertices = self:convertEllipseToPolygon(x, y, w, h)
-			
+
 			for _, vertex in ipairs(vertices) do
 				local bx, by = x, y
 
@@ -303,40 +305,40 @@ function Map:setSpriteBatches(layer)
 	local th		= self.tileheight
 	local bw		= math.ceil(w / tw)
 	local bh		= math.ceil(h / th)
-	
+
 	-- Minimum of 400 tiles per batch
 	if bw < 20 then bw = 20 end
 	if bh < 20 then bh = 20 end
-	
+
 	local size		= bw * bh
 	local batches	= {
 		width	= bw,
 		height	= bh,
 		data	= {},
 	}
-	
+
 	for y = 1, layer.height do
 		local by = math.ceil(y / bh)
-		
+
 		for x = 1, layer.width do
 			local tile	= layer.data[y][x]
 			local bx	= math.ceil(x / bw)
-			
+
 			if tile then
 				local ts = tile.tileset
 				local image = self.tilesets[tile.tileset].image
-				
+
 				batches.data[ts] = batches.data[ts] or {}
 				batches.data[ts][by] = batches.data[ts][by] or {}
 				batches.data[ts][by][bx] = batches.data[ts][by][bx] or newBatch(image, size)
-				
+
 				local batch = batches.data[ts][by][bx]
 				local tx, ty
-				
+
 				if self.orientation == "orthogonal" then
 					tx = x * tw + tile.offset.x
 					ty = y * th + tile.offset.y
-					
+
 					-- Compensation for scale/rotation shift
 					if tile.sx	< 0 then tx = tx + tw end
 					if tile.sy	< 0 then ty = ty + th end
@@ -351,10 +353,10 @@ function Map:setSpriteBatches(layer)
 					else
 						tx = x * tw + tile.offset.x
 					end
-					
+
 					ty = y * th / 2 + tile.offset.y + th / 2
 				end
-				
+
 				batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
 
 				self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
@@ -363,7 +365,51 @@ function Map:setSpriteBatches(layer)
 			end
 		end
 	end
-	
+
+	layer.batches = batches
+end
+
+
+function Map:setSpriteBatchesForObjectLayer(layer)
+	if type(layer) == "string" or type(layer) == "number" then
+		layer = self.layers[layer]
+	end
+
+	assert(layer.type == "objectgroup", "Invalid layer type: " .. layer.type .. ". Layer must be of type: objectgroup")
+
+	local batches = {}
+
+	local iobjects = {} -- count of objects that will be in one batch
+	for _, object in ipairs(layer.objects) do
+			if object.gid then
+
+				local tile = self.tiles[object.gid]
+				local ts = tile.tileset
+				local image = self.tilesets[ts].image
+
+				-- count per tileset
+				iobjects[ts] = iobjects[ts] or 0
+				iobjects[ts] = iobjects[ts] + 1
+
+				-- it the count get over 1000 create a new batch
+				local bi = math.ceil(iobjects[ts] / 1000)
+
+				-- lookup if the batch exits or create a new one
+				batches[ts] = batches[tile.tileset] or {}
+			  batches[ts][bi] = batches[ts][bi] or framework.newSpriteBatch(image, 1000)
+
+				-- add the quad
+				local batch = batches[ts][bi]
+				batch:add(tile.quad, object.x, object.y)
+
+				-- only use built-in collision system when told so
+				if layer.properties.isSolid then
+						self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
+						table.insert(self.tileInstances[tile.gid], { x=object.x, y=object.y })
+				end
+			end
+	end
+
 	layer.batches = batches
 end
 
@@ -373,7 +419,7 @@ function Map:setDrawRange(tx, ty, w, h)
 	local tw = self.tilewidth
 	local th = self.tileheight
 	local sx, sy, ex, ey
-	
+
 	if self.orientation == "orthogonal" then
 		sx = math.ceil(tx / tw)
 		sy = math.ceil(ty / th)
@@ -390,7 +436,7 @@ function Map:setDrawRange(tx, ty, w, h)
 		ex = math.ceil(sx + w / tw + 1)
 		ey = math.ceil(sy + h / th * 2)
 	end
-	
+
 	self.drawRange = {
 		sx = sx,
 		sy = sy,
@@ -401,9 +447,9 @@ end
 
 function Map:getCollisionMap(index)
 	local layer	= assert(self.layers[index], "Layer not found: " .. index)
-	
+
 	assert(layer.type == "tilelayer", "Invalid layer type: " .. layer.type .. ". Layer must be of type: tilelayer")
-	
+
 	local w		= self.width
 	local h		= self.height
 	local map	= {
@@ -413,7 +459,7 @@ function Map:getCollisionMap(index)
 		opacity		= 0.5,
 		data		= {},
 	}
-	
+
 	for y=1, h do
 		map.data[y] = {}
 		for x=1, w do
@@ -424,7 +470,7 @@ function Map:getCollisionMap(index)
 			end
 		end
 	end
-	
+
 	return map
 end
 
@@ -436,17 +482,17 @@ function Map:addCustomLayer(name, index)
       opacity = 1,
       properties = {},
     }
-	
+
 	function layer:draw() return end
 	function layer:update(dt) return end
-	
+
 	table.insert(self.layers, index, layer)
 	self.layers[name] = self.layers[index]
 end
 
 function Map:convertToCustomLayer(index)
 	local layer = assert(self.layers[index], "Layer not found: " .. index)
-	
+
 	layer.type		= "customlayer"
 	layer.x			= nil
 	layer.y			= nil
@@ -456,14 +502,14 @@ function Map:convertToCustomLayer(index)
 	layer.data		= nil
 	layer.objects	= nil
 	layer.image		= nil
-	
+
 	function layer:draw() return end
 	function layer:update(dt) return end
 end
 
 function Map:removeLayer(index)
 	local layer = assert(self.layers[index], "Layer not found: " .. index)
-	
+
 	if type(index) == "string" then
 		for i, layer in ipairs(self.layers) do
 			if layer.name == index then
@@ -488,15 +534,15 @@ end
 function Map:draw(sx, sy)
 	framework.setCanvas(self.canvas)
 	framework.clear(self.canvas)
-	
+
 	for _, layer in ipairs(self.layers) do
 		if layer.visible and layer.opacity > 0 then
 			self:drawLayer(layer)
 		end
 	end
-	
+
 	framework.setCanvas()
-	
+
 	framework.push()
 	framework.origin()
 	framework.draw(self.canvas, 0, 0, 0, sx, sy)
@@ -515,7 +561,7 @@ function Map:drawTileLayer(layer)
 	end
 
 	assert(layer.type == "tilelayer", "Invalid layer type: " .. layer.type .. ". Layer must be of type: tilelayer")
-	
+
 	local bw = layer.batches.width
 	local bh = layer.batches.height
 	local sx = math.ceil((self.drawRange.sx - layer.x / self.tilewidth	- 1) / bw)
@@ -524,13 +570,13 @@ function Map:drawTileLayer(layer)
 	local ey = math.ceil((self.drawRange.ey - layer.y / self.tileheight	+ 1) / bh)
 	local mx = math.ceil(self.width / bw)
 	local my = math.ceil(self.height / bh)
-	
+
 	for by=sy, ey do
 		for bx=sx, ex do
 			if bx >= 1 and bx <= mx and by >= 1 and by <= my then
 				for _, batches in pairs(layer.batches.data) do
 					local batch = batches[by] and batches[by][bx]
-					
+
 					if batch then
 						framework.draw(batch, math.floor(layer.x), math.floor(layer.y))
 					end
@@ -546,7 +592,7 @@ function Map:drawObjectLayer(layer)
 	end
 
 	assert(layer.type == "objectgroup", "Invalid layer type: " .. layer.type .. ". Layer must be of type: objectgroup")
-	
+
 	local line		= { 160, 160, 160, 255 * layer.opacity }
 	local fill		= { 160, 160, 160, 255 * layer.opacity * 0.2 }
 	local shadow	= { 0, 0, 0, 255 * layer.opacity }
@@ -554,30 +600,32 @@ function Map:drawObjectLayer(layer)
 	local function drawEllipse(mode, x, y, w, h)
 		local segments = 100
 		local vertices = {}
-		
+
 		table.insert(vertices, x + w / 2)
 		table.insert(vertices, y + h / 2)
-		
+
 		for i=0, segments do
 			local angle = (i / segments) * math.pi * 2
 			local px = x + w / 2 + math.cos(angle) * w / 2
 			local py = y + h / 2 + math.sin(angle) * h / 2
-			
+
 			table.insert(vertices, px)
 			table.insert(vertices, py)
 		end
-		
+
 		framework.polygon(mode, vertices)
 	end
-	
+
 	for _, object in ipairs(layer.objects) do
 		local x = layer.x + object.x
 		local y = layer.y + object.y
 		local w = object.width
 		local h = object.height
 		local r = object.rotation
-		
-		if object.shape == "rectangle" then
+
+		if object.gid then
+			-- do nothing
+		elseif object.shape == "rectangle" then
 			local vertices = {{},{}}
 
 			for _, vertex in ipairs(object.rectangle) do
@@ -589,10 +637,10 @@ function Map:drawObjectLayer(layer)
 
 			framework.setColor(fill)
 			framework.polygon("fill", vertices[1])
-			
+
 			framework.setColor(shadow)
 			framework.polygon("line", vertices[2])
-			
+
 			framework.setColor(line)
 			framework.polygon("line", vertices[1])
 		elseif object.shape == "ellipse" then
@@ -607,22 +655,22 @@ function Map:drawObjectLayer(layer)
 
 			framework.setColor(fill)
 			framework.polygon("fill", vertices[1])
-			
+
 			framework.setColor(shadow)
 			framework.polygon("line", vertices[2])
-			
+
 			framework.setColor(line)
 			framework.polygon("line", vertices[1])
 		elseif object.shape == "polygon" then
 			local vertices = {{},{}}
-			
+
 			for _, vertex in ipairs(object.polygon) do
 				table.insert(vertices[1], vertex.x)
 				table.insert(vertices[1], vertex.y)
 				table.insert(vertices[2], vertex.x+1)
 				table.insert(vertices[2], vertex.y+1)
 			end
-			
+
 			framework.setColor(fill)
 			if not framework.isConvex(vertices[1]) then
 				local triangles = framework.triangulate(vertices[1])
@@ -632,27 +680,35 @@ function Map:drawObjectLayer(layer)
 			else
 				framework.polygon("fill", vertices[1])
 			end
-			
+
 			framework.setColor(shadow)
 			framework.polygon("line", vertices[2])
-			
+
 			framework.setColor(line)
 			framework.polygon("line", vertices[1])
 		elseif object.shape == "polyline" then
 			local vertices = {{},{}}
-			
+
 			for _, vertex in ipairs(object.polyline) do
 				table.insert(vertices[1], vertex.x)
 				table.insert(vertices[1], vertex.y)
 				table.insert(vertices[2], vertex.x+1)
 				table.insert(vertices[2], vertex.y+1)
 			end
-			
+
 			framework.setColor(shadow)
 			framework.line(vertices[2])
-			
+
 			framework.setColor(line)
 			framework.line(vertices[1])
+		end
+	end
+
+	-- draw the batches with the objects that are tile based
+	-- layer.batches[tileset][batchindex] = batch
+	for _, batches in ipairs(layer.batches) do
+		for _, batch in ipairs(batches) do
+			framework.draw(batch, layer.x, layer.y)
 		end
 	end
 end
@@ -663,7 +719,7 @@ function Map:drawImageLayer(layer)
 	end
 
 	assert(layer.type == "imagelayer", "Invalid layer type: " .. layer.type .. ". Layer must be of type: imagelayer")
-	
+
 	if layer.image ~= "" then
 		framework.draw(layer.image, layer.x, layer.y)
 	end
@@ -672,16 +728,16 @@ end
 function Map:drawCollisionMap(layer)
 	assert(layer.type == "tilelayer", "Invalid layer type: " .. layer.type .. ". Layer must be of type: tilelayer")
 	assert(layer.collision, "This is not a collision layer")
-	
+
 	local tw = self.tilewidth
 	local th = self.tileheight
-	
+
 	framework.setColor(255, 255, 255, 255 * layer.opacity)
-	
+
 	for y=1, self.height do
 		for x=1, self.width do
 			local tx, ty
-			
+
 			if self.orientation == "orthogonal" then
 				tx = (x - 1) * tw
 				ty = (y - 1) * th
@@ -694,11 +750,11 @@ function Map:drawCollisionMap(layer)
 				else
 					tx = x * tw - self.tilewidth
 				end
-				
+
 				ty = y * th / 2 - self.tileheight
 			end
-			
-			
+
+
 			if layer.data[y][x] == 1 then
 				framework.rectangle("fill", tx, ty, tw, th)
 			else
@@ -706,7 +762,7 @@ function Map:drawCollisionMap(layer)
 			end
 		end
 	end
-	
+
 	framework.setColor(255, 255, 255, 255)
 end
 
@@ -862,7 +918,7 @@ function Map:convertEllipseToPolygon(x, y, w, h)
 				x = a.x - b.x,
 				y = a.y - b.y,
 			}
-			
+
 			return c.x * c.x + c.y * c.y
 		end
 
@@ -875,7 +931,7 @@ function Map:convertEllipseToPolygon(x, y, w, h)
 			local angle = (i / segments) * math.pi * 2
 			local px = x + w / 2 + math.cos(angle) * w / 2
 			local py = y + h / 2 + math.sin(angle) * h / 2
-			
+
 			table.insert(vertices, { x = px / love.physics.getMeter(), y = py / love.physics.getMeter() })
 		end
 
@@ -892,14 +948,14 @@ function Map:convertEllipseToPolygon(x, y, w, h)
 
 	local segments = calc_segments()
 	local vertices = {}
-	
+
 	table.insert(vertices, { x = x + w / 2, y = y + h / 2 })
-	
+
 	for i=0, segments do
 		local angle = (i / segments) * math.pi * 2
 		local px = x + w / 2 + math.cos(angle) * w / 2
 		local py = y + h / 2 + math.sin(angle) * h / 2
-		
+
 		table.insert(vertices, { x = px, y = py })
 	end
 
