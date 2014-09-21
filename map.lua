@@ -275,6 +275,7 @@ function Map:setLayer(layer, path)
 		self:setSpriteBatches(layer)
 		layer.draw = function() self:drawTileLayer(layer) end
 	elseif layer.type == "objectgroup" then
+		self:fixObjectLayersYPosition(layer)
 		self:setObjectCoordinates(layer)
 		layer.draw = function() self:drawObjectLayer(layer) end
 	elseif layer.type == "imagelayer" then
@@ -853,6 +854,17 @@ function Map.formatPath(path)
 	if path == '' then path = '.' end
 
 	return path
+end
+
+-- apparently Tiled 0.10.0 sets the y position of an tiled object to the down left instead of the upper left corner
+function Map:fixObjectLayersYPosition(layer)
+		if layer.type == "objectgroup" then
+			for __, object in ipairs(layer.objects) do
+				if object.gid then
+					object.y = object.y - self.tileheight
+				end
+			end
+		end
 end
 
 return Map
