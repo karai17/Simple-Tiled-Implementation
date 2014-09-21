@@ -43,7 +43,7 @@
                     </div>
                     <div id="sub-nav-collapse" class="sub-nav-collapse">
                         <!-- Navigation -->
-                        <ul class="nav nav-list"><li><a href=".././Getting_Started.html">Getting Started</a></li><li class="open"><a href="#" class="aj-nav folder">API</a><ul class="nav nav-list"><li><a href="../API/./STI.new.html">STI.new</a></li><li><a href="../API/./Map.update.html">Map.update</a></li><li><a href="../API/./Map.draw.html">Map.draw</a></li><li><a href="../API/./Map.resize.html">Map.resize</a></li><li><a href="../API/./Map.setDrawRange.html">Map.setDrawRange</a></li><li><a href="../API/./Map.getCollisionMap.html">Map.getCollisionMap</a></li><li><a href="../API/./Map.addCustomLayer.html">Map.addCustomLayer</a></li><li><a href="../API/./Map.convertToCustomLayer.html">Map.convertToCustomLayer</a></li><li><a href="../API/./Map.removeLayer.html">Map.removeLayer</a></li><li><a href="../API/./Map.drawLayer.html">Map.drawLayer</a></li><li><a href="../API/./Map.drawTileLayer.html">Map.drawTileLayer</a></li><li><a href="../API/./Map.drawObjectLayer.html">Map.drawObjectLayer</a></li><li><a href="../API/./Map.drawImageLayer.html">Map.drawImageLayer</a></li><li><a href="../API/./Map.drawCollisionMap.html">Map.drawCollisionMap</a></li><li><a href="../API/./Map.setSpriteBatches.html">Map.setSpriteBatches</a></li><li><a href="../API/./Map.convertIsometricToScreen.html">Map.convertIsometricToScreen</a></li><li><a href="../API/./Map.convertScreenToIsometric.html">Map.convertScreenToIsometric</a></li><li><a href="../API/./Map.rotateVertex.html">Map.rotateVertex</a></li></ul></li><li><a href="#" class="aj-nav folder">Layers</a><ul class="nav nav-list"><li><a href="../Layers/./Layer_Callbacks.html">Layer Callbacks</a></li><li><a href="../Layers/./Layer_Properties.html">Layer Properties</a></li></ul></li></ul>                                                    <div class="well well-sidebar">
+                        <ul class="nav nav-list"><li><a href=".././Getting_Started.html">Getting Started</a></li><li class="open"><a href="#" class="aj-nav folder">API</a><ul class="nav nav-list"><li><a href="../API/./STI.new.html">STI.new</a></li><li><a href="../API/./Map.update.html">Map.update</a></li><li><a href="../API/./Map.draw.html">Map.draw</a></li><li><a href="../API/./Map.resize.html">Map.resize</a></li><li><a href="../API/./Map.setDrawRange.html">Map.setDrawRange</a></li><li><a href="../API/./Map.initWorldCollision.html">Map.initWorldCollision</a></li><li><a href="../API/./Map.addCustomLayer.html">Map.addCustomLayer</a></li><li><a href="../API/./Map.convertToCustomLayer.html">Map.convertToCustomLayer</a></li><li><a href="../API/./Map.removeLayer.html">Map.removeLayer</a></li><li><a href="../API/./Map.drawLayer.html">Map.drawLayer</a></li><li><a href="../API/./Map.drawTileLayer.html">Map.drawTileLayer</a></li><li><a href="../API/./Map.drawObjectLayer.html">Map.drawObjectLayer</a></li><li><a href="../API/./Map.drawImageLayer.html">Map.drawImageLayer</a></li><li><a href="../API/./Map.drawWorldCollision.html">Map.drawWorldCollision</a></li><li><a href="../API/./Map.setSpriteBatches.html">Map.setSpriteBatches</a></li><li><a href="../API/./Map.convertIsometricToScreen.html">Map.convertIsometricToScreen</a></li><li><a href="../API/./Map.convertScreenToIsometric.html">Map.convertScreenToIsometric</a></li><li><a href="../API/./Map.rotateVertex.html">Map.rotateVertex</a></li></ul></li><li><a href="#" class="aj-nav folder">Layers</a><ul class="nav nav-list"><li><a href="../Layers/./Layer_Callbacks.html">Layer Callbacks</a></li><li><a href="../Layers/./Layer_Properties.html">Layer Properties</a></li></ul></li></ul>                                                    <div class="well well-sidebar">
                                 <!-- Links -->
                                                                     <a href="https://github.com/karai17/Simple-Tiled-Implementation/archive/master.zip" target="_blank">Download</a><br>
                                                                     <a href="https://github.com/karai17/Simple-Tiled-Implementation" target="_blank">GitHub Repo</a><br>
@@ -58,44 +58,46 @@
                     <div class="content-page">
                         <article>
                                                             <div class="page-header sub-header clearfix">
-                                    <h1>Map.drawCollisionMap                                                                            </h1>
+                                    <h1>Map.drawWorldCollision                                                                            </h1>
                                         <span style="float: left; font-size: 10px; color: gray;">
-                                            Saturday, May 31, 2014                                        </span>
+                                            Sunday, September 21, 2014                                        </span>
                                         <span style="float: right; font-size: 10px; color: gray;">
-                                            1:15 AM                                        </span>
+                                            6:17 PM                                        </span>
                                 </div>
-                                                        <p>This is mostly a debugging feature that allows you to visualize a binary collision map.</p>
+                                                        <p>This is mostly a debugging feature that allows you to see all of your collidable objects.</p>
 <h2>Arguments</h2>
 <h3>self</h3>
 <ul>
 <li>Map object</li>
 </ul>
-<h3>map</h3>
+<h3>collision</h3>
 <ul>
-<li>Collision map</li>
+<li>Collidable objects</li>
 </ul>
 <h2>Returns</h2>
 <h3>nil</h3>
 <pre><code class="language-lua">local sti = require("sti")
 
 function love.load()
+    -- Set physics meter (in pixels, usually your tile height)
+    love.physics.setMeter(32)
+
+    -- Load map
     map = sti.new("assets/maps/map01")
 
-    -- Get map using layer name
-    collision = map:getCollisionMap("Collision Layer")
+    --Initialize world (horizontal and vertical gravity)
+    world = love.physics.newWorld(0, 0)
 
-    -- Get map using layer index
-    collision = map:getCollisionMap(5)
+    -- Initialize collision objects
+    collision = map:initWorldCollision(world)
 end
 
 function love.draw()
     map:draw()
 
     -- Draw after the main map draw so that it shows up on top!
-    map:drawCollisionMap(collision)
-end</code></pre>
-<p><em>Note:</em></p>
-<p><em>This currently only accurately depicts orthogonal maps and tile layers. This will (eventually) be updated to support other map types and layer types.</em></p>                                                    </article>
+    map:drawWorldCollision(collision)
+end</code></pre>                                                    </article>
                     </div>
                 </div>
             </div>
