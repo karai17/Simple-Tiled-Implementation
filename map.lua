@@ -122,6 +122,7 @@ function Map:setLayer(layer, path)
 		self:setSpriteBatches(layer)
 		layer.draw = function() self:drawTileLayer(layer) end
 	elseif layer.type == "objectgroup" then
+		self:fixObjectLayersYPosition(layer)
 		self:setObjectCoordinates(layer)
 		self:setSpriteBatchesForObjectLayer(layer)
 		layer.draw = function() self:drawObjectLayer(layer) end
@@ -960,6 +961,17 @@ function Map:convertEllipseToPolygon(x, y, w, h)
 	end
 
 	return vertices
+end
+
+-- apparently Tiled 0.10.0 sets the y position of an tiled object to the down left instead of the upper left corner
+function Map:fixObjectLayersYPosition(layer)
+		if layer.type == "objectgroup" then
+			for __, object in ipairs(layer.objects) do
+				if object.gid then
+					object.y = object.y - self.tileheight
+				end
+			end
+		end
 end
 
 return Map
