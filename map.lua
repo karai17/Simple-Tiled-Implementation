@@ -28,25 +28,87 @@ function Map:init(path, fw)
 	end
 end
 
--- https://github.com/stevedonovan/Penlight/blob/master/lua/pl/path.lua#L286
-function Map.formatPath(path)
-	local np_gen1,np_gen2 = '[^SEP]+SEP%.%.SEP?','SEP+%.?SEP'
-	local np_pat1, np_pat2
+function Map:initWorldCollision(world)
+	local body = framework.newBody(world)
+	local collision = {
+		body = body,
+	}
 
-	if not np_pat1 then
-		np_pat1 = np_gen1:gsub('SEP','/')
-		np_pat2 = np_gen2:gsub('SEP','/')
+	local function getPolygonVertices(obj, instance, x, y)
+		local vertices = {}
+		for _, vertex in ipairs(obj) do
+			table.insert(vertices, instance.x + vertex.x + x)
+			table.insert(vertices, instance.y + vertex.y + y)
+		end
+
+		return vertices
 	end
-	local k
-	repeat -- /./ -> /
-		path,k = path:gsub(np_pat2,'/')
-	until k == 0
-	repeat -- A/../ -> (empty)
-		path,k = path:gsub(np_pat1,'')
-	until k == 0
-	if path == '' then path = '.' end
 
-	return path
+	local function addObjectToWorld(objshape, vertices)
+		local shape
+
+		if objshape == "polyline" then
+			shape = framework.newChainShape(false, unpack(vertices))
+		else
+			shape = framework.newPolygonShape(unpack(vertices))
+		end
+
+		local fixture = framework.newFixture(body, shape)
+		local obj = {
+			shape = shape,
+			fixture = fixture,
+		}
+
+		table.insert(collision, obj)
+	end
+
+	for _, tileset in ipairs(self.tilesets) do
+		for _, tile in ipairs(tileset.tiles) do
+			if tile.objectGroup then
+				local gid = tileset.firstgid + tile.id
+
+				for _, instance in ipairs(self.tileInstances[gid]) do
+					for _, object in ipairs(tile.objectGroup.objects) do
+						local x = object.x
+						local y = object.y
+						local w = object.width
+						local h = object.height
+
+						if object.shape == "rectangle" then
+							local vertices = {
+								instance.x + x,		instance.y + y,
+								instance.x + x + w,	instance.y + y,
+								instance.x + x + w,	instance.y + y + h,
+								instance.x + x,		instance.y + y + h,
+							}
+
+							addObjectToWorld(object.shape, vertices)
+						elseif object.shape == "ellipse" then
+							local polygon = self:convertEllipseToPolygon(object.x, object.y, object.width, object.height)
+							local vertices = getPolygonVertices(polygon, instance, x, y)
+							local triangles = love.math.triangulate(vertices)
+
+							for _, triangle in ipairs(triangles) do
+								addObjectToWorld(object.shape, triangle)
+							end
+						elseif object.shape == "polygon" then
+							local vertices = getPolygonVertices(object.polygon, instance, x, y)
+							local triangles = love.math.triangulate(vertices)
+
+							for _, triangle in ipairs(triangles) do
+								addObjectToWorld(object.shape, triangle)
+							end
+						elseif object.shape == "polyline" then
+							local vertices = getPolygonVertices(object.polyline, instance, x, y)
+							addObjectToWorld(object.shape, vertices)
+						end
+					end
+				end
+			end
+		end
+	end
+
+	return collision
 end
 
 function Map:setTiles(index, tileset, gid)
@@ -219,6 +281,15 @@ function Map:setTileData(layer)
 end
 
 function Map:setObjectCoordinates(layer)
+	local function updateVertex(vertex, x, y, cos, sin)
+		if self.orientation == "isometric" then
+			x, y = self:convertIsometricToScreen(x, y)
+			vertex.x, vertex.y = self:convertIsometricToScreen(vertex.x, vertex.y)
+		end
+
+		return self:rotateVertex(vertex, x, y, cos, sin)
+	end
+
 	for _, object in ipairs(layer.objects) do
 		local x = layer.x + object.x
 		local y = layer.y + object.y
@@ -239,14 +310,7 @@ function Map:setObjectCoordinates(layer)
 			}
 
 			for _, vertex in ipairs(vertices) do
-				local bx, by = x, y
-
-				if self.orientation == "isometric" then
-					bx, by = self:convertIsometricToScreen(x, y)
-					vertex.x, vertex.y = self:convertIsometricToScreen(vertex.x, vertex.y)
-				end
-
-				vertex.x, vertex.y = self:rotateVertex(vertex, bx, by, cos, sin)
+				vertex.x, vertex.y = updateVertex(vertex, x, y, cos, sin)
 				table.insert(object.rectangle, { x = vertex.x, y = vertex.y })
 			end
 		elseif object.shape == "ellipse" then
@@ -255,41 +319,20 @@ function Map:setObjectCoordinates(layer)
 			local vertices = self:convertEllipseToPolygon(x, y, w, h)
 			
 			for _, vertex in ipairs(vertices) do
-				local bx, by = x, y
-
-				if self.orientation == "isometric" then
-					bx, by = self:convertIsometricToScreen(x, y)
-					vertex.x, vertex.y = self:convertIsometricToScreen(vertex.x, vertex.y)
-				end
-
-				vertex.x, vertex.y = self:rotateVertex(vertex, bx, by, cos, sin)
+				vertex.x, vertex.y = updateVertex(vertex, x, y, cos, sin)
 				table.insert(object.ellipse, { x = vertex.x, y = vertex.y })
 			end
 		elseif object.shape == "polygon" then
 			for _, vertex in ipairs(object.polygon) do
 				vertex.x = x + vertex.x
 				vertex.y = y + vertex.y
-				local bx, by = x, y
-
-				if self.orientation == "isometric" then
-					bx, by = self:convertIsometricToScreen(x, y)
-					vertex.x, vertex.y = self:convertIsometricToScreen(vertex.x, vertex.y)
-				end
-
-				vertex.x, vertex.y = self:rotateVertex(vertex, bx, by, cos, sin)
+				vertex.x, vertex.y = updateVertex(vertex, x, y, cos, sin)
 			end
 		elseif object.shape == "polyline" then
 			for _, vertex in ipairs(object.polyline) do
 				vertex.x = x + vertex.x
 				vertex.y = y + vertex.y
-				local bx, by = x, y
-
-				if self.orientation == "isometric" then
-					bx, by = self:convertIsometricToScreen(x, y)
-					vertex.x, vertex.y = self:convertIsometricToScreen(vertex.x, vertex.y)
-				end
-
-				vertex.x, vertex.y = self:rotateVertex(vertex, bx, by, cos, sin)
+				vertex.x, vertex.y = updateVertex(vertex, x, y, cos, sin)
 			end
 		end
 	end
@@ -397,35 +440,6 @@ function Map:setDrawRange(tx, ty, w, h)
 		ex = ex,
 		ey = ey,
 	}
-end
-
-function Map:getCollisionMap(index)
-	local layer	= assert(self.layers[index], "Layer not found: " .. index)
-	
-	assert(layer.type == "tilelayer", "Invalid layer type: " .. layer.type .. ". Layer must be of type: tilelayer")
-	
-	local w		= self.width
-	local h		= self.height
-	local map	= {
-		type		= layer.type,
-		orientation	= layer.orientation,
-		collision	= true,
-		opacity		= 0.5,
-		data		= {},
-	}
-	
-	for y=1, h do
-		map.data[y] = {}
-		for x=1, w do
-			if layer.data[y][x] == nil then
-				map.data[y][x] = 0
-			else
-				map.data[y][x] = 1
-			end
-		end
-	end
-	
-	return map
 end
 
 function Map:addCustomLayer(name, index)
@@ -551,78 +565,30 @@ function Map:drawObjectLayer(layer)
 	local fill		= { 160, 160, 160, 255 * layer.opacity * 0.2 }
 	local shadow	= { 0, 0, 0, 255 * layer.opacity }
 
-	local function drawEllipse(mode, x, y, w, h)
-		local segments = 100
-		local vertices = {}
-		
-		table.insert(vertices, x + w / 2)
-		table.insert(vertices, y + h / 2)
-		
-		for i=0, segments do
-			local angle = (i / segments) * math.pi * 2
-			local px = x + w / 2 + math.cos(angle) * w / 2
-			local py = y + h / 2 + math.sin(angle) * h / 2
-			
-			table.insert(vertices, px)
-			table.insert(vertices, py)
+	local function sortVertices(obj)
+		local vertices = {{},{}}
+
+		for _, vertex in ipairs(obj) do
+			table.insert(vertices[1], vertex.x)
+			table.insert(vertices[1], vertex.y)
+			table.insert(vertices[2], vertex.x+1)
+			table.insert(vertices[2], vertex.y+1)
 		end
-		
-		framework.polygon(mode, vertices)
+
+		return vertices
 	end
-	
-	for _, object in ipairs(layer.objects) do
-		local x = layer.x + object.x
-		local y = layer.y + object.y
-		local w = object.width
-		local h = object.height
-		local r = object.rotation
-		
-		if object.shape == "rectangle" then
-			local vertices = {{},{}}
 
-			for _, vertex in ipairs(object.rectangle) do
-				table.insert(vertices[1], vertex.x)
-				table.insert(vertices[1], vertex.y)
-				table.insert(vertices[2], vertex.x+1)
-				table.insert(vertices[2], vertex.y+1)
-			end
+	local function drawShape(obj, shape)
+		local vertices = sortVertices(obj)
 
-			framework.setColor(fill)
-			framework.polygon("fill", vertices[1])
-			
+		if shape == "polyline" then
 			framework.setColor(shadow)
-			framework.polygon("line", vertices[2])
-			
+			framework.line(vertices[2])
 			framework.setColor(line)
-			framework.polygon("line", vertices[1])
-		elseif object.shape == "ellipse" then
-			local vertices = {{},{}}
+			framework.line(vertices[1])
 
-			for _, vertex in ipairs(object.ellipse) do
-				table.insert(vertices[1], vertex.x)
-				table.insert(vertices[1], vertex.y)
-				table.insert(vertices[2], vertex.x+1)
-				table.insert(vertices[2], vertex.y+1)
-			end
-
-			framework.setColor(fill)
-			framework.polygon("fill", vertices[1])
-			
-			framework.setColor(shadow)
-			framework.polygon("line", vertices[2])
-			
-			framework.setColor(line)
-			framework.polygon("line", vertices[1])
-		elseif object.shape == "polygon" then
-			local vertices = {{},{}}
-			
-			for _, vertex in ipairs(object.polygon) do
-				table.insert(vertices[1], vertex.x)
-				table.insert(vertices[1], vertex.y)
-				table.insert(vertices[2], vertex.x+1)
-				table.insert(vertices[2], vertex.y+1)
-			end
-			
+			return
+		elseif shape == "polygon" then
 			framework.setColor(fill)
 			if not framework.isConvex(vertices[1]) then
 				local triangles = framework.triangulate(vertices[1])
@@ -632,27 +598,26 @@ function Map:drawObjectLayer(layer)
 			else
 				framework.polygon("fill", vertices[1])
 			end
+		else
+			framework.setColor(fill)
+			framework.polygon("fill", vertices[1])
+		end
 			
-			framework.setColor(shadow)
-			framework.polygon("line", vertices[2])
-			
-			framework.setColor(line)
-			framework.polygon("line", vertices[1])
+		framework.setColor(shadow)
+		framework.polygon("line", vertices[2])
+		framework.setColor(line)
+		framework.polygon("line", vertices[1])
+	end
+	
+	for _, object in ipairs(layer.objects) do
+		if object.shape == "rectangle" then
+			drawShape(object.rectangle, "rectangle")
+		elseif object.shape == "ellipse" then
+			drawShape(object.ellipse, "ellipse")
+		elseif object.shape == "polygon" then
+			drawShape(object.polygon, "polygon")
 		elseif object.shape == "polyline" then
-			local vertices = {{},{}}
-			
-			for _, vertex in ipairs(object.polyline) do
-				table.insert(vertices[1], vertex.x)
-				table.insert(vertices[1], vertex.y)
-				table.insert(vertices[2], vertex.x+1)
-				table.insert(vertices[2], vertex.y+1)
-			end
-			
-			framework.setColor(shadow)
-			framework.line(vertices[2])
-			
-			framework.setColor(line)
-			framework.line(vertices[1])
+			drawShape(object.polyline, "polyline")
 		end
 	end
 end
@@ -669,45 +634,10 @@ function Map:drawImageLayer(layer)
 	end
 end
 
-function Map:drawCollisionMap(layer)
-	assert(layer.type == "tilelayer", "Invalid layer type: " .. layer.type .. ". Layer must be of type: tilelayer")
-	assert(layer.collision, "This is not a collision layer")
-	
-	local tw = self.tilewidth
-	local th = self.tileheight
-	
-	framework.setColor(255, 255, 255, 255 * layer.opacity)
-	
-	for y=1, self.height do
-		for x=1, self.width do
-			local tx, ty
-			
-			if self.orientation == "orthogonal" then
-				tx = (x - 1) * tw
-				ty = (y - 1) * th
-			elseif self.orientation == "isometric" then
-				tx = (x - y) * (tw / 2) - self.tilewidth / 2
-				ty = (x + y) * (th / 2) - self.tileheight
-			elseif self.orientation == "staggered" then
-				if y % 2 == 0 then
-					tx = x * tw + tw / 2 - self.tilewidth
-				else
-					tx = x * tw - self.tilewidth
-				end
-				
-				ty = y * th / 2 - self.tileheight
-			end
-			
-			
-			if layer.data[y][x] == 1 then
-				framework.rectangle("fill", tx, ty, tw, th)
-			else
-				framework.rectangle("line", tx, ty, tw, th)
-			end
-		end
+function Map:drawWorldCollision(collision)
+	for _, obj in ipairs(collision) do
+		love.graphics.polygon("fill", collision.body:getWorldPoints(obj.shape:getPoints()))
 	end
-	
-	framework.setColor(255, 255, 255, 255)
 end
 
 function Map:resize(w, h)
@@ -753,107 +683,6 @@ function Map:rotateVertex(v, x, y, cos, sin)
 	return vx + x, vy + y
 end
 
-function Map:enableCollision(world)
-	local body = love.physics.newBody(world)
-	local collision = {
-		body = body,
-	}
-
-	for _, tileset in ipairs(self.tilesets) do
-		for _, tile in ipairs(tileset.tiles) do
-			if tile.objectGroup then
-				local gid = tileset.firstgid + tile.id
-
-				for _, instance in ipairs(self.tileInstances[gid]) do
-					for _, object in ipairs(tile.objectGroup.objects) do
-						local x = object.x
-						local y = object.y
-						local w = object.width
-						local h = object.height
-
-						if object.shape == "rectangle" then
-							local vertices = {
-								instance.x + x,		instance.y + y,
-								instance.x + x + w,	instance.y + y,
-								instance.x + x + w,	instance.y + y + h,
-								instance.x + x,		instance.y + y + h,
-							}
-
-							local shape = love.physics.newPolygonShape(unpack(vertices))
-							local fixture = love.physics.newFixture(body, shape)
-							local obj = {
-								shape = shape,
-								fixture = fixture,
-							}
-
-							table.insert(collision, obj)
-
-						elseif object.shape == "ellipse" then
-							local vertices = self:convertEllipseToPolygon(object.x, object.y, object.width, object.height, 25)
-							local polygon = {}
-							for _, vertex in ipairs(vertices) do
-								table.insert(polygon, instance.x + vertex.x + x)
-								table.insert(polygon, instance.y + vertex.y + y)
-							end
-
-							local triangles = love.math.triangulate(polygon)
-
-							for _, triangle in ipairs(triangles) do
-								local shape = love.physics.newPolygonShape(unpack(triangle))
-								local fixture = love.physics.newFixture(body, shape)
-								local obj = {
-									shape = shape,
-									fixture = fixture,
-								}
-
-								table.insert(collision, obj)
-							end
-
-						elseif object.shape == "polygon" then
-							local polygon = {}
-							for _, vertex in ipairs(object.polygon) do
-								table.insert(polygon, instance.x + vertex.x + x)
-								table.insert(polygon, instance.y + vertex.y + y)
-							end
-
-							local triangles = love.math.triangulate(polygon)
-
-							for _, triangle in ipairs(triangles) do
-								local shape = love.physics.newPolygonShape(unpack(triangle))
-								local fixture = love.physics.newFixture(body, shape)
-								local obj = {
-									shape = shape,
-									fixture = fixture,
-								}
-
-								table.insert(collision, obj)
-							end
-
-						elseif object.shape == "polyline" then
-							local polyline = {}
-							for _, vertex in ipairs(object.polyline) do
-								table.insert(polyline, instance.x + vertex.x + x)
-								table.insert(polyline, instance.y + vertex.y + y)
-							end
-
-							local shape = love.physics.newChainShape(false, unpack(polyline))
-							local fixture = love.physics.newFixture(body, shape)
-							local obj = {
-								shape = shape,
-								fixture = fixture,
-							}
-
-							table.insert(collision, obj)
-						end
-					end
-				end
-			end
-		end
-	end
-
-	return collision
-end
-
 function Map:convertEllipseToPolygon(x, y, w, h)
 	local function calc_segments(segments)
 		local function vdist(a, b)
@@ -875,7 +704,7 @@ function Map:convertEllipseToPolygon(x, y, w, h)
 			local px = x + w / 2 + math.cos(angle) * w / 2
 			local py = y + h / 2 + math.sin(angle) * h / 2
 			
-			table.insert(vertices, { x = px / love.physics.getMeter(), y = py / love.physics.getMeter() })
+			table.insert(vertices, { x = px / framework.getMeter(), y = py / framework.getMeter() })
 		end
 
 		local dist1 = vdist(vertices[1], vertices[2])
@@ -903,6 +732,27 @@ function Map:convertEllipseToPolygon(x, y, w, h)
 	end
 
 	return vertices
+end
+
+-- https://github.com/stevedonovan/Penlight/blob/master/lua/pl/path.lua#L286
+function Map.formatPath(path)
+	local np_gen1,np_gen2 = '[^SEP]+SEP%.%.SEP?','SEP+%.?SEP'
+	local np_pat1, np_pat2
+
+	if not np_pat1 then
+		np_pat1 = np_gen1:gsub('SEP','/')
+		np_pat2 = np_gen2:gsub('SEP','/')
+	end
+	local k
+	repeat -- /./ -> /
+		path,k = path:gsub(np_pat2,'/')
+	until k == 0
+	repeat -- A/../ -> (empty)
+		path,k = path:gsub(np_pat1,'')
+	until k == 0
+	if path == '' then path = '.' end
+
+	return path
 end
 
 return Map

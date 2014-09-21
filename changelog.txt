@@ -2,6 +2,17 @@
 Simple Tiled Implementation Change Log
 ======================================
 -------------------
+2014-09-21 : v0.8.1
+-------------------
+* Added:	README now lists minimum requirements
+* Changed:	README updated with new collision system
+* Changed:	Map:enableCollision() renamed to Map:initWorldCollision()
+* Changed:	Map:drawCollisionMap() renamed to Map:drawWorldCollision()
+* Changed:	Updated framework files (still no real Lua/Corona support)
+* Changed:	Tidied up collision code
+* Removed:	Map:getCollisionMap()
+
+-------------------
 2014-09-20 : v0.8.0
 -------------------
 * Added:	Box2D collision via Map:enableCollision()

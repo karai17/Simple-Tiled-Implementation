@@ -1,9 +1,11 @@
-Simple Tiled Implementation
-==
+# Simple Tiled Implementation
+
 Simple Tiled Implementation is a [**Tiled Map Editor**][Tiled] library designed for the *awesome* [**LÖVE**][LOVE] framework. Please read the library [**documentation**][dox] to learn how it all works!
 
-Quick Example
---
+
+
+## Quick Example
+
 ```lua     
 local sti = require "sti"
 
@@ -11,12 +13,18 @@ function love.load()
 	-- Grab window size
 	windowWidth = love.graphics.getWidth()
 	windowHeight = love.graphics.getHeight()
-	
+
+	-- Set world meter size (in pixels)
+	love.physics.setMeter(32)
+
 	-- Load a map exported to Lua from Tiled
 	map = sti.new("assets/maps/map01")
-	
-	-- Set a Collision Map to use with your own collision code
-	collision = map:getCollisionMap("Collision Layer")
+
+	-- Prepare physics world (horizontal and vertical gravity)
+	world = love.physics.newWorld(0*love.physics.getMeter(), 0*love.physics.getMeter())
+
+	-- Prepare collision objects
+	collision = map:initWorldCollision(world)
 	
 	-- Create a Custom Layer
 	map:addCustomLayer("Sprite Layer", 3)
@@ -62,20 +70,22 @@ function love.draw()
 	-- Draw Range culls unnecessary tiles
 	map:setDrawRange(translateX, translateY, windowWidth, windowHeight)
 	
+	-- Draw the map and all objects within
 	map:draw()
 	
 	-- Draw Collision Map (useful for debugging)
-	map:drawCollisionMap(collision)
+	map:drawWorldCollision(collision)
 end
-
 ```
 
-Requirements
---
+
+## Requirements
+
 This library requires LÖVE 0.9.1 and Tiled 0.10.0. If you are updating from an older version of Tiled, please re-export your Lua map files.
 
-License
---
+
+## License
+
 This code is licensed under the [**MIT Open Source License**][MIT]. Check out the LICENSE file for more information.
 
 [Tiled]: http://www.mapeditor.org/
