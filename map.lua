@@ -763,43 +763,80 @@ function Map:enableCollision(world)
 		for _, tile in ipairs(tileset.tiles) do
 			if tile.objectGroup then
 				local gid = tileset.firstgid + tile.id
+				if self.tileInstances[gid] then -- check if the tile has instances
+					for _, instance in ipairs(self.tileInstances[gid]) do
+						for _, object in ipairs(tile.objectGroup.objects) do
+							local x = object.x
+							local y = object.y
+							local w = object.width
+							local h = object.height
 
-				for _, instance in ipairs(self.tileInstances[gid]) do
-					for _, object in ipairs(tile.objectGroup.objects) do
-						local x = object.x
-						local y = object.y
-						local w = object.width
-						local h = object.height
+							if object.shape == "rectangle" then
+								local vertices = {
+									instance.x + x,		instance.y + y,
+									instance.x + x + w,	instance.y + y,
+									instance.x + x + w,	instance.y + y + h,
+									instance.x + x,		instance.y + y + h,
+								}
 
-						if object.shape == "rectangle" then
-							local vertices = {
-								instance.x + x,		instance.y + y,
-								instance.x + x + w,	instance.y + y,
-								instance.x + x + w,	instance.y + y + h,
-								instance.x + x,		instance.y + y + h,
-							}
+								local shape = love.physics.newPolygonShape(unpack(vertices))
+								local fixture = love.physics.newFixture(body, shape)
+								local obj = {
+									shape = shape,
+									fixture = fixture,
+								}
 
-							local shape = love.physics.newPolygonShape(unpack(vertices))
-							local fixture = love.physics.newFixture(body, shape)
-							local obj = {
-								shape = shape,
-								fixture = fixture,
-							}
+								table.insert(collision, obj)
 
-							table.insert(collision, obj)
+							elseif object.shape == "ellipse" then
+								local vertices = self:convertEllipseToPolygon(object.x, object.y, object.width, object.height, 25)
+								local polygon = {}
+								for _, vertex in ipairs(vertices) do
+									table.insert(polygon, instance.x + vertex.x + x)
+									table.insert(polygon, instance.y + vertex.y + y)
+								end
 
-						elseif object.shape == "ellipse" then
-							local vertices = self:convertEllipseToPolygon(object.x, object.y, object.width, object.height, 25)
-							local polygon = {}
-							for _, vertex in ipairs(vertices) do
-								table.insert(polygon, instance.x + vertex.x + x)
-								table.insert(polygon, instance.y + vertex.y + y)
-							end
+								local triangles = love.math.triangulate(polygon)
 
-							local triangles = love.math.triangulate(polygon)
+								for _, triangle in ipairs(triangles) do
+									local shape = love.physics.newPolygonShape(unpack(triangle))
+									local fixture = love.physics.newFixture(body, shape)
+									local obj = {
+										shape = shape,
+										fixture = fixture,
+									}
 
-							for _, triangle in ipairs(triangles) do
-								local shape = love.physics.newPolygonShape(unpack(triangle))
+									table.insert(collision, obj)
+								end
+
+							elseif object.shape == "polygon" then
+								local polygon = {}
+								for _, vertex in ipairs(object.polygon) do
+									table.insert(polygon, instance.x + vertex.x + x)
+									table.insert(polygon, instance.y + vertex.y + y)
+								end
+
+								local triangles = love.math.triangulate(polygon)
+
+								for _, triangle in ipairs(triangles) do
+									local shape = love.physics.newPolygonShape(unpack(triangle))
+									local fixture = love.physics.newFixture(body, shape)
+									local obj = {
+										shape = shape,
+										fixture = fixture,
+									}
+
+									table.insert(collision, obj)
+								end
+
+							elseif object.shape == "polyline" then
+								local polyline = {}
+								for _, vertex in ipairs(object.polyline) do
+									table.insert(polyline, instance.x + vertex.x + x)
+									table.insert(polyline, instance.y + vertex.y + y)
+								end
+
+								local shape = love.physics.newChainShape(false, unpack(polyline))
 								local fixture = love.physics.newFixture(body, shape)
 								local obj = {
 									shape = shape,
@@ -808,42 +845,6 @@ function Map:enableCollision(world)
 
 								table.insert(collision, obj)
 							end
-
-						elseif object.shape == "polygon" then
-							local polygon = {}
-							for _, vertex in ipairs(object.polygon) do
-								table.insert(polygon, instance.x + vertex.x + x)
-								table.insert(polygon, instance.y + vertex.y + y)
-							end
-
-							local triangles = love.math.triangulate(polygon)
-
-							for _, triangle in ipairs(triangles) do
-								local shape = love.physics.newPolygonShape(unpack(triangle))
-								local fixture = love.physics.newFixture(body, shape)
-								local obj = {
-									shape = shape,
-									fixture = fixture,
-								}
-
-								table.insert(collision, obj)
-							end
-
-						elseif object.shape == "polyline" then
-							local polyline = {}
-							for _, vertex in ipairs(object.polyline) do
-								table.insert(polyline, instance.x + vertex.x + x)
-								table.insert(polyline, instance.y + vertex.y + y)
-							end
-
-							local shape = love.physics.newChainShape(false, unpack(polyline))
-							local fixture = love.physics.newFixture(body, shape)
-							local obj = {
-								shape = shape,
-								fixture = fixture,
-							}
-
-							table.insert(collision, obj)
 						end
 					end
 				end
