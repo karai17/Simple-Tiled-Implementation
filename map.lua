@@ -515,14 +515,11 @@ function Map:removeLayer(index)
 		for i, layer in ipairs(self.layers) do
 			if layer.name == index then
 				table.remove(self.layers, i)
-				table.remove(self.layers, index)
 				break
 			end
 		end
-	else
-		local name = self.layers[index].name
+	elseif self.layers[index] then
 		table.remove(self.layers, index)
-		table.remove(self.layers, name)
 	end
 end
 
