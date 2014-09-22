@@ -86,8 +86,28 @@ function Map:initWorldCollision(world)
 
 		if o.shape == "rectangle" then
 			if object.gid then
-				o.w = self.tiles[object.gid].width
-				o.h = self.tiles[object.gid].height
+				local tileset = self.tiles[object.gid].tileset
+				local lid = object.gid - self.tilesets[tileset].firstgid
+				local tile = {}
+
+				for _, t in ipairs(self.tilesets[tileset].tiles) do
+					if t.id == lid then
+						tile = t
+						break
+					end
+				end
+
+				if tile.objectGroup then
+					for _, obj in ipairs(tile.objectGroup.objects) do
+						-- Every object in the tile
+						calculateObjectPosition(obj, object)
+					end
+
+					return
+				else
+					o.w = self.tiles[object.gid].width
+					o.h = self.tiles[object.gid].height
+				end
 			end
 
 			local vertices = {
@@ -132,12 +152,10 @@ function Map:initWorldCollision(world)
 			local gid = tileset.firstgid + tile.id
 
 			if tile.objectGroup then
-				if self.tileInstances[gid] then -- check if instances exists
-					for _, instance in ipairs(self.tileInstances[gid]) do
-						for _, object in ipairs(tile.objectGroup.objects) do
-							-- Every object in every instance of a tile
-							calculateObjectPosition(object, instance)
-						end
+				for _, instance in ipairs(self.tileInstances[gid]) do
+					for _, object in ipairs(tile.objectGroup.objects) do
+						-- Every object in every instance of a tile
+						calculateObjectPosition(object, instance)
 					end
 				end
 			elseif tile.properties.collidable == "true" then
