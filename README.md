@@ -74,14 +74,18 @@ function love.draw()
 	map:draw()
 	
 	-- Draw Collision Map (useful for debugging)
+	love.graphics.setColor(255, 0, 0, 255)
 	map:drawWorldCollision(collision)
+
+	-- Reset color
+	love.graphics.setColor(255, 255, 255, 255)
 end
 ```
 
 
 ## Requirements
 
-This library requires LÖVE 0.9.1 and Tiled 0.10.0. If you are updating from an older version of Tiled, please re-export your Lua map files.
+This library requires LÖVE 0.9.1 and Tiled 0.10.1. If you are updating from an older version of Tiled, please re-export your Lua map files.
 
 
 ## License

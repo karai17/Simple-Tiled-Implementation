@@ -6,6 +6,10 @@ local framework = {}
 
 framework.version = "LOVE"
 
+assert(lf, "The love.filesystem module is required for this library.")
+assert(lg, "The love.graphics module is required for this library.")
+assert(lm, "The love.math module is required for this library.")
+
 function framework.load(file)
 	return assert(lf.load(file), "File not found: " .. file)
 end
@@ -47,10 +51,12 @@ framework.isConvex			= lm.isConvex
 framework.triangulate		= lm.triangulate
 
 -- Physics Calls
-framework.getMeter			= lp.getMeter
-framework.newBody			= lp.newBody
-framework.newChainShape		= lp.newChainShape
-framework.newFixture		= lp.newFixture
-framework.newPolygonShape	= lp.newPolygonShape
+if lp then
+	framework.getMeter			= lp.getMeter
+	framework.newBody			= lp.newBody
+	framework.newChainShape		= lp.newChainShape
+	framework.newFixture		= lp.newFixture
+	framework.newPolygonShape	= lp.newPolygonShape
+end
 
 return framework
