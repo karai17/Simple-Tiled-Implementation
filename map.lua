@@ -530,12 +530,6 @@ function Map:setSpriteBatchesForObjectLayer(layer)
 			-- add the quad
 			local batch = batches[ts][bi]
 			batch:add(tile.quad, object.x, object.y)
-			
-			-- only use built-in collision system when told so
-			if layer.properties.isSolid then
-				self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
-				table.insert(self.tileInstances[tile.gid], { x=object.x, y=object.y })
-			end
 		end
 	end
 	layer.batches = batches
