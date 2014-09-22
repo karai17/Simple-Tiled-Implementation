@@ -575,14 +575,14 @@ function Map:removeLayer(index)
 		for i, layer in ipairs(self.layers) do
 			if layer.name == index then
 				table.remove(self.layers, i)
-				table.remove(self.layers, index)
+				self.layers[index] = nil
 				break
 			end
 		end
 	else
 		local name = self.layers[index].name
 		table.remove(self.layers, index)
-		table.remove(self.layers, name)
+		self.layers[name] = nil
 	end
 end
 

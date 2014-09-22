@@ -2,6 +2,11 @@
 Simple Tiled Implementation Change Log
 ======================================
 -------------------
+2014-09-22 : v0.8.3
+-------------------
+* Fixed:	Map:removeLayer() now works properly
+
+-------------------
 2014-09-22 : v0.8.2
 -------------------
 * Added:	"collidable" property for objects, tiles, and layers
