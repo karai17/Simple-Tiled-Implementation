@@ -2,6 +2,14 @@
 Simple Tiled Implementation Change Log
 ======================================
 -------------------
+2014-09-22 : v0.8.2
+-------------------
+* Added:	"collidable" property for objects, tiles, and layers
+			if collidable is set to true in Tiled, STI will pick it up
+			and set all appropriate entities to collidable objects
+* Changed:	Map:initWorldCollision() now supports a whole lot more
+
+-------------------
 2014-09-21 : v0.8.1
 -------------------
 * Added:	README now lists minimum requirements

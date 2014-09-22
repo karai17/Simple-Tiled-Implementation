@@ -34,16 +34,6 @@ function Map:initWorldCollision(world)
 		body = body,
 	}
 
-	local function getPolygonVertices(obj, instance, x, y)
-		local vertices = {}
-		for _, vertex in ipairs(obj) do
-			table.insert(vertices, instance.x + vertex.x + x)
-			table.insert(vertices, instance.y + vertex.y + y)
-		end
-
-		return vertices
-	end
-
 	local function addObjectToWorld(objshape, vertices)
 		local shape
 
@@ -62,47 +52,147 @@ function Map:initWorldCollision(world)
 		table.insert(collision, obj)
 	end
 
+	local function getPolygonVertices(object, tile, precalc)
+		local ox, oy = 0, 0
+
+		if not precalc then
+			ox = object.x
+			oy = object.y
+		end
+
+		local vertices = {}
+		for _, vertex in ipairs(object.polygon) do
+			if object.shape == "polyline" then
+			end
+			table.insert(vertices, tile.x + ox + vertex.x)
+			table.insert(vertices, tile.y + oy + vertex.y)
+		end
+
+		return vertices
+	end
+
+	local function calculateObjectPosition(object, tile)
+		local o = {
+			shape	= object.shape,
+			x		= object.x,
+			y		= object.y,
+			w		= object.width,
+			h		= object.height,
+			polygon	= object.polygon or object.polyline or object.ellipse or object.rectangle
+		}
+		local t		= tile or { x=0, y=0 }
+
+		if o.shape == "rectangle" then
+			if object.gid then
+				o.w = self.tiles[object.gid].width
+				o.h = self.tiles[object.gid].height
+			end
+
+			local vertices = {
+				t.x + o.x,			t.y + o.y,
+				t.x + o.x + o.w,	t.y + o.y,
+				t.x + o.x + o.w,	t.y + o.y + o.h,
+				t.x + o.x,			t.y + o.y + o.h,
+			}
+
+			addObjectToWorld(o.shape, vertices)
+		elseif o.shape == "ellipse" then
+			if not o.polygon then
+				o.polygon		= self:convertEllipseToPolygon(o.x, o.y, o.w, o.h)
+			end
+			local vertices	= getPolygonVertices(o, t, true)
+			local triangles	= love.math.triangulate(vertices)
+
+			for _, triangle in ipairs(triangles) do
+				addObjectToWorld(o.shape, triangle)
+			end
+		elseif o.shape == "polygon" then
+			local precalc = false
+			if not t.gid then precalc = true end
+
+			local vertices	= getPolygonVertices(o, t, precalc)
+			local triangles	= love.math.triangulate(vertices)
+
+			for _, triangle in ipairs(triangles) do
+				addObjectToWorld(o.shape, triangle)
+			end
+		elseif o.shape == "polyline" then
+			local precalc = false
+			if not t.gid then precalc = true end
+
+			local vertices	= getPolygonVertices(o, t, precalc)
+			addObjectToWorld(o.shape, vertices)
+		end
+	end
+
 	for _, tileset in ipairs(self.tilesets) do
 		for _, tile in ipairs(tileset.tiles) do
-			if tile.objectGroup then
-				local gid = tileset.firstgid + tile.id
+			local gid = tileset.firstgid + tile.id
 
+			if tile.objectGroup then
 				for _, instance in ipairs(self.tileInstances[gid]) do
 					for _, object in ipairs(tile.objectGroup.objects) do
-						local x = object.x
-						local y = object.y
-						local w = object.width
-						local h = object.height
-
-						if object.shape == "rectangle" then
-							local vertices = {
-								instance.x + x,		instance.y + y,
-								instance.x + x + w,	instance.y + y,
-								instance.x + x + w,	instance.y + y + h,
-								instance.x + x,		instance.y + y + h,
-							}
-
-							addObjectToWorld(object.shape, vertices)
-						elseif object.shape == "ellipse" then
-							local polygon = self:convertEllipseToPolygon(object.x, object.y, object.width, object.height)
-							local vertices = getPolygonVertices(polygon, instance, x, y)
-							local triangles = love.math.triangulate(vertices)
-
-							for _, triangle in ipairs(triangles) do
-								addObjectToWorld(object.shape, triangle)
-							end
-						elseif object.shape == "polygon" then
-							local vertices = getPolygonVertices(object.polygon, instance, x, y)
-							local triangles = love.math.triangulate(vertices)
-
-							for _, triangle in ipairs(triangles) do
-								addObjectToWorld(object.shape, triangle)
-							end
-						elseif object.shape == "polyline" then
-							local vertices = getPolygonVertices(object.polyline, instance, x, y)
-							addObjectToWorld(object.shape, vertices)
-						end
+						-- Every object in every instance of a tile
+						calculateObjectPosition(object, instance)
 					end
+				end
+			elseif tile.properties.collidable == "true" then
+				for _, instance in ipairs(self.tileInstances[gid]) do
+					-- Every instance of a tile
+					local object = {
+						shape	= "rectangle",
+						x		= 0,
+						y		= 0,
+						width	= tileset.tilewidth,
+						height	= tileset.tileheight,
+					}
+
+					calculateObjectPosition(object, instance)
+				end
+			end
+		end
+	end
+
+	for _, layer in ipairs(self.layers) do
+		if layer.properties.collidable == "true" then
+			-- Entire layer
+
+			if layer.type == "tilelayer" then
+				for y, tiles in ipairs(layer.data) do
+					for x, tile in pairs(tiles) do
+						local object = {
+							shape	= "rectangle",
+							x		= (x-1) * tile.width,
+							y		= (y-1) * tile.height,
+							width	= tile.width,
+							height	= tile.height,
+						}
+						calculateObjectPosition(object)
+					end
+				end
+
+			elseif layer.type == "objectgroup" then
+				for _, object in ipairs(layer.objects) do
+					calculateObjectPosition(object)
+				end
+
+			elseif layer.type == "imagelayer" then
+				local object = {
+					shape	= "rectangle",
+					x		= layer.x or 0,
+					y		= layer.y or 0,
+					width	= layer.width,
+					height	= layer.height,
+				}
+				calculateObjectPosition(object)
+			end
+		end
+
+		if layer.type == "objectgroup" then
+			for _, object in ipairs(layer.objects) do
+				if object.properties.collidable == "true" then
+					-- Individual objects
+					calculateObjectPosition(object)
 				end
 			end
 		end
@@ -153,6 +243,8 @@ function Map:setTiles(index, tileset, gid)
 				tileset		= index,
 				quad		= quad(qx, qy, tw, th, iw, ih),
 				properties	= properties,
+				width		= tileset.tilewidth,
+				height		= tileset.tileheight,
 				sx			= 1,
 				sy			= 1,
 				r			= 0,
@@ -192,6 +284,8 @@ function Map:setLayer(layer, path)
 		if layer.image ~= "" then
 			local image = self.formatPath(path..layer.image)
 			layer.image = framework.newImage(image)
+			layer.width = layer.image:getWidth()
+			layer.height = layer.image:getHeight()
 		end
 	end
 	
@@ -401,7 +495,7 @@ function Map:setSpriteBatches(layer)
 				batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
 
 				self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
-				table.insert(self.tileInstances[tile.gid], { x=tx, y=ty })
+				table.insert(self.tileInstances[tile.gid], { gid=tile.gid, x=tx, y=ty })
 
 			end
 		end
@@ -636,7 +730,7 @@ end
 
 function Map:drawWorldCollision(collision)
 	for _, obj in ipairs(collision) do
-		love.graphics.polygon("fill", collision.body:getWorldPoints(obj.shape:getPoints()))
+		love.graphics.polygon("line", collision.body:getWorldPoints(obj.shape:getPoints()))
 	end
 end
 
