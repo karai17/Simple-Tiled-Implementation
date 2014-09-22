@@ -582,6 +582,16 @@ function Map:removeLayer(index)
 		table.remove(self.layers, index)
 		table.remove(self.layers, name)
 	end
+	
+	-- if it was a tilelayer whe have to build all collision entries again
+	if layer.type == "tilelayer" then
+		self.tileInstances = {}
+		for _, lyr in ipairs(self.layers) do
+			if lyr.type == "tilelayer" then
+				Map:setSpriteBatches(lyr)
+			end
+		end
+	end
 end
 
 function Map:update(dt)
