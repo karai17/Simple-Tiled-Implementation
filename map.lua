@@ -529,7 +529,7 @@ function Map:setSpriteBatchesForObjectLayer(layer)
 			
 			-- add the quad
 			local batch = batches[ts][bi]
-			batch:add(tile.quad, object.x, object.y)
+			batch:add(tile.quad, object.x, object.y - tile.height) -- the position is bottom left and need to be upper left
 		end
 	end
 	layer.batches = batches
