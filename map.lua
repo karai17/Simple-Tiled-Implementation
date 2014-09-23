@@ -13,6 +13,9 @@ function Map:init(path, fw)
 		ex = self.width,
 		ey = self.height,
 	}
+	
+	self.backgroundcolor = self.backgroundcolor or {128, 128, 128, 255}
+	self.backgroundcolor[4] = self.backgroundcolor[4] or 255
 
 	-- Set tiles, images
 	local gid = 1
@@ -614,6 +617,7 @@ end
 
 function Map:draw(sx, sy)
 	framework.setCanvas(self.canvas)
+	framework.setBackgroundColor(self.backgroundcolor)
 	framework.clear(self.canvas)
 
 	for _, layer in ipairs(self.layers) do

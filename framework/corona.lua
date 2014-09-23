@@ -41,6 +41,7 @@ framework.setCanvas			= lg.setCanvas
 framework.origin			= lg.origin
 framework.pop				= lg.pop
 framework.push				= lg.push
+framework.setBackgroundColor = lg.setBackgroundColor
 
 -- Math Calls
 framework.isConvex			= lm.isConvex
