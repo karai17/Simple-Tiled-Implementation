@@ -152,10 +152,12 @@ function Map:initWorldCollision(world)
 			local gid = tileset.firstgid + tile.id
 
 			if tile.objectGroup then
-				for _, instance in ipairs(self.tileInstances[gid]) do
-					for _, object in ipairs(tile.objectGroup.objects) do
-						-- Every object in every instance of a tile
-						calculateObjectPosition(object, instance)
+				if self.tileInstances[gid] then
+					for _, instance in ipairs(self.tileInstances[gid]) do
+						for _, object in ipairs(tile.objectGroup.objects) do
+							-- Every object in every instance of a tile
+							calculateObjectPosition(object, instance)
+						end
 					end
 				end
 			elseif tile.properties.collidable == "true" then
