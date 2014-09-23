@@ -592,6 +592,7 @@ end
 
 function Map:draw(sx, sy)
 	framework.setCanvas(self.canvas)
+	framework.setBackgroundColor(self.backgroundcolor[1], self.backgroundcolor[2], self.backgroundcolor[3], self.backgroundcolor[4] or 255)
 	framework.clear(self.canvas)
 
 	for _, layer in ipairs(self.layers) do
