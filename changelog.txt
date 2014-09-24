@@ -2,8 +2,11 @@
 Simple Tiled Implementation Change Log
 ======================================
 -------------------
-2014-09-22 : v0.8.3
+2014-09-24 : v0.8.3
 -------------------
+* Added:	Map:convertScreenToTile() and Map:convertTileToScreen()
+* Added:	Map:convertScreenToIsometricTile() and Map:convertIsometricTileToScreen()
+* Added:	Map:convertScreenToStaggeredTile() and Map:convertStaggeredTileToScreen()
 * Fixed:	Map:removeLayer() now works properly
 * Changed:	Tile Objects now use the tile's collision map by default
 

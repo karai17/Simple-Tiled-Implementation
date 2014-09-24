@@ -64,8 +64,6 @@ function Map:initWorldCollision(world)
 
 		local vertices = {}
 		for _, vertex in ipairs(object.polygon) do
-			if object.shape == "polyline" then
-			end
 			table.insert(vertices, tile.x + ox + vertex.x)
 			table.insert(vertices, tile.y + oy + vertex.y)
 		end
@@ -85,6 +83,10 @@ function Map:initWorldCollision(world)
 		local t		= tile or { x=0, y=0 }
 
 		if o.shape == "rectangle" then
+			o.r = object.rotation
+			local cos = math.cos(math.rad(o.r))
+			local sin = math.sin(math.rad(o.r))
+
 			if object.gid then
 				local tileset = self.tiles[object.gid].tileset
 				local lid = object.gid - self.tilesets[tileset].firstgid
@@ -110,20 +112,29 @@ function Map:initWorldCollision(world)
 				end
 			end
 
-			local vertices = {
-				t.x + o.x,			t.y + o.y,
-				t.x + o.x + o.w,	t.y + o.y,
-				t.x + o.x + o.w,	t.y + o.y + o.h,
-				t.x + o.x,			t.y + o.y + o.h,
+			o.polygon = {
+				{ x=t.x + o.x,			y=t.y + o.y },
+				{ x=t.x + o.x + o.w,	y=t.y + o.y },
+				{ x=t.x + o.x + o.w,	y=t.y + o.y + o.h },
+				{ x=t.x + o.x,			y=t.y + o.y + o.h },
 			}
 
+			for _, vertex in ipairs(o.polygon) do
+				if self.orientation == "isometric" then
+					vertex.x, vertex.y = self:convertIsometricToScreen(vertex.x, vertex.y)
+				end
+
+				vertex.x, vertex.y = self:rotateVertex(vertex, o.x, o.y, cos, sin)
+			end
+
+			local vertices = getPolygonVertices(o, t, true)
 			addObjectToWorld(o.shape, vertices)
 		elseif o.shape == "ellipse" then
 			if not o.polygon then
-				o.polygon		= self:convertEllipseToPolygon(o.x, o.y, o.w, o.h)
+				o.polygon = self:convertEllipseToPolygon(o.x, o.y, o.w, o.h)
 			end
 			local vertices	= getPolygonVertices(o, t, true)
-			local triangles	= love.math.triangulate(vertices)
+			local triangles	= framework.triangulate(vertices)
 
 			for _, triangle in ipairs(triangles) do
 				addObjectToWorld(o.shape, triangle)
@@ -133,7 +144,7 @@ function Map:initWorldCollision(world)
 			if not t.gid then precalc = true end
 
 			local vertices	= getPolygonVertices(o, t, precalc)
-			local triangles	= love.math.triangulate(vertices)
+			local triangles	= framework.triangulate(vertices)
 
 			for _, triangle in ipairs(triangles) do
 				addObjectToWorld(o.shape, triangle)
@@ -526,8 +537,7 @@ end
 function Map:setDrawRange(tx, ty, w, h)
 	tx = -tx
 	ty = -ty
-	local tw = self.tilewidth
-	local th = self.tileheight
+	local tw, th = self.tilewidth, self.tileheight
 	local sx, sy, ex, ey
 
 	if self.orientation == "orthogonal" then
@@ -749,7 +759,7 @@ end
 
 function Map:drawWorldCollision(collision)
 	for _, obj in ipairs(collision) do
-		love.graphics.polygon("line", collision.body:getWorldPoints(obj.shape:getPoints()))
+		framework.polygon("line", collision.body:getWorldPoints(obj.shape:getPoints()))
 	end
 end
 
@@ -759,24 +769,133 @@ end
 
 function Map:convertIsometricToScreen(x, y)
 	local mw = self.width
-	local mh = self.height
-	local tw = self.tilewidth
-	local th = self.tileheight
-	local vx = (x - y) + mw * tw / 2
-	local vy = (y + x) / 2
+	local tw, th = self.tilewidth, self.tileheight
+	local ox = mw * tw / 2
 
-	return vx, vy
+	local sx = (x - y) + ox
+	local sy = (x + y) / 2
+
+	return sx, sy
 end
 
 function Map:convertScreenToIsometric(x, y)
-	local mw = self.width
-	local mh = self.height
-	local tw = self.tilewidth
-	local th = self.tileheight
-	local vx = (x / 2 + y) - mw * tw / 4
-	local vy = -x / 2 + y + mh * th / 2
+	local mw, mh = self.width, self.height
+	local tw, th = self.tilewidth, self.tileheight
+	local ox = mw * tw / 2
+	local oy = mh * th / 2
 
-	return vx, vy
+	local tx = (x / 2 + y) - ox / 2
+	local ty = (-x / 2 + y) + oy
+
+	return tx, ty
+end
+
+function Map:convertTileToScreen(x, y)
+	local tw, th = self.tilewidth, self.tileheight 
+
+	local sx = x / tw
+	local sy = y / th
+
+	return sx, sy
+end
+
+function Map:convertScreenToTile(x, y)
+	local tw, th = self.tilewidth, self.tileheight
+
+	local tx = x * tw
+	local ty = y * th
+
+	return tx, ty
+end
+
+function Map:convertIsometricTileToScreen(x, y)
+	local mw = self.width
+	local tw, th = self.tilewidth, self.tileheight
+	local ox = mw * tw / 2
+
+	local sx = (x - y) * tw / 2 + ox
+	local sy = (x + y) * th / 2 
+
+	return sx, sy
+end
+
+function Map:convertScreenToIsometricTile(x, y)
+	local mw = self.width
+	local tw, th = self.tilewidth, self.tileheight
+	local ox = mw * tw / 2
+
+	local tx = y / th + (x - ox) / tw
+	local ty = y / th - (x - ox) / tw
+
+	return tx, ty
+end
+
+function Map:convertStaggeredTileToScreen(x, y)
+	local tw, th = self.tilewidth, self.tileheight
+
+	local sx = x * tw + math.abs(math.ceil(y) % 2) * (tw / 2) - (math.ceil(y) % 2 * tw/2)
+	local sy = y * (th / 2) + th/2
+
+	return sx, sy
+end
+
+function Map:convertScreenToStaggeredTile(x, y)
+	local function topLeft(x, y)
+		if (math.ceil(y) % 2) then
+			return x, y - 1
+		else
+			return x - 1, y - 1
+		end
+	end
+
+	local function topRight(x, y)
+		if (math.ceil(y) % 2) then
+			return x + 1, y - 1
+		else
+			return x, y - 1
+		end
+	end
+
+	local function bottomLeft(x, y)
+		if (math.ceil(y) % 2) then
+			return x, y + 1
+		else
+			return x - 1, y + 1
+		end
+	end
+
+	local function bottomRight(x, y)
+		if (math.ceil(y) % 2) then
+			return x + 1, y + 1
+		else
+			return x, y + 1
+		end
+	end
+
+	local tw, th = self.tilewidth, self.tileheight
+	local hh = th / 2
+	local ratio = th / tw
+
+	local tx = x / tw
+	local ty = y / th * 2
+
+	local ctx = math.ceil(x / tw)
+	local cty = math.ceil(y / th) * 2
+
+	local rx = x - ctx * tw
+	local ry = y - (cty / 2) * th
+
+	if (hh - rx * ratio > ry) then
+		return topLeft(tx, ty)
+	elseif (-hh + rx * ratio > ry) then
+		return topRight(tx, ty)
+	elseif (hh + rx * ratio < ry) then
+		return bottomLeft(tx, ty)
+	elseif (hh * 3 - rx * ratio < ry) then
+		return bottomRight(tx, ty)
+	end
+
+	return tx, ty
 end
 
 function Map:rotateVertex(v, x, y, cos, sin)
@@ -854,14 +973,8 @@ end
 
 -- https://github.com/stevedonovan/Penlight/blob/master/lua/pl/path.lua#L286
 function Map.formatPath(path)
-	local np_gen1,np_gen2 = '[^SEP]+SEP%.%.SEP?','SEP+%.?SEP'
-	local np_pat1, np_pat2
-
-	if not np_pat1 then
-		np_pat1 = np_gen1:gsub('SEP','/')
-		np_pat2 = np_gen2:gsub('SEP','/')
-	end
-
+	local np_gen1,np_gen2	= '[^SEP]+SEP%.%.SEP?','SEP+%.?SEP'
+	local np_pat1, np_pat2	= np_gen1:gsub('SEP','/'), np_gen2:gsub('SEP','/')
 	local k
 
 	repeat -- /./ -> /
