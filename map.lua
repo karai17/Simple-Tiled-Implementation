@@ -263,10 +263,12 @@ function Map:setTiles(index, tileset, gid)
 			local qx = (x - 1) * tw + m + (x - 1) * s
 			local qy = (y - 1) * th + m + (y - 1) * s
 			local properties
+			local animation
 
 			for _, tile in pairs(tileset.tiles) do
 				if tile.id == gid - tileset.firstgid then
 					properties = tile.properties
+					animation = tile.animation
 				end
 			end
 
@@ -275,6 +277,9 @@ function Map:setTiles(index, tileset, gid)
 				tileset		= index,
 				quad		= quad(qx, qy, tw, th, iw, ih),
 				properties	= properties,
+				animation   = animation,
+				frame       = 1,
+				time        = 0,
 				width		= tileset.tilewidth,
 				height		= tileset.tileheight,
 				sx			= 1,
@@ -369,6 +374,7 @@ function Map:setTileData(layer)
 						offset		= tile.offset,
 						quad		= tile.quad,
 						properties	= tile.properties,
+						animation   = tile.animation,
 						sx			= tile.sx,
 						sy			= tile.sy,
 						r			= tile.r,
@@ -490,6 +496,7 @@ function Map:setSpriteBatches(layer)
 		for x = 1, layer.width do
 			local tile	= layer.data[y][x]
 			local bx	= math.ceil(x / bw)
+			local id
 
 			if tile then
 				local ts = tile.tileset
@@ -524,9 +531,9 @@ function Map:setSpriteBatches(layer)
 					ty = y * th / 2 + tile.offset.y + th / 2
 				end
 
-				batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
+				id = batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
 				self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
-				table.insert(self.tileInstances[tile.gid], { gid=tile.gid, x=tx, y=ty })
+				table.insert(self.tileInstances[tile.gid], { batch=batch, id=id, gid=tile.gid, x=tx, y=ty })
 			end
 		end
 	end
@@ -617,6 +624,30 @@ function Map:removeLayer(index)
 end
 
 function Map:update(dt)
+	for gid, tile in pairs( self.tiles ) do
+		local update
+		local t
+
+		if tile.animation then
+			update = false
+
+			tile.time = tile.time + dt * 1000
+			while tile.time > tonumber(tile.animation[tile.frame].duration) do
+				tile.time = tile.time - tonumber(tile.animation[tile.frame].duration)
+				tile.frame = tile.frame + 1
+				if tile.frame > #tile.animation then tile.frame = 1 end
+				update = true
+			end
+			if update == true then
+				for _, j in pairs(self.tileInstances[gid]) do
+					t = self.tiles[tile.animation[tile.frame].tileid + self.tilesets[tile.tileset].firstgid]
+					j.batch:set( j.id, t.quad, j.x, j.y, 0 )
+				end
+			end
+		end
+	end
+
+
 	for _, layer in ipairs(self.layers) do
 		layer:update(dt)
 	end
