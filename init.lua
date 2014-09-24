@@ -27,18 +27,18 @@ THE SOFTWARE.
 
 local STI = {}
 
-STI.version = "0.8.3"
+STI.version = "0.9.0"
 
-local path = ...
-local Map = require(path .. ".map")
+local path = ... .. "." -- lol
+local Map = require(path .. "map")
 local framework
 
 if love then
-	framework = require(path .. ".framework.love")
+	framework = require(path .. "framework.love")
 elseif corona then -- I don't think this works
-	framework = require(path .. ".framework.corona")
+	framework = require(path .. "framework.corona")
 else
-	framework = require(path .. ".framework.pure")
+	framework = require(path .. "framework.pure")
 end
 
 function STI.new(map)

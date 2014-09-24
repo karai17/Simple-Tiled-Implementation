@@ -2,6 +2,13 @@
 Simple Tiled Implementation Change Log
 ======================================
 -------------------
+2014-09-24 : v0.9.0
+-------------------
+* Added:	Animated tiles! (Thanks to Clean3d)
+* Fixed:	A crash when a collidable rectangle has no rotation value
+* Fixed:	Incorrect values given to orthogonal collision objects
+
+-------------------
 2014-09-24 : v0.8.3
 -------------------
 * Added:	Map:convertScreenToTile() and Map:convertTileToScreen()

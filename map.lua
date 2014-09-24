@@ -83,7 +83,7 @@ function Map:initWorldCollision(world)
 		local t		= tile or { x=0, y=0 }
 
 		if o.shape == "rectangle" then
-			o.r = object.rotation
+			o.r = object.rotation or 0
 			local cos = math.cos(math.rad(o.r))
 			local sin = math.sin(math.rad(o.r))
 
@@ -113,10 +113,10 @@ function Map:initWorldCollision(world)
 			end
 
 			o.polygon = {
-				{ x=t.x + o.x,			y=t.y + o.y },
-				{ x=t.x + o.x + o.w,	y=t.y + o.y },
-				{ x=t.x + o.x + o.w,	y=t.y + o.y + o.h },
-				{ x=t.x + o.x,			y=t.y + o.y + o.h },
+				{ x=o.x,		y=o.y },
+				{ x=o.x + o.w,	y=o.y },
+				{ x=o.x + o.w,	y=o.y + o.h },
+				{ x=o.x,		y=o.y + o.h },
 			}
 
 			for _, vertex in ipairs(o.polygon) do
