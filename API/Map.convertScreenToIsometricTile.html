@@ -58,27 +58,18 @@
                     <div class="content-page">
                         <article>
                                                             <div class="page-header sub-header clearfix">
-                                    <h1>Map.convertIsometricToScreen                                                                            </h1>
+                                    <h1>Map.convertScreenToIsometricTile                                                                            </h1>
                                         <span style="float: left; font-size: 10px; color: gray;">
                                             Wednesday, September 24, 2014                                        </span>
                                         <span style="float: right; font-size: 10px; color: gray;">
-                                            6:31 AM                                        </span>
+                                            6:36 AM                                        </span>
                                 </div>
-                                                        <p>Convert an isometric projection coordinate to a screen coordinate. This function can be used to reverse the output of Map.convertScreenToIsometric().</p>
+                                                        <p>Convert an pixel on screen to an isometric tile coordinate. This function can be used to reverse the output of Map.convertIsometricTileToScreen().</p>
 <h2>Arguments</h2>
 <h3>self</h3>
 <ul>
 <li>Map object</li>
 </ul>
-<h3>x</h3>
-<ul>
-<li>The x point of an isometric vertex</li>
-</ul>
-<h3>y</h3>
-<ul>
-<li>The y point of an isometric vertex</li>
-</ul>
-<h2>Returns</h2>
 <h3>x</h3>
 <ul>
 <li>The x point of a screen vertex</li>
@@ -87,19 +78,31 @@
 <ul>
 <li>The y point of a screen vertex</li>
 </ul>
+<h2>Returns</h2>
+<h3>x</h3>
+<ul>
+<li>The x point of a tile vertex</li>
+</ul>
+<h3>y</h3>
+<ul>
+<li>The y point of a tile vertex</li>
+</ul>
 <pre><code class="language-lua">local sti = require("sti")
 
 function love.load()
     map = sti.new("assets/maps/map01")
 
-    local isometric = {
-        x = 50,
-        y = 75
+    local screen = {
+        x = 450,
+        y = 337
     }
 
-    local screen = {}
+    local tile, int_tile = {}, {}
 
-    screen.x, screen.y = map:convertIsometricToScreen(isometric.x, isometric.y)
+    tile.x, tile.y = map:convertScreenToIsometricTile(screen.x, screen.y)
+
+    int_tile.x = math.ceil(tile.x)
+    int_tile.y = math.ceil(tile.y)
 end</code></pre>                                                    </article>
                     </div>
                 </div>
