@@ -406,6 +406,7 @@ function Map:setLayer(layer, path)
 		layer.draw = function() self:drawTileLayer(layer) end
 	elseif layer.type == "objectgroup" then
 		self:setObjectCoordinates(layer)
+		self:setSpriteBatchesForObjectLayer(layer)
 		layer.draw = function() self:drawObjectLayer(layer) end
 	elseif layer.type == "imagelayer" then
 		layer.draw = function() self:drawImageLayer(layer) end
@@ -633,6 +634,40 @@ function Map:setSpriteBatches(layer)
 	layer.batches = batches
 end
 
+function Map:setSpriteBatchesForObjectLayer(layer)
+	if type(layer) == "string" or type(layer) == "number" then
+		layer = self.layers[layer]
+	end
+	assert(layer.type == "objectgroup", "Invalid layer type: " .. layer.type .. ". Layer must be of type: objectgroup")
+	
+	local batches = {}
+	local iobjects = {} -- count of objects that will be in one batch
+	for _, object in ipairs(layer.objects) do
+		if object.gid then
+			local tile = self.tiles[object.gid]
+			local ts = tile.tileset
+			local image = self.tilesets[ts].image
+			
+			-- count per tileset
+			iobjects[ts] = iobjects[ts] or 0
+			iobjects[ts] = iobjects[ts] + 1
+			
+			-- it the count get over 1000 create a new batch
+			local bi = math.ceil(iobjects[ts] / 1000)
+			
+			-- lookup if the batch exits or create a new one
+			batches[ts] = batches[tile.tileset] or {}
+			batches[ts][bi] = batches[ts][bi] or framework.newSpriteBatch(image, 1000)
+			
+			-- add the quad
+			local batch = batches[ts][bi]
+			batch:add(tile.quad, object.x, object.y - tile.height) -- the position is bottom left and need to be upper left
+		end
+	end
+	layer.batches = batches
+end
+
+
 function Map:setDrawRange(tx, ty, w, h)
 	tx = -tx
 	ty = -ty
@@ -856,7 +891,9 @@ function Map:drawObjectLayer(layer)
 	end
 
 	for _, object in ipairs(layer.objects) do
-		if object.shape == "rectangle" then
+		if object.gid then
+				-- do nothing
+		elseif object.shape == "rectangle" then
 			drawShape(object.rectangle, "rectangle")
 		elseif object.shape == "ellipse" then
 			drawShape(object.ellipse, "ellipse")
@@ -866,6 +903,14 @@ function Map:drawObjectLayer(layer)
 			drawShape(object.polyline, "polyline")
 		end
 	end
+	
+	-- draw the batches with the objects that are tile based
+ 	-- layer.batches[tileset][batchindex] = batch
+	for _, batches in ipairs(layer.batches) do
+	 	for _, batch in ipairs(batches) do
+			framework.draw(batch, layer.x, layer.y)
+	 	end
+ 	end
 end
 
 function Map:drawImageLayer(layer)
