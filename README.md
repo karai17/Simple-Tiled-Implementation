@@ -3,7 +3,6 @@
 Simple Tiled Implementation is a [**Tiled Map Editor**][Tiled] library designed for the *awesome* [**LÖVE**][LOVE] framework. Please read the library [**documentation**][dox] to learn how it all works!
 
 
-
 ## Quick Example
 
 ```lua     

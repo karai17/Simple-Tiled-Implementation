@@ -1,6 +1,98 @@
 local Map = {}
 local framework
 
+-- https://github.com/stevedonovan/Penlight/blob/master/lua/pl/path.lua#L286
+local function formatPath(path)
+	local np_gen1,np_gen2	= '[^SEP]+SEP%.%.SEP?','SEP+%.?SEP'
+	local np_pat1, np_pat2	= np_gen1:gsub('SEP','/'), np_gen2:gsub('SEP','/')
+	local k
+
+	repeat -- /./ -> /
+		path,k = path:gsub(np_pat2,'/')
+	until k == 0
+
+	repeat -- A/../ -> (empty)
+		path,k = path:gsub(np_pat1,'')
+	until k == 0
+
+	if path == '' then path = '.' end
+
+	return path
+end
+
+local function rotateVertex(v, x, y, cos, sin)
+	local vertex = {
+		x = v.x,
+		y = v.y,
+	}
+
+	vertex.x = vertex.x - x
+	vertex.y = vertex.y - y
+
+	local vx = cos * vertex.x - sin * vertex.y
+	local vy = sin * vertex.x + cos * vertex.y
+
+	return vx + x, vy + y
+end
+
+local function convertEllipseToPolygon(x, y, w, h, max_segments)
+	local function calc_segments(segments)
+		local function vdist(a, b)
+			local c = {
+				x = a.x - b.x,
+				y = a.y - b.y,
+			}
+			
+			return c.x * c.x + c.y * c.y
+		end
+
+		segments = segments or 64
+		local vertices = {}
+
+		local v = { 1, 2, math.ceil(segments/4-1), math.ceil(segments/4) }
+
+		local m
+		if framework.getMeter then
+			m = framework.getMeter()
+		else
+			m = self.tilewidth + self.tileheight / 2
+		end
+
+		for _, i in ipairs(v) do
+			local angle = (i / segments) * math.pi * 2
+			local px = x + w / 2 + math.cos(angle) * w / 2
+			local py = y + h / 2 + math.sin(angle) * h / 2
+			
+			table.insert(vertices, { x = px / m, y = py / m })
+		end
+
+		local dist1 = vdist(vertices[1], vertices[2])
+		local dist2 = vdist(vertices[3], vertices[4])
+
+		-- Box2D hard-coded threshold
+		if dist1 < 0.0025 or dist2 < 0.0025 then
+			return calc_segments(segments-2)
+		end
+
+		return segments
+	end
+
+	local segments = calc_segments(max_segments)
+	local vertices = {}
+
+	table.insert(vertices, { x = x + w / 2, y = y + h / 2 })
+
+	for i=0, segments do
+		local angle = (i / segments) * math.pi * 2
+		local px = x + w / 2 + math.cos(angle) * w / 2
+		local py = y + h / 2 + math.sin(angle) * h / 2
+		
+		table.insert(vertices, { x = px, y = py })
+	end
+
+	return vertices
+end
+
 function Map:init(path, fw)
 	framework = fw
 
@@ -17,7 +109,7 @@ function Map:init(path, fw)
 	-- Set tiles, images
 	local gid = 1
 	for i, tileset in ipairs(self.tilesets) do
-		local image = self.formatPath(path .. tileset.image)
+		local image = formatPath(path .. tileset.image)
 		tileset.image = framework.newImage(image)
 		gid = self:setTiles(i, tileset, gid)
 	end
@@ -124,14 +216,14 @@ function Map:initWorldCollision(world)
 					vertex.x, vertex.y = self:convertIsometricToScreen(vertex.x, vertex.y)
 				end
 
-				vertex.x, vertex.y = self:rotateVertex(vertex, o.x, o.y, cos, sin)
+				vertex.x, vertex.y = rotateVertex(vertex, o.x, o.y, cos, sin)
 			end
 
 			local vertices = getPolygonVertices(o, t, true)
 			addObjectToWorld(o.shape, vertices)
 		elseif o.shape == "ellipse" then
 			if not o.polygon then
-				o.polygon = self:convertEllipseToPolygon(o.x, o.y, o.w, o.h)
+				o.polygon = convertEllipseToPolygon(o.x, o.y, o.w, o.h)
 			end
 			local vertices	= getPolygonVertices(o, t, true)
 			local triangles	= framework.triangulate(vertices)
@@ -319,7 +411,7 @@ function Map:setLayer(layer, path)
 		layer.draw = function() self:drawImageLayer(layer) end
 
 		if layer.image ~= "" then
-			local image = self.formatPath(path..layer.image)
+			local image = formatPath(path..layer.image)
 			layer.image = framework.newImage(image)
 			layer.width = layer.image:getWidth()
 			layer.height = layer.image:getHeight()
@@ -419,7 +511,7 @@ function Map:setObjectCoordinates(layer)
 			vertex.x, vertex.y = self:convertIsometricToScreen(vertex.x, vertex.y)
 		end
 
-		return self:rotateVertex(vertex, x, y, cos, sin)
+		return rotateVertex(vertex, x, y, cos, sin)
 	end
 
 	for _, object in ipairs(layer.objects) do
@@ -448,7 +540,7 @@ function Map:setObjectCoordinates(layer)
 		elseif object.shape == "ellipse" then
 			object.ellipse = {}
 
-			local vertices = self:convertEllipseToPolygon(x, y, w, h)
+			local vertices = convertEllipseToPolygon(x, y, w, h)
 
 			for _, vertex in ipairs(vertices) do
 				vertex.x, vertex.y = updateVertex(vertex, x, y, cos, sin)
@@ -927,98 +1019,6 @@ function Map:convertScreenToStaggeredTile(x, y)
 	end
 
 	return tx, ty
-end
-
-function Map:rotateVertex(v, x, y, cos, sin)
-	local vertex = {
-		x = v.x,
-		y = v.y,
-	}
-
-	vertex.x = vertex.x - x
-	vertex.y = vertex.y - y
-
-	local vx = cos * vertex.x - sin * vertex.y
-	local vy = sin * vertex.x + cos * vertex.y
-
-	return vx + x, vy + y
-end
-
-function Map:convertEllipseToPolygon(x, y, w, h)
-	local function calc_segments(segments)
-		local function vdist(a, b)
-			local c = {
-				x = a.x - b.x,
-				y = a.y - b.y,
-			}
-			
-			return c.x * c.x + c.y * c.y
-		end
-
-		segments = segments or 64
-		local vertices = {}
-
-		local v = { 1, 2, math.ceil(segments/4-1), math.ceil(segments/4) }
-
-		local m
-		if framework.getMeter then
-			m = framework.getMeter()
-		else
-			m = self.tilewidth + self.tileheight / 2
-		end
-
-		for _, i in ipairs(v) do
-			local angle = (i / segments) * math.pi * 2
-			local px = x + w / 2 + math.cos(angle) * w / 2
-			local py = y + h / 2 + math.sin(angle) * h / 2
-			
-			table.insert(vertices, { x = px / m, y = py / m })
-		end
-
-		local dist1 = vdist(vertices[1], vertices[2])
-		local dist2 = vdist(vertices[3], vertices[4])
-
-		-- Box2D hard-coded threshold
-		if dist1 < 0.0025 or dist2 < 0.0025 then
-			return calc_segments(segments-2)
-		end
-
-		return segments
-	end
-
-	local segments = calc_segments()
-	local vertices = {}
-
-	table.insert(vertices, { x = x + w / 2, y = y + h / 2 })
-
-	for i=0, segments do
-		local angle = (i / segments) * math.pi * 2
-		local px = x + w / 2 + math.cos(angle) * w / 2
-		local py = y + h / 2 + math.sin(angle) * h / 2
-		
-		table.insert(vertices, { x = px, y = py })
-	end
-
-	return vertices
-end
-
--- https://github.com/stevedonovan/Penlight/blob/master/lua/pl/path.lua#L286
-function Map.formatPath(path)
-	local np_gen1,np_gen2	= '[^SEP]+SEP%.%.SEP?','SEP+%.?SEP'
-	local np_pat1, np_pat2	= np_gen1:gsub('SEP','/'), np_gen2:gsub('SEP','/')
-	local k
-
-	repeat -- /./ -> /
-		path,k = path:gsub(np_pat2,'/')
-	until k == 0
-
-	repeat -- A/../ -> (empty)
-		path,k = path:gsub(np_pat1,'')
-	until k == 0
-
-	if path == '' then path = '.' end
-
-	return path
 end
 
 return Map

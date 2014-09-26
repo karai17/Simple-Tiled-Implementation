@@ -2,6 +2,12 @@
 Simple Tiled Implementation Change Log
 ======================================
 -------------------
+2014-09-26 : v0.9.1
+-------------------
+* Fixed:	A crash when a collidable tile is initialized but not used
+* Removed:	Public access to formatPath(), rotateVertex(), and convertEllipseToPolygon()
+
+-------------------
 2014-09-24 : v0.9.0
 -------------------
 * Added:	Animated tiles! (Thanks to Clean3d)
