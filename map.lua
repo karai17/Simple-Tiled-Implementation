@@ -638,7 +638,7 @@ function Map:update(dt)
 				if tile.frame > #tile.animation then tile.frame = 1 end
 				update = true
 			end
-			if update == true then
+			if update == true and self.tileInstances[gid] ~= nil then
 				for _, j in pairs(self.tileInstances[gid]) do
 					t = self.tiles[tile.animation[tile.frame].tileid + self.tilesets[tile.tileset].firstgid]
 					j.batch:set( j.id, t.quad, j.x, j.y, 0 )
