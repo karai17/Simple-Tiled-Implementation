@@ -2,6 +2,12 @@
 Simple Tiled Implementation Change Log
 ======================================
 -------------------
+2014-09-29 : v0.9.2
+-------------------
+* Added:	Support for drawing tiles in object layers
+* Fixed:	Incorrect calculation of some collision objects
+
+-------------------
 2014-09-26 : v0.9.1
 -------------------
 * Fixed:	A crash when a collidable tile is initialized but not used

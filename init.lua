@@ -27,7 +27,7 @@ THE SOFTWARE.
 
 local STI = {}
 
-STI.version = "0.9.1"
+STI.version = "0.9.2"
 
 local path = ... .. "." -- lol
 local Map = require(path .. "map")

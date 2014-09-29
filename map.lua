@@ -184,6 +184,9 @@ function Map:initWorldCollision(world)
 				local lid = object.gid - self.tilesets[tileset].firstgid
 				local tile = {}
 
+				-- This fixes a height issue
+				 o.y = o.y + self.tiles[object.gid].offset.y
+
 				for _, t in ipairs(self.tilesets[tileset].tiles) do
 					if t.id == lid then
 						tile = t
@@ -288,8 +291,8 @@ function Map:initWorldCollision(world)
 					for x, tile in pairs(tiles) do
 						local object = {
 							shape	= "rectangle",
-							x		= (x-1) * tile.width,
-							y		= (y-1) * tile.height,
+							x		= x * self.width + tile.offset.x,
+							y		= y * self.height + tile.offset.y,
 							width	= tile.width,
 							height	= tile.height,
 						}
@@ -406,6 +409,7 @@ function Map:setLayer(layer, path)
 		layer.draw = function() self:drawTileLayer(layer) end
 	elseif layer.type == "objectgroup" then
 		self:setObjectCoordinates(layer)
+		self:setObjectSpriteBatches(layer)
 		layer.draw = function() self:drawObjectLayer(layer) end
 	elseif layer.type == "imagelayer" then
 		layer.draw = function() self:drawImageLayer(layer) end
@@ -436,9 +440,9 @@ function Map:setTileData(layer)
 				if tile then
 					map[y][x] = tile
 				else
-					local bit31	= 2147483648
-					local bit30	= 1073741824
-					local bit29	= 536870912
+					local bit31		= 2147483648
+					local bit30		= 1073741824
+					local bit29		= 536870912
 					local flipX		= false
 					local flipY		= false
 					local flipD		= false
@@ -633,6 +637,40 @@ function Map:setSpriteBatches(layer)
 	layer.batches = batches
 end
 
+function Map:setObjectSpriteBatches(layer)
+	local newBatch	= framework.newSpriteBatch
+	local tw		= self.tilewidth
+	local th		= self.tileheight
+	local batches	= {
+	}
+
+	for _, object in ipairs(layer.objects) do
+		if object.gid then
+			local tile = self.tiles[object.gid]
+			local ts = tile.tileset
+			local image = self.tilesets[tile.tileset].image
+
+			batches[ts] = batches[ts] or newBatch(image, 100)
+
+			local batch = batches[ts]
+			local tx = object.x + tw + tile.offset.x
+			local ty = object.y + tile.offset.y
+
+			-- Compensation for scale/rotation shift
+			if tile.sx	< 0 then tx = tx + tw end
+			if tile.sy	< 0 then ty = ty + th end
+			if tile.r	> 0 then tx = tx + tw end
+			if tile.r	< 0 then ty = ty + th end
+
+			id = batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
+			self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
+			table.insert(self.tileInstances[tile.gid], { batch=batch, id=id, gid=tile.gid, x=tx, y=ty })
+		end
+	end
+
+	layer.batches = batches
+end
+
 function Map:setDrawRange(tx, ty, w, h)
 	tx = -tx
 	ty = -ty
@@ -810,6 +848,7 @@ function Map:drawObjectLayer(layer)
 	local line		= { 160, 160, 160, 255 * layer.opacity }
 	local fill		= { 160, 160, 160, 255 * layer.opacity * 0.2 }
 	local shadow	= { 0, 0, 0, 255 * layer.opacity }
+	local reset		= { 255, 255, 255, 255 * layer.opacity }
 
 	local function sortVertices(obj)
 		local vertices = {{},{}}
@@ -865,6 +904,11 @@ function Map:drawObjectLayer(layer)
 		elseif object.shape == "polyline" then
 			drawShape(object.polyline, "polyline")
 		end
+	end
+
+	framework.setColor(reset)
+	for _, batch in pairs(layer.batches) do
+		framework.draw(batch, 0, 0)
 	end
 end
 
