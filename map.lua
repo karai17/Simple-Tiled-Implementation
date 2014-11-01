@@ -433,6 +433,68 @@ function Map:setLayer(layer, path)
 	self.layers[layer.name] = layer
 end
 
+function Map:setFlippedTile(gid)
+	local bit31		= 2147483648
+	local bit30		= 1073741824
+	local bit29		= 536870912
+	local flipX		= false
+	local flipY		= false
+	local flipD		= false
+	local realgid	= gid
+
+	if realgid >= bit31 then
+		realgid = realgid - bit31
+		flipX = not flipX
+	end
+
+	if realgid >= bit30 then
+		realgid = realgid - bit30
+		flipY = not flipY
+	end
+
+	if realgid >= bit29 then
+		realgid = realgid - bit29
+		flipD = not flipD
+	end
+
+	local tile = self.tiles[realgid]
+	local data = {
+		gid			= tile.gid,
+		tileset		= tile.tileset,
+		offset		= tile.offset,
+		quad		= tile.quad,
+		properties	= tile.properties,
+		animation   = tile.animation,
+		sx			= tile.sx,
+		sy			= tile.sy,
+		r			= tile.r,
+	}
+
+	if flipX then
+		if flipY then
+			data.sx = -1
+			data.sy = -1
+		elseif flipD then
+			data.r = math.rad(90)
+		else
+			data.sx = -1
+		end
+	elseif flipY then
+		if flipD then
+			data.r = math.rad(-90)
+		else
+			data.sy = -1
+		end
+	elseif flipD then
+		data.r = math.rad(90)
+		data.sy = -1
+	end
+
+	self.tiles[gid] = data
+
+	return data
+end
+
 function Map:setTileData(layer)
 	local i = 1
 	local map = {}
@@ -448,64 +510,7 @@ function Map:setTileData(layer)
 				if tile then
 					map[y][x] = tile
 				else
-					local bit31		= 2147483648
-					local bit30		= 1073741824
-					local bit29		= 536870912
-					local flipX		= false
-					local flipY		= false
-					local flipD		= false
-					local realgid	= gid
-
-					if realgid >= bit31 then
-						realgid = realgid - bit31
-						flipX = not flipX
-					end
-
-					if realgid >= bit30 then
-						realgid = realgid - bit30
-						flipY = not flipY
-					end
-
-					if realgid >= bit29 then
-						realgid = realgid - bit29
-						flipD = not flipD
-					end
-
-					local tile = self.tiles[realgid]
-					local data = {
-						gid			= tile.gid,
-						tileset		= tile.tileset,
-						offset		= tile.offset,
-						quad		= tile.quad,
-						properties	= tile.properties,
-						animation   = tile.animation,
-						sx			= tile.sx,
-						sy			= tile.sy,
-						r			= tile.r,
-					}
-
-					if flipX then
-						if flipY then
-							data.sx = -1
-							data.sy = -1
-						elseif flipD then
-							data.r = math.rad(90)
-						else
-							data.sx = -1
-						end
-					elseif flipY then
-						if flipD then
-							data.r = math.rad(-90)
-						else
-							data.sy = -1
-						end
-					elseif flipD then
-						data.r = math.rad(90)
-						data.sy = -1
-					end
-
-					self.tiles[gid] = data
-					map[y][x] = self.tiles[gid]
+					map[y][x] = self:setFlippedTile(gid)
 				end
 			end
 
@@ -654,7 +659,7 @@ function Map:setObjectSpriteBatches(layer)
 
 	for _, object in ipairs(layer.objects) do
 		if object.gid then
-			local tile = self.tiles[object.gid]
+			local tile = self.tiles[object.gid] or self:setFlippedTile(object.gid)
 			local ts = tile.tileset
 			local image = self.tilesets[tile.tileset].image
 
