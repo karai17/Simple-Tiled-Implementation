@@ -128,7 +128,7 @@ function Map:initWorldCollision(world)
 		body = body,
 	}
 
-	local function addObjectToWorld(objshape, vertices)
+	local function addObjectToWorld(objshape, vertices, instance)
 		local shape
 
 		if objshape == "polyline" then
@@ -138,6 +138,14 @@ function Map:initWorldCollision(world)
 		end
 
 		local fixture = framework.newFixture(body, shape)
+
+		local data = {
+			tile = self.tiles[instance.gid],
+			instance = instance
+		}
+
+		fixture:setUserData(data)
+
 		local obj = {
 			shape = shape,
 			fixture = fixture,
@@ -147,9 +155,12 @@ function Map:initWorldCollision(world)
 	end
 
 	local function getPolygonVertices(object, tile, precalc)
-		local ox, oy = 0, 0
+		local ox, oy
 
-		if not precalc then
+		if precalc then
+			ox = -tile.ox
+			oy = -tile.oy
+		else
 			ox = object.x
 			oy = object.y
 		end
@@ -185,7 +196,7 @@ function Map:initWorldCollision(world)
 				local tile = {}
 
 				-- This fixes a height issue
-				 o.y = o.y + self.tiles[object.gid].offset.y
+				o.y = o.y + self.tiles[object.gid].offset.y
 
 				for _, t in ipairs(self.tilesets[tileset].tiles) do
 					if t.id == lid then
@@ -223,7 +234,7 @@ function Map:initWorldCollision(world)
 			end
 
 			local vertices = getPolygonVertices(o, t, true)
-			addObjectToWorld(o.shape, vertices)
+			addObjectToWorld(o.shape, vertices, tile)
 		elseif o.shape == "ellipse" then
 			if not o.polygon then
 				o.polygon = convertEllipseToPolygon(o.x, o.y, o.w, o.h)
@@ -232,24 +243,22 @@ function Map:initWorldCollision(world)
 			local triangles	= framework.triangulate(vertices)
 
 			for _, triangle in ipairs(triangles) do
-				addObjectToWorld(o.shape, triangle)
+				addObjectToWorld(o.shape, triangle, tile)
 			end
 		elseif o.shape == "polygon" then
-			local precalc = false
-			if not t.gid then precalc = true end
+			local precalc = not t.gid
 
 			local vertices	= getPolygonVertices(o, t, precalc)
 			local triangles	= framework.triangulate(vertices)
 
 			for _, triangle in ipairs(triangles) do
-				addObjectToWorld(o.shape, triangle)
+				addObjectToWorld(o.shape, triangle, tile)
 			end
 		elseif o.shape == "polyline" then
-			local precalc = false
-			if not t.gid then precalc = true end
+			local precalc = not t.gid
 
 			local vertices	= getPolygonVertices(o, t, precalc)
-			addObjectToWorld(o.shape, vertices)
+			addObjectToWorld(o.shape, vertices, tile)
 		end
 	end
 
@@ -425,6 +434,71 @@ function Map:setLayer(layer, path)
 	self.layers[layer.name] = layer
 end
 
+function Map:setFlippedTile(gid)
+	local bit31		= 2147483648
+	local bit30		= 1073741824
+	local bit29		= 536870912
+	local flipX		= false
+	local flipY		= false
+	local flipD		= false
+	local realgid	= gid
+
+	if realgid >= bit31 then
+		realgid = realgid - bit31
+		flipX = not flipX
+	end
+
+	if realgid >= bit30 then
+		realgid = realgid - bit30
+		flipY = not flipY
+	end
+
+	if realgid >= bit29 then
+		realgid = realgid - bit29
+		flipD = not flipD
+	end
+
+	local tile = self.tiles[realgid]
+	local data = {
+		gid			= tile.gid,
+		tileset		= tile.tileset,
+		offset		= tile.offset,
+		quad		= tile.quad,
+		properties	= tile.properties,
+		animation   = tile.animation,
+		sx			= tile.sx,
+		sy			= tile.sy,
+		r			= tile.r,
+	}
+
+	if flipX then
+		if flipY and flipD then
+			data.r = math.rad(-90)
+			data.sy = -1
+		elseif flipY then
+			data.sx = -1
+			data.sy = -1
+		elseif flipD then
+			data.r = math.rad(90)
+		else
+			data.sx = -1
+		end
+	elseif flipY then
+		if flipD then
+			data.r = math.rad(-90)
+		else
+			data.sy = -1
+		end
+	elseif flipD then
+		data.r = math.rad(90)
+		data.sy = -1
+	end
+
+	self.tiles[gid] = data
+
+	return data
+end
+
 function Map:setTileData(layer)
 	local i = 1
 	local map = {}
@@ -440,64 +514,7 @@ function Map:setTileData(layer)
 				if tile then
 					map[y][x] = tile
 				else
-					local bit31		= 2147483648
-					local bit30		= 1073741824
-					local bit29		= 536870912
-					local flipX		= false
-					local flipY		= false
-					local flipD		= false
-					local realgid	= gid
-
-					if realgid >= bit31 then
-						realgid = realgid - bit31
-						flipX = not flipX
-					end
-
-					if realgid >= bit30 then
-						realgid = realgid - bit30
-						flipY = not flipY
-					end
-
-					if realgid >= bit29 then
-						realgid = realgid - bit29
-						flipD = not flipD
-					end
-
-					local tile = self.tiles[realgid]
-					local data = {
-						gid			= tile.gid,
-						tileset		= tile.tileset,
-						offset		= tile.offset,
-						quad		= tile.quad,
-						properties	= tile.properties,
-						animation   = tile.animation,
-						sx			= tile.sx,
-						sy			= tile.sy,
-						r			= tile.r,
-					}
-
-					if flipX then
-						if flipY then
-							data.sx = -1
-							data.sy = -1
-						elseif flipD then
-							data.r = math.rad(90)
-						else
-							data.sx = -1
-						end
-					elseif flipY then
-						if flipD then
-							data.r = math.rad(-90)
-						else
-							data.sy = -1
-						end
-					elseif flipD then
-						data.r = math.rad(90)
-						data.sy = -1
-					end
-
-					self.tiles[gid] = data
-					map[y][x] = self.tiles[gid]
+					map[y][x] = self:setFlippedTile(gid)
 				end
 			end
 
@@ -604,16 +621,13 @@ function Map:setSpriteBatches(layer)
 
 				local batch = batches.data[ts][by][bx]
 				local tx, ty
+				local ox, oy = 0, 0
 
 				if self.orientation == "orthogonal" then
-					tx = x * tw + tile.offset.x
-					ty = y * th + tile.offset.y
-
-					-- Compensation for scale/rotation shift
-					if tile.sx	< 0 then tx = tx + tw end
-					if tile.sy	< 0 then ty = ty + th end
-					if tile.r	> 0 then tx = tx + tw end
-					if tile.r	< 0 then ty = ty + th end
+					ox = tw / 2
+					oy = th / 2
+					tx = x * tw + tile.offset.x + ox
+					ty = y * th + tile.offset.y + oy
 				elseif self.orientation == "isometric" then
 					tx = (x - y) * (tw / 2) + tile.offset.x + layer.width * tw / 2
 					ty = (x + y) * (th / 2) + tile.offset.y
@@ -627,9 +641,9 @@ function Map:setSpriteBatches(layer)
 					ty = y * th / 2 + tile.offset.y + th / 2
 				end
 
-				id = batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
+				id = batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy, ox, oy)
 				self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
-				table.insert(self.tileInstances[tile.gid], { batch=batch, id=id, gid=tile.gid, x=tx, y=ty })
+				table.insert(self.tileInstances[tile.gid], { batch=batch, id=id, gid=tile.gid, x=tx, y=ty, ox=ox, oy=oy })
 			end
 		end
 	end
@@ -646,25 +660,22 @@ function Map:setObjectSpriteBatches(layer)
 
 	for _, object in ipairs(layer.objects) do
 		if object.gid then
-			local tile = self.tiles[object.gid]
+			local tile = self.tiles[object.gid] or self:setFlippedTile(object.gid)
 			local ts = tile.tileset
 			local image = self.tilesets[tile.tileset].image
 
 			batches[ts] = batches[ts] or newBatch(image, 100)
 
 			local batch = batches[ts]
-			local tx = object.x + tw + tile.offset.x
-			local ty = object.y + tile.offset.y
 
-			-- Compensation for scale/rotation shift
-			if tile.sx	< 0 then tx = tx + tw end
-			if tile.sy	< 0 then ty = ty + th end
-			if tile.r	> 0 then tx = tx + tw end
-			if tile.r	< 0 then ty = ty + th end
+			local ox = tw / 2
+			local oy = th / 2
+			local tx = object.x + tw + tile.offset.x + ox
+			local ty = object.y + tile.offset.y + oy
 
-			id = batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
+			id = batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy, ox, oy)
 			self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
-			table.insert(self.tileInstances[tile.gid], { batch=batch, id=id, gid=tile.gid, x=tx, y=ty })
+			table.insert(self.tileInstances[tile.gid], { batch=batch, id=id, gid=tile.gid, x=tx, y=ty, ox=ox, oy=oy })
 		end
 	end
 
