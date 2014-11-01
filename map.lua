@@ -155,9 +155,12 @@ function Map:initWorldCollision(world)
 	end
 
 	local function getPolygonVertices(object, tile, precalc)
-		local ox, oy = 0, 0
+		local ox, oy
 
-		if not precalc then
+		if precalc then
+			ox = -tile.ox
+			oy = -tile.oy
+		else
 			ox = object.x
 			oy = object.y
 		end
@@ -193,7 +196,7 @@ function Map:initWorldCollision(world)
 				local tile = {}
 
 				-- This fixes a height issue
-				 o.y = o.y + self.tiles[object.gid].offset.y
+				o.y = o.y + self.tiles[object.gid].offset.y
 
 				for _, t in ipairs(self.tilesets[tileset].tiles) do
 					if t.id == lid then
@@ -243,8 +246,7 @@ function Map:initWorldCollision(world)
 				addObjectToWorld(o.shape, triangle, tile)
 			end
 		elseif o.shape == "polygon" then
-			local precalc = false
-			if not t.gid then precalc = true end
+			local precalc = not t.gid
 
 			local vertices	= getPolygonVertices(o, t, precalc)
 			local triangles	= framework.triangulate(vertices)
@@ -253,8 +255,7 @@ function Map:initWorldCollision(world)
 				addObjectToWorld(o.shape, triangle, tile)
 			end
 		elseif o.shape == "polyline" then
-			local precalc = false
-			if not t.gid then precalc = true end
+			local precalc = not t.gid
 
 			local vertices	= getPolygonVertices(o, t, precalc)
 			addObjectToWorld(o.shape, vertices, tile)
@@ -471,7 +472,10 @@ function Map:setFlippedTile(gid)
 	}
 
 	if flipX then
-		if flipY then
+		if flipY and flipD then
+			data.r = math.rad(-90)
+			data.sy = -1
+		elseif flipY then
 			data.sx = -1
 			data.sy = -1
 		elseif flipD then
@@ -617,16 +621,13 @@ function Map:setSpriteBatches(layer)
 
 				local batch = batches.data[ts][by][bx]
 				local tx, ty
+				local ox, oy = 0, 0
 
 				if self.orientation == "orthogonal" then
-					tx = x * tw + tile.offset.x
-					ty = y * th + tile.offset.y
-
-					-- Compensation for scale/rotation shift
-					if tile.sx	< 0 then tx = tx + tw end
-					if tile.sy	< 0 then ty = ty + th end
-					if tile.r	> 0 then tx = tx + tw end
-					if tile.r	< 0 then ty = ty + th end
+					ox = tw / 2
+					oy = th / 2
+					tx = x * tw + tile.offset.x + ox
+					ty = y * th + tile.offset.y + oy
 				elseif self.orientation == "isometric" then
 					tx = (x - y) * (tw / 2) + tile.offset.x + layer.width * tw / 2
 					ty = (x + y) * (th / 2) + tile.offset.y
@@ -640,9 +641,9 @@ function Map:setSpriteBatches(layer)
 					ty = y * th / 2 + tile.offset.y + th / 2
 				end
 
-				id = batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
+				id = batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy, ox, oy)
 				self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
-				table.insert(self.tileInstances[tile.gid], { batch=batch, id=id, gid=tile.gid, x=tx, y=ty })
+				table.insert(self.tileInstances[tile.gid], { batch=batch, id=id, gid=tile.gid, x=tx, y=ty, ox=ox, oy=oy })
 			end
 		end
 	end
@@ -666,18 +667,15 @@ function Map:setObjectSpriteBatches(layer)
 			batches[ts] = batches[ts] or newBatch(image, 100)
 
 			local batch = batches[ts]
-			local tx = object.x + tw + tile.offset.x
-			local ty = object.y + tile.offset.y
 
-			-- Compensation for scale/rotation shift
-			if tile.sx	< 0 then tx = tx + tw end
-			if tile.sy	< 0 then ty = ty + th end
-			if tile.r	> 0 then tx = tx + tw end
-			if tile.r	< 0 then ty = ty + th end
+			local ox = tw / 2
+			local oy = th / 2
+			local tx = object.x + tw + tile.offset.x + ox
+			local ty = object.y + tile.offset.y + oy
 
-			id = batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
+			id = batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy, ox, oy)
 			self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
-			table.insert(self.tileInstances[tile.gid], { batch=batch, id=id, gid=tile.gid, x=tx, y=ty })
+			table.insert(self.tileInstances[tile.gid], { batch=batch, id=id, gid=tile.gid, x=tx, y=ty, ox=ox, oy=oy })
 		end
 	end
 
