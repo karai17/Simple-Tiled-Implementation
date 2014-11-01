@@ -128,7 +128,7 @@ function Map:initWorldCollision(world)
 		body = body,
 	}
 
-	local function addObjectToWorld(objshape, vertices)
+	local function addObjectToWorld(objshape, vertices, instance)
 		local shape
 
 		if objshape == "polyline" then
@@ -138,6 +138,14 @@ function Map:initWorldCollision(world)
 		end
 
 		local fixture = framework.newFixture(body, shape)
+
+		local data = {
+			tile = self.tiles[instance.gid],
+			instance = instance
+		}
+
+		fixture:setUserData(data)
+
 		local obj = {
 			shape = shape,
 			fixture = fixture,
@@ -223,7 +231,7 @@ function Map:initWorldCollision(world)
 			end
 
 			local vertices = getPolygonVertices(o, t, true)
-			addObjectToWorld(o.shape, vertices)
+			addObjectToWorld(o.shape, vertices, tile)
 		elseif o.shape == "ellipse" then
 			if not o.polygon then
 				o.polygon = convertEllipseToPolygon(o.x, o.y, o.w, o.h)
@@ -232,7 +240,7 @@ function Map:initWorldCollision(world)
 			local triangles	= framework.triangulate(vertices)
 
 			for _, triangle in ipairs(triangles) do
-				addObjectToWorld(o.shape, triangle)
+				addObjectToWorld(o.shape, triangle, tile)
 			end
 		elseif o.shape == "polygon" then
 			local precalc = false
@@ -242,14 +250,14 @@ function Map:initWorldCollision(world)
 			local triangles	= framework.triangulate(vertices)
 
 			for _, triangle in ipairs(triangles) do
-				addObjectToWorld(o.shape, triangle)
+				addObjectToWorld(o.shape, triangle, tile)
 			end
 		elseif o.shape == "polyline" then
 			local precalc = false
 			if not t.gid then precalc = true end
 
 			local vertices	= getPolygonVertices(o, t, precalc)
-			addObjectToWorld(o.shape, vertices)
+			addObjectToWorld(o.shape, vertices, tile)
 		end
 	end
 
