@@ -42,7 +42,7 @@ local function convertEllipseToPolygon(x, y, w, h, max_segments)
 				x = a.x - b.x,
 				y = a.y - b.y,
 			}
-			
+
 			return c.x * c.x + c.y * c.y
 		end
 
@@ -62,7 +62,7 @@ local function convertEllipseToPolygon(x, y, w, h, max_segments)
 			local angle = (i / segments) * math.pi * 2
 			local px = x + w / 2 + math.cos(angle) * w / 2
 			local py = y + h / 2 + math.sin(angle) * h / 2
-			
+
 			table.insert(vertices, { x = px / m, y = py / m })
 		end
 
@@ -86,7 +86,7 @@ local function convertEllipseToPolygon(x, y, w, h, max_segments)
 		local angle = (i / segments) * math.pi * 2
 		local px = x + w / 2 + math.cos(angle) * w / 2
 		local py = y + h / 2 + math.sin(angle) * h / 2
-		
+
 		table.insert(vertices, { x = px, y = py })
 	end
 
@@ -927,7 +927,7 @@ function Map:drawImageLayer(layer)
 	end
 
 	assert(layer.type == "imagelayer", "Invalid layer type: " .. layer.type .. ". Layer must be of type: imagelayer")
-	
+
 	if layer.image ~= "" then
 		framework.draw(layer.image, layer.x, layer.y)
 	end
@@ -967,10 +967,10 @@ function Map:convertScreenToIsometric(x, y)
 end
 
 function Map:convertTileToScreen(x, y)
-	local tw, th = self.tilewidth, self.tileheight 
+	local tw, th = self.tilewidth, self.tileheight
 
-	local sx = x / tw
-	local sy = y / th
+	local sx = x * tw
+	local sy = y * th
 
 	return sx, sy
 end
@@ -978,8 +978,8 @@ end
 function Map:convertScreenToTile(x, y)
 	local tw, th = self.tilewidth, self.tileheight
 
-	local tx = x * tw
-	local ty = y * th
+	local tx = x / tw
+	local ty = y / th
 
 	return tx, ty
 end
@@ -990,7 +990,7 @@ function Map:convertIsometricTileToScreen(x, y)
 	local ox = mw * tw / 2
 
 	local sx = (x - y) * tw / 2 + ox
-	local sy = (x + y) * th / 2 
+	local sy = (x + y) * th / 2
 
 	return sx, sy
 end
