@@ -42,7 +42,7 @@ local function convertEllipseToPolygon(x, y, w, h, max_segments)
 				x = a.x - b.x,
 				y = a.y - b.y,
 			}
-			
+
 			return c.x * c.x + c.y * c.y
 		end
 
@@ -62,7 +62,7 @@ local function convertEllipseToPolygon(x, y, w, h, max_segments)
 			local angle = (i / segments) * math.pi * 2
 			local px = x + w / 2 + math.cos(angle) * w / 2
 			local py = y + h / 2 + math.sin(angle) * h / 2
-			
+
 			table.insert(vertices, { x = px / m, y = py / m })
 		end
 
@@ -86,7 +86,7 @@ local function convertEllipseToPolygon(x, y, w, h, max_segments)
 		local angle = (i / segments) * math.pi * 2
 		local px = x + w / 2 + math.cos(angle) * w / 2
 		local py = y + h / 2 + math.sin(angle) * h / 2
-		
+
 		table.insert(vertices, { x = px, y = py })
 	end
 
@@ -355,23 +355,33 @@ function Map:setTiles(index, tileset, gid)
 
 	for y = 1, h do
 		for x = 1, w do
+			local id = gid - tileset.firstgid
 			local qx = (x - 1) * tw + m + (x - 1) * s
 			local qy = (y - 1) * th + m + (y - 1) * s
 			local properties
+			local terrain
 			local animation
 
 			for _, tile in pairs(tileset.tiles) do
-				if tile.id == gid - tileset.firstgid then
+				if tile.id == id then
 					properties = tile.properties
 					animation = tile.animation
+					if tile.terrain then
+						terrain = {}
+						for i=1,#tile.terrain do
+							terrain[i] = tileset.terrains[tile.terrain[i] + 1]
+						end
+					end
 				end
 			end
 
 			local tile = {
+				id 			= id,
 				gid			= gid,
 				tileset		= index,
 				quad		= quad(qx, qy, tw, th, iw, ih),
 				properties	= properties,
+				terrain     = terrain,
 				animation   = animation,
 				frame       = 1,
 				time        = 0,
@@ -470,6 +480,7 @@ function Map:setTileData(layer)
 						offset		= tile.offset,
 						quad		= tile.quad,
 						properties	= tile.properties,
+						terrain     = tile.terrain,
 						animation   = tile.animation,
 						sx			= tile.sx,
 						sy			= tile.sy,
@@ -918,7 +929,7 @@ function Map:drawImageLayer(layer)
 	end
 
 	assert(layer.type == "imagelayer", "Invalid layer type: " .. layer.type .. ". Layer must be of type: imagelayer")
-	
+
 	if layer.image ~= "" then
 		framework.draw(layer.image, layer.x, layer.y)
 	end
@@ -958,10 +969,10 @@ function Map:convertScreenToIsometric(x, y)
 end
 
 function Map:convertTileToScreen(x, y)
-	local tw, th = self.tilewidth, self.tileheight 
+	local tw, th = self.tilewidth, self.tileheight
 
-	local sx = x / tw
-	local sy = y / th
+	local sx = x * tw
+	local sy = y * th
 
 	return sx, sy
 end
@@ -969,8 +980,8 @@ end
 function Map:convertScreenToTile(x, y)
 	local tw, th = self.tilewidth, self.tileheight
 
-	local tx = x * tw
-	local ty = y * th
+	local tx = x / tw
+	local ty = y / th
 
 	return tx, ty
 end
@@ -981,7 +992,7 @@ function Map:convertIsometricTileToScreen(x, y)
 	local ox = mw * tw / 2
 
 	local sx = (x - y) * tw / 2 + ox
-	local sy = (x + y) * th / 2 
+	local sy = (x + y) * th / 2
 
 	return sx, sy
 end
