@@ -358,12 +358,19 @@ function Map:setTiles(index, tileset, gid)
 			local qx = (x - 1) * tw + m + (x - 1) * s
 			local qy = (y - 1) * th + m + (y - 1) * s
 			local properties
+			local terrain
 			local animation
 
 			for _, tile in pairs(tileset.tiles) do
 				if tile.id == gid - tileset.firstgid then
 					properties = tile.properties
 					animation = tile.animation
+					if tile.terrain then
+						terrain = {}
+						for i=1,#tile.terrain do
+							terrain[i] = tileset.terrains[tile.terrain[i] + 1]
+						end
+					end
 				end
 			end
 
@@ -372,6 +379,7 @@ function Map:setTiles(index, tileset, gid)
 				tileset		= index,
 				quad		= quad(qx, qy, tw, th, iw, ih),
 				properties	= properties,
+				terrain     = terrain,
 				animation   = animation,
 				frame       = 1,
 				time        = 0,
@@ -470,6 +478,7 @@ function Map:setTileData(layer)
 						offset		= tile.offset,
 						quad		= tile.quad,
 						properties	= tile.properties,
+						terrain     = tile.terrain,
 						animation   = tile.animation,
 						sx			= tile.sx,
 						sy			= tile.sy,
