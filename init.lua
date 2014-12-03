@@ -25,9 +25,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ]]--
 
-local STI = {}
-
-STI.version = "0.9.2"
+local STI = {
+	_LICENSE = "STI is distributed under the terms of the MIT license. See LICENSE.md.",
+	_URL = "https://github.com/karai17/Simple-Tiled-Implementation",
+	_VERSION = "0.9.3",
+	_DESCRIPTION = "Simple Tiled Implementation is a Tiled Map Editor library designed for the *awesome* LÖVE framework."
+}
 
 local path = ... .. "." -- lol
 local Map = require(path .. "map")

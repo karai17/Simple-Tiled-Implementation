@@ -475,6 +475,7 @@ function Map:setTileData(layer)
 
 					local tile = self.tiles[realgid]
 					local data = {
+						id			= tile.id,
 						gid			= tile.gid,
 						tileset		= tile.tileset,
 						offset		= tile.offset,
@@ -510,6 +511,8 @@ function Map:setTileData(layer)
 					self.tiles[gid] = data
 					map[y][x] = self.tiles[gid]
 				end
+			else
+				map[y][x] = false
 			end
 
 			i = i + 1

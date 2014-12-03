@@ -2,6 +2,15 @@
 Simple Tiled Implementation Change Log
 ======================================
 -------------------
+2014-12-03 : v0.9.3
+-------------------
+* Added:	Local Tile IDs to Tile objects
+* Added:	Terrain information
+* Fixed:	Some conversion functions
+* Changed:	Tile Layers now contain "false" instead of "nil" where there is no tile
+* Changed:	Added _LICENSE, _URL, _VERSION, and _DESCRIPTION properties to core STI object
+
+-------------------
 2014-09-29 : v0.9.2
 -------------------
 * Added:	Support for drawing tiles in object layers
