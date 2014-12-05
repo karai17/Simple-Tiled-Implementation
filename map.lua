@@ -730,6 +730,8 @@ function Map:addCustomLayer(name, index)
 
 	table.insert(self.layers, index, layer)
 	self.layers[name] = self.layers[index]
+
+	return layer
 end
 
 function Map:convertToCustomLayer(index)
@@ -798,8 +800,9 @@ function Map:update(dt)
 end
 
 function Map:draw(sx, sy)
+	local current_canvas = framework.getCanvas()
 	framework.setCanvas(self.canvas)
-	framework.clear(self.canvas)
+	self.canvas:clear()
 
 	for _, layer in ipairs(self.layers) do
 		if layer.visible and layer.opacity > 0 then
@@ -807,7 +810,7 @@ function Map:draw(sx, sy)
 		end
 	end
 
-	framework.setCanvas()
+	framework.setCanvas(current_canvas)
 
 	framework.push()
 	framework.origin()

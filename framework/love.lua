@@ -31,8 +31,8 @@ function framework:newCanvas(w, h)
 end
 
 -- Graphics Calls
-framework.clear				= lg.clear
 framework.draw				= lg.draw
+framework.getCanvas			= lg.getCanvas
 framework.getHeight			= lg.getHeight
 framework.getWidth			= lg.getWidth
 framework.line				= lg.line

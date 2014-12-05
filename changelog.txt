@@ -2,6 +2,12 @@
 Simple Tiled Implementation Change Log
 ======================================
 -------------------
+2014-12-05 : v0.9.4
+-------------------
+* Changed:	STI's canvas plays nicely with other libraries
+* Changed:	addCustomLayer() now returns a handle on the created layer
+
+-------------------
 2014-12-03 : v0.9.3
 -------------------
 * Added:	Local Tile IDs to Tile objects
