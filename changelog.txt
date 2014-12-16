@@ -2,6 +2,12 @@
 Simple Tiled Implementation Change Log
 ======================================
 -------------------
+2014-12-15 : v0.9.5
+-------------------
+* Fixed:	A bug where tile collision objects were using the wrong size in some cases
+* Fixed:	A bug where flipped tiles weren't always creating collision objects
+
+-------------------
 2014-12-05 : v0.9.4
 -------------------
 * Changed:	STI's canvas plays nicely with other libraries

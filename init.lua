@@ -28,7 +28,7 @@ THE SOFTWARE.
 local STI = {
 	_LICENSE = "STI is distributed under the terms of the MIT license. See LICENSE.md.",
 	_URL = "https://github.com/karai17/Simple-Tiled-Implementation",
-	_VERSION = "0.9.4",
+	_VERSION = "0.9.5",
 	_DESCRIPTION = "Simple Tiled Implementation is a Tiled Map Editor library designed for the *awesome* LÖVE framework."
 }
 

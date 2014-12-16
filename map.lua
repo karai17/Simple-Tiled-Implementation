@@ -266,7 +266,7 @@ function Map:initWorldCollision(world)
 						end
 					end
 				end
-			elseif tile.properties.collidable == "true" then
+			elseif tile.properties.collidable == "true" and self.tileInstances[gid] then
 				for _, instance in ipairs(self.tileInstances[gid]) do
 					-- Every instance of a tile
 					local object = {
@@ -291,8 +291,8 @@ function Map:initWorldCollision(world)
 					for x, tile in pairs(tiles) do
 						local object = {
 							shape	= "rectangle",
-							x		= x * self.width + tile.offset.x,
-							y		= y * self.height + tile.offset.y,
+							x		= x * tile.width + tile.offset.x,
+							y		= y * tile.height + tile.offset.y,
 							width	= tile.width,
 							height	= tile.height,
 						}
