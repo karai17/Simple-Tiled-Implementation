@@ -489,7 +489,10 @@ function Map:setTileData(layer)
 					}
 
 					if flipX then
-						if flipY then
+						if flipY and flipD then
+							data.r = math.rad(-90)
+							data.sy = -1
+						elseif flipY then
 							data.sx = -1
 							data.sy = -1
 						elseif flipD then
