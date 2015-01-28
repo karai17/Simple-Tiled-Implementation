@@ -2,6 +2,13 @@
 Simple Tiled Implementation Change Log
 ======================================
 -------------------
+2015-01-28 : v0.9.6
+-------------------
+* Added:	getLayerProperties(), getTileProperties(), and getObjectProperties()
+* Fixed:	A bug where flipped tiles crashed STI during initCollision()
+* Removed:	Reverted the change in v0.9.3 that filled in empty tiles with false
+
+-------------------
 2014-12-15 : v0.9.5
 -------------------
 * Fixed:	A bug where tile collision objects were using the wrong size in some cases

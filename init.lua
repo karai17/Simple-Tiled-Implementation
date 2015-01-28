@@ -46,44 +46,53 @@ end
 
 function STI.new(map)
 	map = map .. ".lua"
-	
+
 	-- Get path to map
 	local path = map:reverse():find("[/\\]") or ""
 	if path ~= "" then
 		path = map:sub(1, 1 + (#map - path))
 	end
-	
+
 	-- Load map
 	map = framework.load(map)
 	setfenv(map, {})
 	map = setmetatable(map(), {__index = Map})
-	
+
 	map:init(path, framework)
-	
+
 	return map
 end
 
 -- http://wiki.interfaceware.com/534.html
 function string.split(s, d)
+	local magic = { "(", ")", ".", "%", "+", "-", "*", "?", "[", "^", "$" }
+
+	for _, v in ipairs(magic) do
+		if d == v then
+			d = "%"..d
+			break
+		end
+	end
+
 	local t = {}
 	local i = 0
 	local f
 	local match = '(.-)' .. d .. '()'
-	
+
 	if string.find(s, d) == nil then
 		return {s}
 	end
-	
+
 	for sub, j in string.gmatch(s, match) do
 		i = i + 1
 		t[i] = sub
 		f = j
 	end
-	
+
 	if i ~= 0 then
 		t[i+1] = string.sub(s, f)
 	end
-	
+
 	return t
 end
 

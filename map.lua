@@ -385,8 +385,8 @@ function Map:setTiles(index, tileset, gid)
 				animation   = animation,
 				frame       = 1,
 				time        = 0,
-				width		= tileset.tilewidth,
-				height		= tileset.tileheight,
+				width		= tw,
+				height		= th,
 				sx			= 1,
 				sy			= 1,
 				r			= 0,
@@ -478,6 +478,10 @@ function Map:setTileData(layer)
 						id			= tile.id,
 						gid			= tile.gid,
 						tileset		= tile.tileset,
+						frame       = tile.frame,
+						time        = tile.time,
+						width		= tile.width,
+						height		= tile.height,
 						offset		= tile.offset,
 						quad		= tile.quad,
 						properties	= tile.properties,
@@ -511,8 +515,6 @@ function Map:setTileData(layer)
 					self.tiles[gid] = data
 					map[y][x] = self.tiles[gid]
 				end
-			else
-				map[y][x] = false
 			end
 
 			i = i + 1
@@ -949,6 +951,41 @@ end
 
 function Map:resize(w, h)
 	self.canvas = framework:newCanvas(w, h)
+end
+
+function Map:getLayerProperties(layer)
+	local l = self.layers[layer]
+
+	if not l then return {} end
+
+	return l.properties
+end
+
+function Map:getTileProperties(layer, x, y)
+	local tile = self.layers[layer].data[y][x]
+
+	if not tile then return {} end
+
+	return tile.properties
+end
+
+function Map:getObjectProperties(layer, object)
+	local o = self.layers[layer].objects
+
+	if type(object) == "number" then
+		o = o[object]
+	else
+		for _, v in ipairs(o) do
+			if v.name == object then
+				o = v
+				break
+			end
+		end
+	end
+
+	if not o then return {} end
+
+	return o.properties
 end
 
 function Map:convertIsometricToScreen(x, y)
