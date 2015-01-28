@@ -620,11 +620,14 @@ function Map:setSpriteBatches(layer)
 				batches.data[ts][by][bx] = batches.data[ts][by][bx] or newBatch(image, size)
 
 				local batch = batches.data[ts][by][bx]
-				local tx, ty
+				local tx, ty, origx, origy
 
 				if self.orientation == "orthogonal" then
 					tx = x * tw + tile.offset.x
 					ty = y * th + tile.offset.y
+
+					origx = tx
+					origy = ty
 
 					-- Compensation for scale/rotation shift
 					local compx = 0
@@ -657,7 +660,7 @@ function Map:setSpriteBatches(layer)
 
 				id = batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
 				self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
-				table.insert(self.tileInstances[tile.gid], { batch=batch, id=id, gid=tile.gid, x=tx, y=ty })
+				table.insert(self.tileInstances[tile.gid], { batch=batch, id=id, gid=tile.gid, x=origx or tx, y=origy or ty })
 			end
 		end
 	end
