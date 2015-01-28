@@ -493,7 +493,10 @@ function Map:setTileData(layer)
 					}
 
 					if flipX then
-						if flipY then
+						if flipY and flipD then
+							data.r = math.rad(-90)
+							data.sy = -1
+						elseif flipY then
 							data.sx = -1
 							data.sy = -1
 						elseif flipD then
@@ -619,17 +622,31 @@ function Map:setSpriteBatches(layer)
 				batches.data[ts][by][bx] = batches.data[ts][by][bx] or newBatch(image, size)
 
 				local batch = batches.data[ts][by][bx]
-				local tx, ty
+				local tx, ty, origx, origy
 
 				if self.orientation == "orthogonal" then
 					tx = x * tw + tile.offset.x
 					ty = y * th + tile.offset.y
 
+					origx = tx
+					origy = ty
+
 					-- Compensation for scale/rotation shift
-					if tile.sx	< 0 then tx = tx + tw end
-					if tile.sy	< 0 then ty = ty + th end
-					if tile.r	> 0 then tx = tx + tw end
-					if tile.r	< 0 then ty = ty + th end
+					local compx = 0
+					local compy = 0
+					if tile.sx < 0 then compx = tw end
+					if tile.sy < 0 then compy = th end
+
+					if tile.r > 0 then
+						tx = tx + th - compy
+						ty = ty + th - tw + compx
+					elseif tile.r < 0 then
+						tx = tx + compy
+						ty = ty + th - compx
+					else
+						tx = tx + compx
+						ty = ty + compy
+					end
 				elseif self.orientation == "isometric" then
 					tx = (x - y) * (tw / 2) + tile.offset.x + layer.width * tw / 2
 					ty = (x + y) * (th / 2) + tile.offset.y
@@ -645,7 +662,7 @@ function Map:setSpriteBatches(layer)
 
 				id = batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
 				self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
-				table.insert(self.tileInstances[tile.gid], { batch=batch, id=id, gid=tile.gid, x=tx, y=ty })
+				table.insert(self.tileInstances[tile.gid], { batch=batch, id=id, gid=tile.gid, x=origx or tx, y=origy or ty })
 			end
 		end
 	end
