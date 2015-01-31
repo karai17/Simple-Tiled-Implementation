@@ -549,12 +549,23 @@ function Map:setObjectCoordinates(layer)
 		if object.shape == "rectangle" then
 			object.rectangle = {}
 
-			local vertices = {
-				{ x=x,		y=y },
-				{ x=x + w,	y=y },
-				{ x=x + w,	y=y + h },
-				{ x=x,		y=y + h },
-			}
+			local vertices
+
+			if object.gid then
+				vertices = {
+					{ x=x,		y=y - h },
+					{ x=x + w,	y=y - h },
+					{ x=x + w,	y=y },
+					{ x=x,		y=y },
+				}
+			else
+				vertices = {
+					{ x=x,		y=y },
+					{ x=x + w,	y=y },
+					{ x=x + w,	y=y + h },
+					{ x=x,		y=y + h },
+				}
+			end
 
 			for _, vertex in ipairs(vertices) do
 				vertex.x, vertex.y = updateVertex(vertex, x, y, cos, sin)
