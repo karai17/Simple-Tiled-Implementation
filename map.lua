@@ -291,8 +291,8 @@ function Map:initWorldCollision(world)
 					for x, tile in pairs(tiles) do
 						local object = {
 							shape	= "rectangle",
-							x		= x * tile.width + tile.offset.x,
-							y		= y * tile.height + tile.offset.y,
+							x		= x * self.tilewidth  + tile.offset.x,
+							y		= y * self.tileheight + tile.offset.y,
 							width	= tile.width,
 							height	= tile.height,
 						}
@@ -453,77 +453,6 @@ function Map:setTileData(layer)
 	end
 
 	layer.data = map
-end
-
-function Map:setFlippedGID(gid)
-	local bit31		= 2147483648
-	local bit30		= 1073741824
-	local bit29		= 536870912
-	local flipX		= false
-	local flipY		= false
-	local flipD		= false
-	local realgid	= gid
-
-	if realgid >= bit31 then
-		realgid = realgid - bit31
-		flipX = not flipX
-	end
-
-	if realgid >= bit30 then
-		realgid = realgid - bit30
-		flipY = not flipY
-	end
-
-	if realgid >= bit29 then
-		realgid = realgid - bit29
-		flipD = not flipD
-	end
-
-	local tile = self.tiles[realgid]
-	local data = {
-		id			= tile.id,
-		gid			= tile.gid,
-		tileset		= tile.tileset,
-		frame       = tile.frame,
-		time        = tile.time,
-		width		= tile.width,
-		height		= tile.height,
-		offset		= tile.offset,
-		quad		= tile.quad,
-		properties	= tile.properties,
-		terrain     = tile.terrain,
-		animation   = tile.animation,
-		sx			= tile.sx,
-		sy			= tile.sy,
-		r			= tile.r,
-	}
-
-	if flipX then
-		if flipY and flipD then
-			data.r = math.rad(-90)
-			data.sy = -1
-		elseif flipY then
-			data.sx = -1
-			data.sy = -1
-		elseif flipD then
-			data.r = math.rad(90)
-		else
-			data.sx = -1
-		end
-	elseif flipY then
-		if flipD then
-			data.r = math.rad(-90)
-		else
-			data.sy = -1
-		end
-	elseif flipD then
-		data.r = math.rad(90)
-		data.sy = -1
-	end
-
-	self.tiles[gid] = data
-
-	return self.tiles[gid]
 end
 
 function Map:setObjectCoordinates(layer)
@@ -978,6 +907,77 @@ end
 
 function Map:resize(w, h)
 	self.canvas = framework:newCanvas(w, h)
+end
+
+function Map:setFlippedGID(gid)
+	local bit31		= 2147483648
+	local bit30		= 1073741824
+	local bit29		= 536870912
+	local flipX		= false
+	local flipY		= false
+	local flipD		= false
+	local realgid	= gid
+
+	if realgid >= bit31 then
+		realgid = realgid - bit31
+		flipX = not flipX
+	end
+
+	if realgid >= bit30 then
+		realgid = realgid - bit30
+		flipY = not flipY
+	end
+
+	if realgid >= bit29 then
+		realgid = realgid - bit29
+		flipD = not flipD
+	end
+
+	local tile = self.tiles[realgid]
+	local data = {
+		id			= tile.id,
+		gid			= tile.gid,
+		tileset		= tile.tileset,
+		frame       = tile.frame,
+		time        = tile.time,
+		width		= tile.width,
+		height		= tile.height,
+		offset		= tile.offset,
+		quad		= tile.quad,
+		properties	= tile.properties,
+		terrain     = tile.terrain,
+		animation   = tile.animation,
+		sx			= tile.sx,
+		sy			= tile.sy,
+		r			= tile.r,
+	}
+
+	if flipX then
+		if flipY and flipD then
+			data.r = math.rad(-90)
+			data.sy = -1
+		elseif flipY then
+			data.sx = -1
+			data.sy = -1
+		elseif flipD then
+			data.r = math.rad(90)
+		else
+			data.sx = -1
+		end
+	elseif flipY then
+		if flipD then
+			data.r = math.rad(-90)
+		else
+			data.sy = -1
+		end
+	elseif flipD then
+		data.r = math.rad(90)
+		data.sy = -1
+	end
+
+	self.tiles[gid] = data
+
+	return self.tiles[gid]
 end
 
 function Map:getLayerProperties(layer)
