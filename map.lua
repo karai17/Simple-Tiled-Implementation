@@ -36,7 +36,7 @@ local function rotateVertex(v, x, y, cos, sin)
 end
 
 local function convertEllipseToPolygon(x, y, w, h, max_segments)
-	local function calc_segments(segments, tw, th)
+	local function calc_segments(segments)
 		local function vdist(a, b)
 			local c = {
 				x = a.x - b.x,
@@ -55,7 +55,7 @@ local function convertEllipseToPolygon(x, y, w, h, max_segments)
 		if framework.getMeter then
 			m = framework.getMeter()
 		else
-			m = tw + th / 2
+			m = 32
 		end
 
 		for _, i in ipairs(v) do
@@ -71,13 +71,13 @@ local function convertEllipseToPolygon(x, y, w, h, max_segments)
 
 		-- Box2D hard-coded threshold
 		if dist1 < 0.0025 or dist2 < 0.0025 then
-			return calc_segments(segments-2, self.tilewidth, self.tileheight)
+			return calc_segments(segments-2)
 		end
 
 		return segments
 	end
 
-	local segments = calc_segments(max_segments, self.tilewidth, self.tileheight)
+	local segments = calc_segments(max_segments)
 	local vertices = {}
 
 	table.insert(vertices, { x = x + w / 2, y = y + h / 2 })
@@ -445,79 +445,7 @@ function Map:setTileData(layer)
 			local gid = layer.data[i]
 
 			if gid > 0 then
-				local tile = self.tiles[gid]
-
-				if tile then
-					map[y][x] = tile
-				else
-					local bit31		= 2147483648
-					local bit30		= 1073741824
-					local bit29		= 536870912
-					local flipX		= false
-					local flipY		= false
-					local flipD		= false
-					local realgid	= gid
-
-					if realgid >= bit31 then
-						realgid = realgid - bit31
-						flipX = not flipX
-					end
-
-					if realgid >= bit30 then
-						realgid = realgid - bit30
-						flipY = not flipY
-					end
-
-					if realgid >= bit29 then
-						realgid = realgid - bit29
-						flipD = not flipD
-					end
-
-					local tile = self.tiles[realgid]
-					local data = {
-						id			= tile.id,
-						gid			= tile.gid,
-						tileset		= tile.tileset,
-						frame       = tile.frame,
-						time        = tile.time,
-						width		= tile.width,
-						height		= tile.height,
-						offset		= tile.offset,
-						quad		= tile.quad,
-						properties	= tile.properties,
-						terrain     = tile.terrain,
-						animation   = tile.animation,
-						sx			= tile.sx,
-						sy			= tile.sy,
-						r			= tile.r,
-					}
-
-					if flipX then
-						if flipY and flipD then
-							data.r = math.rad(-90)
-							data.sy = -1
-						elseif flipY then
-							data.sx = -1
-							data.sy = -1
-						elseif flipD then
-							data.r = math.rad(90)
-						else
-							data.sx = -1
-						end
-					elseif flipY then
-						if flipD then
-							data.r = math.rad(-90)
-						else
-							data.sy = -1
-						end
-					elseif flipD then
-						data.r = math.rad(90)
-						data.sy = -1
-					end
-
-					self.tiles[gid] = data
-					map[y][x] = self.tiles[gid]
-				end
+				map[y][x] = self.tiles[gid] or self:setFlippedGID(gid)
 			end
 
 			i = i + 1
@@ -525,6 +453,77 @@ function Map:setTileData(layer)
 	end
 
 	layer.data = map
+end
+
+function Map:setFlippedGID(gid)
+	local bit31		= 2147483648
+	local bit30		= 1073741824
+	local bit29		= 536870912
+	local flipX		= false
+	local flipY		= false
+	local flipD		= false
+	local realgid	= gid
+
+	if realgid >= bit31 then
+		realgid = realgid - bit31
+		flipX = not flipX
+	end
+
+	if realgid >= bit30 then
+		realgid = realgid - bit30
+		flipY = not flipY
+	end
+
+	if realgid >= bit29 then
+		realgid = realgid - bit29
+		flipD = not flipD
+	end
+
+	local tile = self.tiles[realgid]
+	local data = {
+		id			= tile.id,
+		gid			= tile.gid,
+		tileset		= tile.tileset,
+		frame       = tile.frame,
+		time        = tile.time,
+		width		= tile.width,
+		height		= tile.height,
+		offset		= tile.offset,
+		quad		= tile.quad,
+		properties	= tile.properties,
+		terrain     = tile.terrain,
+		animation   = tile.animation,
+		sx			= tile.sx,
+		sy			= tile.sy,
+		r			= tile.r,
+	}
+
+	if flipX then
+		if flipY and flipD then
+			data.r = math.rad(-90)
+			data.sy = -1
+		elseif flipY then
+			data.sx = -1
+			data.sy = -1
+		elseif flipD then
+			data.r = math.rad(90)
+		else
+			data.sx = -1
+		end
+	elseif flipY then
+		if flipD then
+			data.r = math.rad(-90)
+		else
+			data.sy = -1
+		end
+	elseif flipD then
+		data.r = math.rad(90)
+		data.sy = -1
+	end
+
+	self.tiles[gid] = data
+
+	return self.tiles[gid]
 end
 
 function Map:setObjectCoordinates(layer)
@@ -690,7 +689,7 @@ function Map:setObjectSpriteBatches(layer)
 
 	for _, object in ipairs(layer.objects) do
 		if object.gid then
-			local tile = self.tiles[object.gid]
+			local tile = self.tiles[object.gid] or self:getFlippedGID(object.gid)
 			local ts = tile.tileset
 			local image = self.tilesets[tile.tileset].image
 
