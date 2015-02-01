@@ -36,7 +36,7 @@ local function rotateVertex(v, x, y, cos, sin)
 end
 
 local function convertEllipseToPolygon(x, y, w, h, max_segments)
-	local function calc_segments(segments)
+	local function calc_segments(segments, tw, th)
 		local function vdist(a, b)
 			local c = {
 				x = a.x - b.x,
@@ -55,7 +55,7 @@ local function convertEllipseToPolygon(x, y, w, h, max_segments)
 		if framework.getMeter then
 			m = framework.getMeter()
 		else
-			m = self.tilewidth + self.tileheight / 2
+			m = tw + th / 2
 		end
 
 		for _, i in ipairs(v) do
@@ -71,13 +71,13 @@ local function convertEllipseToPolygon(x, y, w, h, max_segments)
 
 		-- Box2D hard-coded threshold
 		if dist1 < 0.0025 or dist2 < 0.0025 then
-			return calc_segments(segments-2)
+			return calc_segments(segments-2, self.tilewidth, self.tileheight)
 		end
 
 		return segments
 	end
 
-	local segments = calc_segments(max_segments)
+	local segments = calc_segments(max_segments, self.tilewidth, self.tileheight)
 	local vertices = {}
 
 	table.insert(vertices, { x = x + w / 2, y = y + h / 2 })
