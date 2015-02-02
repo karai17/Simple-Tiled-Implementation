@@ -128,7 +128,7 @@ function Map:initWorldCollision(world)
 		body = body,
 	}
 
-	local function addObjectToWorld(objshape, vertices)
+	local function addObjectToWorld(objshape, vertices, userdata)
 		local shape
 
 		if objshape == "polyline" then
@@ -138,6 +138,9 @@ function Map:initWorldCollision(world)
 		end
 
 		local fixture = framework.newFixture(body, shape)
+
+		fixture:setUserData(userdata)
+
 		local obj = {
 			shape = shape,
 			fixture = fixture,
@@ -173,6 +176,12 @@ function Map:initWorldCollision(world)
 			polygon	= object.polygon or object.polyline or object.ellipse or object.rectangle
 		}
 		local t		= tile or { x=0, y=0 }
+
+		local userdata = {
+			object = object,
+			instance = t,
+			tile = t.gid and self.tiles[t.gid]
+		}
 
 		if o.shape == "rectangle" then
 			o.r = object.rotation or 0
@@ -223,7 +232,7 @@ function Map:initWorldCollision(world)
 			end
 
 			local vertices = getPolygonVertices(o, t, true)
-			addObjectToWorld(o.shape, vertices)
+			addObjectToWorld(o.shape, vertices, userdata)
 		elseif o.shape == "ellipse" then
 			if not o.polygon then
 				o.polygon = convertEllipseToPolygon(o.x, o.y, o.w, o.h)
@@ -232,7 +241,7 @@ function Map:initWorldCollision(world)
 			local triangles	= framework.triangulate(vertices)
 
 			for _, triangle in ipairs(triangles) do
-				addObjectToWorld(o.shape, triangle)
+				addObjectToWorld(o.shape, triangle, userdata)
 			end
 		elseif o.shape == "polygon" then
 			local precalc = false
@@ -242,14 +251,14 @@ function Map:initWorldCollision(world)
 			local triangles	= framework.triangulate(vertices)
 
 			for _, triangle in ipairs(triangles) do
-				addObjectToWorld(o.shape, triangle)
+				addObjectToWorld(o.shape, triangle, userdata)
 			end
 		elseif o.shape == "polyline" then
 			local precalc = false
 			if not t.gid then precalc = true end
 
 			local vertices	= getPolygonVertices(o, t, precalc)
-			addObjectToWorld(o.shape, vertices)
+			addObjectToWorld(o.shape, vertices, userdata)
 		end
 	end
 
@@ -618,7 +627,7 @@ function Map:setObjectSpriteBatches(layer)
 
 	for _, object in ipairs(layer.objects) do
 		if object.gid then
-			local tile = self.tiles[object.gid] or self:getFlippedGID(object.gid)
+			local tile = self.tiles[object.gid] or self:setFlippedGID(object.gid)
 			local ts = tile.tileset
 			local image = self.tilesets[tile.tileset].image
 
