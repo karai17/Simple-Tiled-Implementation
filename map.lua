@@ -627,7 +627,7 @@ function Map:setObjectSpriteBatches(layer)
 
 	for _, object in ipairs(layer.objects) do
 		if object.gid then
-			local tile = self.tiles[object.gid] or self:getFlippedGID(object.gid)
+			local tile = self.tiles[object.gid] or self:setFlippedGID(object.gid)
 			local ts = tile.tileset
 			local image = self.tilesets[tile.tileset].image
 
