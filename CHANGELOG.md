@@ -1,6 +1,15 @@
 # Change Log
 
-## 2015-01-28 : v0.9.6
+## 2015-02-02: v0.9.7
+
+* Added: userdata to Box2D fixtures
+* Changed: changelog.txt -> CHANGELOG.md
+* Changed: Flipping tiles now happens in both tile layers and object layers
+* Fixed: A bug where tile objects were drawing oddly in some cases
+* Fixed: A bug where circles would error if physics was disabled
+
+
+## 2015-01-28: v0.9.6
 
 * Added: getLayerProperties(), getTileProperties(), and getObjectProperties()
 * Fixed: A bug where flipped tiles crashed STI during initCollision()
