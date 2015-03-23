@@ -1,5 +1,10 @@
 # Change Log
 
+## 2015-03-22: v0.9.8
+
+* Fixed: A bug where Tiles without a Properties list would crash
+
+
 ## 2015-02-02: v0.9.7
 
 * Added: userdata to Box2D fixtures

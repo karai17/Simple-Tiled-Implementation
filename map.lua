@@ -275,7 +275,7 @@ function Map:initWorldCollision(world)
 						end
 					end
 				end
-			elseif tile.properties.collidable == "true" and self.tileInstances[gid] then
+			elseif tile.properties and tile.properties.collidable == "true" and self.tileInstances[gid] then
 				for _, instance in ipairs(self.tileInstances[gid]) do
 					-- Every instance of a tile
 					local object = {
