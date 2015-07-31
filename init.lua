@@ -4,7 +4,7 @@ Simple Tiled Implementation is licensed under the MIT Open Source License.
 (http://www.opensource.org/licenses/mit-license.html)
 ------------------------------------------------------------------------------
 
-Copyright (c) 2014 Landon Manning - LManning17@gmail.com - LandonManning.com
+Copyright (c) 2015 Landon Manning - LManning17@gmail.com - LandonManning.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -26,26 +26,29 @@ THE SOFTWARE.
 ]]--
 
 local STI = {
-	_LICENSE = "STI is distributed under the terms of the MIT license. See LICENSE.md.",
-	_URL = "https://github.com/karai17/Simple-Tiled-Implementation",
-	_VERSION = "0.9.8",
+	_LICENSE     = "STI is distributed under the terms of the MIT license. See LICENSE.md.",
+	_URL         = "https://github.com/karai17/Simple-Tiled-Implementation",
+	_VERSION     = "0.12.3.0",
 	_DESCRIPTION = "Simple Tiled Implementation is a Tiled Map Editor library designed for the *awesome* LÖVE framework."
 }
 
 local path = ... .. "." -- lol
-local Map = require(path .. "map")
+local Map  = require(path .. "map")
 local framework
 
 if love then
 	framework = require(path .. "framework.love")
-elseif corona then -- I don't think this works
-	framework = require(path .. "framework.corona")
 else
-	framework = require(path .. "framework.pure")
+	framework = require(path .. "framework.lua")
 end
 
 function STI.new(map)
-	map = map .. ".lua"
+	-- Check for valid map type
+	local ext = map:sub(-3, -1)
+	assert(ext == "lua", string.format(
+		"Invalid file type: %s. File must be of type: lua.",
+		ext
+	))
 
 	-- Get path to map
 	local path = map:reverse():find("[/\\]") or ""

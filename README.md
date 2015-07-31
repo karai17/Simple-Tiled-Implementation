@@ -5,29 +5,29 @@ Simple Tiled Implementation is a [**Tiled Map Editor**][Tiled] library designed 
 
 ## Quick Example
 
-```lua     
+```lua
 local sti = require "sti"
 
 function love.load()
 	-- Grab window size
-	windowWidth = love.graphics.getWidth()
+	windowWidth  = love.graphics.getWidth()
 	windowHeight = love.graphics.getHeight()
 
 	-- Set world meter size (in pixels)
 	love.physics.setMeter(32)
 
 	-- Load a map exported to Lua from Tiled
-	map = sti.new("assets/maps/map01")
+	map = sti.new("assets/maps/map01.lua")
 
-	-- Prepare physics world (horizontal and vertical gravity)
-	world = love.physics.newWorld(0*love.physics.getMeter(), 0*love.physics.getMeter())
+	-- Prepare physics world with horizontal and vertical gravity
+	world = love.physics.newWorld(0, 0)
 
 	-- Prepare collision objects
 	collision = map:initWorldCollision(world)
-	
+
 	-- Create a Custom Layer
 	map:addCustomLayer("Sprite Layer", 3)
-	
+
 	-- Add data to Custom Layer
 	local spriteLayer = map.layers["Sprite Layer"]
 	spriteLayer.sprites = {
@@ -38,14 +38,14 @@ function love.load()
 			r = 0,
 		}
 	}
-	
+
 	-- Update callback for Custom Layer
 	function spriteLayer:update(dt)
 		for _, sprite in pairs(self.sprites) do
 			sprite.r = sprite.r + math.rad(90 * dt)
 		end
 	end
-	
+
 	-- Draw callback for Custom Layer
 	function spriteLayer:draw()
 		for _, sprite in pairs(self.sprites) do
@@ -65,13 +65,13 @@ function love.draw()
 	-- Translation would normally be based on a player's x/y
 	local translateX = 0
 	local translateY = 0
-	
+
 	-- Draw Range culls unnecessary tiles
-	map:setDrawRange(translateX, translateY, windowWidth, windowHeight)
-	
+	map:setDrawRange(-translateX, -translateY, windowWidth, windowHeight)
+
 	-- Draw the map and all objects within
 	map:draw()
-	
+
 	-- Draw Collision Map (useful for debugging)
 	love.graphics.setColor(255, 0, 0, 255)
 	map:drawWorldCollision(collision)
@@ -84,7 +84,7 @@ end
 
 ## Requirements
 
-This library requires LÖVE 0.9.1 and Tiled 0.10.1. If you are updating from an older version of Tiled, please re-export your Lua map files.
+This library requires LÖVE 0.9.2 and Tiled 0.12.3. If you are updating from an older version of Tiled, please re-export your Lua map files.
 
 
 ## License

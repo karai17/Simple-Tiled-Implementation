@@ -1,5 +1,19 @@
 # Change Log
 
+## 2015-07-31: v0.12.3.0
+
+* Added: Tiled version number to Map.tiledversion
+* Added: Map.objects table indexed by unique object IDs
+* Added: A better error message when trying to use Tile Collections
+* Changed: Version number should now match Tiled's version number
+* Changed: You must now add ".lua" in the filename of a new map as this is consistent with other libraries
+* Changed: Renamed "pure" framework to "lua" (still doesn't work, though!)
+* Changed: Map:setDrawRange no longer inverts tx and ty for you, do it yourself!
+* Changed: Map:draw no longer accepts scale values, use love.graphics.scale!
+* Fixed: A bug where tile objects were drawing an object border
+* Removed: Corona framework file
+
+
 ## 2015-03-22: v0.9.8
 
 * Fixed: A bug where Tiles without a Properties list would crash
@@ -40,7 +54,7 @@
 * Added: Terrain information
 * Fixed: Some conversion functions
 * Changed: Tile Layers now contain "false" instead of "nil" where there is no tile
-* Changed: Added _LICENSE, _URL, _VERSION, and _DESCRIPTION properties to core STI object
+* Changed: Added \_LICENSE, \_URL, \_VERSION, and \_DESCRIPTION properties to core STI object
 
 
 ## 2014-09-29: v0.9.2
