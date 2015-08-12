@@ -763,7 +763,12 @@ end
 function Map:draw()
 	local current_canvas = framework.getCanvas()
 	framework.setCanvas(self.canvas)
-	self.canvas:clear()
+	if self.canvas.clear then
+		self.canvas:clear()
+	else
+		local r,g,b,a = love.graphics.getBackgroundColor()
+		love.graphics.clear(r,g,b,a,self.canvas)
+	end
 
 	for _, layer in ipairs(self.layers) do
 		if layer.visible and layer.opacity > 0 then
