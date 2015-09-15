@@ -1,5 +1,13 @@
 # Change Log
 
+## 2015-09-15: v0.13.1.0
+
+* Added: Map:convertToCustomLayer() now returns the layer
+* Changed: Tightened localization of some functions
+* Removed: Box2D collision integration
+* Removed: Unused functions
+
+
 ## 2015-07-31: v0.12.3.0
 
 * Added: Tiled version number to Map.tiledversion

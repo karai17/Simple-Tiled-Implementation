@@ -13,17 +13,8 @@ function love.load()
 	windowWidth  = love.graphics.getWidth()
 	windowHeight = love.graphics.getHeight()
 
-	-- Set world meter size (in pixels)
-	love.physics.setMeter(32)
-
 	-- Load a map exported to Lua from Tiled
 	map = sti.new("assets/maps/map01.lua")
-
-	-- Prepare physics world with horizontal and vertical gravity
-	world = love.physics.newWorld(0, 0)
-
-	-- Prepare collision objects
-	collision = map:initWorldCollision(world)
 
 	-- Create a Custom Layer
 	map:addCustomLayer("Sprite Layer", 3)
@@ -72,10 +63,6 @@ function love.draw()
 	-- Draw the map and all objects within
 	map:draw()
 
-	-- Draw Collision Map (useful for debugging)
-	love.graphics.setColor(255, 0, 0, 255)
-	map:drawWorldCollision(collision)
-
 	-- Reset color
 	love.graphics.setColor(255, 255, 255, 255)
 end
@@ -84,7 +71,7 @@ end
 
 ## Requirements
 
-This library requires LÖVE 0.9.2 and Tiled 0.12.3. If you are updating from an older version of Tiled, please re-export your Lua map files.
+This library requires LÖVE 0.9.2 and Tiled 0.13.1. If you are updating from an older version of Tiled, please re-export your Lua map files.
 
 
 ## License

@@ -28,7 +28,7 @@ THE SOFTWARE.
 local STI = {
 	_LICENSE     = "STI is distributed under the terms of the MIT license. See LICENSE.md.",
 	_URL         = "https://github.com/karai17/Simple-Tiled-Implementation",
-	_VERSION     = "0.12.3.0",
+	_VERSION     = "0.13.1.0",
 	_DESCRIPTION = "Simple Tiled Implementation is a Tiled Map Editor library designed for the *awesome* LÖVE framework."
 }
 
@@ -64,39 +64,6 @@ function STI.new(map)
 	map:init(path, framework)
 
 	return map
-end
-
--- http://wiki.interfaceware.com/534.html
-function string.split(s, d)
-	local magic = { "(", ")", ".", "%", "+", "-", "*", "?", "[", "^", "$" }
-
-	for _, v in ipairs(magic) do
-		if d == v then
-			d = "%"..d
-			break
-		end
-	end
-
-	local t = {}
-	local i = 0
-	local f
-	local match = '(.-)' .. d .. '()'
-
-	if string.find(s, d) == nil then
-		return {s}
-	end
-
-	for sub, j in string.gmatch(s, match) do
-		i = i + 1
-		t[i] = sub
-		f = j
-	end
-
-	if i ~= 0 then
-		t[i+1] = string.sub(s, f)
-	end
-
-	return t
 end
 
 return STI
