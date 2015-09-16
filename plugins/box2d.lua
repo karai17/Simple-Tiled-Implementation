@@ -2,7 +2,7 @@ return {
 	--- Initialize Box2D physics world.
 	-- @param world The Box2D world to add objects to.
 	-- @return table List of collision objects
-	initWorldCollision = function(map, world)
+	box2d_init = function(map, world)
 		assert(love.physics.newBody, "To use the built-in collision system, please enable the physics module.")
 
 		local body      = love.physics.newBody(world)
@@ -238,7 +238,7 @@ return {
 	--- Draw Box2D physics world.
 	-- @param collision A list of collision objects.
 	-- @return nil
-	drawWorldCollision = function(map, collision)
+	box2d_draw = function(map, collision)
 		for _, obj in ipairs(collision) do
 			love.graphics.polygon("line", collision.body:getWorldPoints(obj.shape:getPoints()))
 		end

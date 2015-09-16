@@ -3,6 +3,7 @@
 ## 2015-09-16: v0.13.1.2
 
 * Changed: Simplified plugins
+* Changed: Namespaced the box2d plugin
 * Removed: Non-LOVE frameworks (they didn't worked)
 
 
