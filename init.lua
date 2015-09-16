@@ -5,19 +5,12 @@
 local STI = {
 	_LICENSE     = "STI is distributed under the terms of the MIT license. See LICENSE.md.",
 	_URL         = "https://github.com/karai17/Simple-Tiled-Implementation",
-	_VERSION     = "0.13.1.1",
+	_VERSION     = "0.13.1.2",
 	_DESCRIPTION = "Simple Tiled Implementation is a Tiled Map Editor library designed for the *awesome* LÖVE framework."
 }
 
 local path = (...):gsub('%.init$', '') .. "."
 local Map  = require(path .. "map")
-local framework
-
-if love then
-	framework = require(path .. "framework.love")
-else
-	framework = require(path .. "framework.lua")
-end
 
 --- Instance a new map.
 -- @param path Path to the map file.
@@ -38,11 +31,11 @@ function STI.new(map, plugins)
 	end
 
 	-- Load map
-	map = framework.load(map)
+	map = love.filesystem.load(map)
 	setfenv(map, {})
 	map = setmetatable(map(), {__index = Map})
 
-	map:init(path, framework, plugins)
+	map:init(path, plugins)
 
 	return map
 end

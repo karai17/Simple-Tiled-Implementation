@@ -1,7 +1,6 @@
 local path       = (...):gsub('%.[^%.]+$', '') .. "."
 local pluginPath = string.gsub(path, "[.]", "/") .. "plugins/"
 local Map        = {}
-local framework
 
 -- https://github.com/stevedonovan/Penlight/blob/master/lua/pl/path.lua#L286
 local function formatPath(path)
@@ -24,17 +23,14 @@ end
 
 --- Instance a new map.
 -- @param path Path to the map file.
--- @param fw The framework being used.
 -- @param plugins A list of plugins to load.
 -- @return nil
-function Map:init(path, fw, plugins)
-	framework = fw
-
+function Map:init(path, plugins)
 	if type(plugins) == "table" then
 		self:loadPlugins(plugins)
 	end
 
-	self.canvas        = framework:newCanvas()
+	self:resize()
 	self.objects       = {}
 	self.tiles         = {}
 	self.tileInstances = {}
@@ -51,7 +47,7 @@ function Map:init(path, fw, plugins)
 		assert(tileset.image, "STI does not support Tile Collections.\nYou need to create a Texture Atlas.")
 
 		local image   = formatPath(path .. tileset.image)
-		tileset.image = framework.newImage(image)
+		tileset.image = love.graphics.newImage(image)
 		gid           = self:setTiles(i, tileset, gid)
 	end
 
@@ -67,8 +63,8 @@ end
 function Map:loadPlugins(plugins)
 	for _, plugin in ipairs(plugins) do
 		local p = pluginPath .. plugin .. ".lua"
-		if framework.isFile(p) then
-			local file = framework.load(p)()(framework)
+		if love.filesystem.isFile(p) then
+			local file = love.filesystem.load(p)()
 			for k, func in pairs(file) do
 				if not self[k] then
 					self[k] = func
@@ -76,9 +72,6 @@ function Map:loadPlugins(plugins)
 			end
 		end
 	end
-
-	--for _, file in ipairs(framework.getDirectoryItems(pluginPath)) do
-	--end
 end
 
 --- Create Tiles.
@@ -100,7 +93,7 @@ function Map:setTiles(index, tileset, gid)
 		return n
 	end
 
-	local quad = framework.newQuad
+	local quad = love.graphics.newQuad
 	local mw   = self.tilewidth
 	local iw   = tileset.imagewidth
 	local ih   = tileset.imageheight
@@ -187,7 +180,7 @@ function Map:setLayer(layer, path)
 
 		if layer.image ~= "" then
 			local image  = formatPath(path..layer.image)
-			layer.image  = framework.newImage(image)
+			layer.image  = love.graphics.newImage(image)
 			layer.width  = layer.image:getWidth()
 			layer.height = layer.image:getHeight()
 		end
@@ -249,8 +242,8 @@ function Map:setObjectCoordinates(layer)
 			local v = { 1, 2, math.ceil(segments/4-1), math.ceil(segments/4) }
 
 			local m
-			if framework.getMeter then
-				m = framework.getMeter()
+			if love.physics.getMeter then
+				m = love.physics.getMeter()
 			else
 				m = 32
 			end
@@ -365,9 +358,9 @@ end
 -- @param layer The Tile Layer.
 -- @return nil
 function Map:setSpriteBatches(layer)
-	local newBatch = framework.newSpriteBatch
-	local w        = framework.getWidth()
-	local h        = framework.getHeight()
+	local newBatch = love.graphics.newSpriteBatch
+	local w        = love.graphics.getWidth()
+	local h        = love.graphics.getHeight()
 	local tw       = self.tilewidth
 	local th       = self.tileheight
 	local bw       = math.ceil(w / tw)
@@ -452,7 +445,7 @@ end
 -- @param layer The Object Layer.
 -- @return nil
 function Map:setObjectSpriteBatches(layer)
-	local newBatch = framework.newSpriteBatch
+	local newBatch = love.graphics.newSpriteBatch
 	local tw       = self.tilewidth
 	local th       = self.tileheight
 	local batches  = {
@@ -622,8 +615,8 @@ end
 --- Draw every Layer.
 -- @return nil
 function Map:draw()
-	local current_canvas = framework.getCanvas()
-	framework.setCanvas(self.canvas)
+	local current_canvas = love.graphics.getCanvas()
+	love.graphics.setCanvas(self.canvas)
 	if self.canvas.clear then
 		self.canvas:clear()
 	else
@@ -637,20 +630,20 @@ function Map:draw()
 		end
 	end
 
-	framework.setCanvas(current_canvas)
-	framework.push()
-	framework.origin()
-	framework.draw(self.canvas)
-	framework.pop()
+	love.graphics.setCanvas(current_canvas)
+	love.graphics.push()
+	love.graphics.origin()
+	love.graphics.draw(self.canvas)
+	love.graphics.pop()
 end
 
 --- Draw an individual Layer.
 -- @param layer The Layer to draw.
 -- @return nil
 function Map:drawLayer(layer)
-	framework.setColor(255, 255, 255, 255 * layer.opacity)
+	love.graphics.setColor(255, 255, 255, 255 * layer.opacity)
 	layer:draw()
-	framework.setColor(255, 255, 255, 255)
+	love.graphics.setColor(255, 255, 255, 255)
 end
 
 --- Default draw function for Tile Layers.
@@ -679,7 +672,7 @@ function Map:drawTileLayer(layer)
 					local batch = batches[by] and batches[by][bx]
 
 					if batch then
-						framework.draw(batch, math.floor(layer.x), math.floor(layer.y))
+						love.graphics.draw(batch, math.floor(layer.x), math.floor(layer.y))
 					end
 				end
 			end
@@ -719,31 +712,31 @@ function Map:drawObjectLayer(layer)
 		local vertices = sortVertices(obj)
 
 		if shape == "polyline" then
-			framework.setColor(shadow)
-			framework.line(vertices[2])
-			framework.setColor(line)
-			framework.line(vertices[1])
+			love.graphics.setColor(shadow)
+			love.graphics.line(vertices[2])
+			love.graphics.setColor(line)
+			love.graphics.line(vertices[1])
 
 			return
 		elseif shape == "polygon" then
-			framework.setColor(fill)
-			if not framework.isConvex(vertices[1]) then
-				local triangles = framework.triangulate(vertices[1])
+			love.graphics.setColor(fill)
+			if not love.math.isConvex(vertices[1]) then
+				local triangles = love.math.triangulate(vertices[1])
 				for _, triangle in ipairs(triangles) do
-					framework.polygon("fill", triangle)
+					love.graphics.polygon("fill", triangle)
 				end
 			else
-				framework.polygon("fill", vertices[1])
+				love.graphics.polygon("fill", vertices[1])
 			end
 		else
-			framework.setColor(fill)
-			framework.polygon("fill", vertices[1])
+			love.graphics.setColor(fill)
+			love.graphics.polygon("fill", vertices[1])
 		end
 
-		framework.setColor(shadow)
-		framework.polygon("line", vertices[2])
-		framework.setColor(line)
-		framework.polygon("line", vertices[1])
+		love.graphics.setColor(shadow)
+		love.graphics.polygon("line", vertices[2])
+		love.graphics.setColor(line)
+		love.graphics.polygon("line", vertices[1])
 	end
 
 	for _, object in ipairs(layer.objects) do
@@ -758,9 +751,9 @@ function Map:drawObjectLayer(layer)
 		end
 	end
 
-	framework.setColor(reset)
+	love.graphics.setColor(reset)
 	for _, batch in pairs(layer.batches) do
-		framework.draw(batch, 0, 0)
+		love.graphics.draw(batch, 0, 0)
 	end
 end
 
@@ -775,7 +768,7 @@ function Map:drawImageLayer(layer)
 	assert(layer.type == "imagelayer", "Invalid layer type: " .. layer.type .. ". Layer must be of type: imagelayer")
 
 	if layer.image ~= "" then
-		framework.draw(layer.image, layer.x, layer.y)
+		love.graphics.draw(layer.image, layer.x, layer.y)
 	end
 end
 
@@ -784,7 +777,11 @@ end
 -- @param h The new Height of the drawable area (in pixels).
 -- @return nil
 function Map:resize(w, h)
-	self.canvas = framework:newCanvas(w, h)
+	w = w or love.graphics.getWidth()
+	h = h or love.graphics.getHeight()
+
+	self.canvas = love.graphics.newCanvas(w, h)
+	self.canvas:setFilter("nearest", "nearest")
 end
 
 --- Create flipped or rotated Tiles based on bitop flags.

@@ -1,5 +1,11 @@
 # Change Log
 
+## 2015-09-16: v0.13.1.2
+
+* Changed: Simplified plugins
+* Removed: Non-LOVE frameworks (they didn't worked)
+
+
 ## 2015-09-16: v0.13.1.1
 
 * Added: LDoc documentation
