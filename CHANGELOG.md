@@ -1,5 +1,10 @@
 # Change Log
 
+## 2015-09-16: v0.13.1.3
+
+* Changed: Improved documentation
+
+
 ## 2015-09-16: v0.13.1.2
 
 * Changed: Simplified plugins

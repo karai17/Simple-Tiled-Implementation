@@ -1,3 +1,6 @@
+--- Map object
+-- @module map
+
 local path       = (...):gsub('%.[^%.]+$', '') .. "."
 local pluginPath = string.gsub(path, "[.]", "/") .. "plugins/"
 local Map        = {}
@@ -21,9 +24,9 @@ local function formatPath(path)
 	return path
 end
 
---- Instance a new map.
--- @param path Path to the map file.
--- @param plugins A list of plugins to load.
+--- Instance a new map
+-- @param path Path to the map file
+-- @param plugins A list of plugins to load
 -- @return nil
 function Map:init(path, plugins)
 	if type(plugins) == "table" then
@@ -57,8 +60,8 @@ function Map:init(path, plugins)
 	end
 end
 
---- Load plugins.
--- @param plugins A list of plugins to load.
+--- Load plugins
+-- @param plugins A list of plugins to load
 -- @return nil
 function Map:loadPlugins(plugins)
 	for _, plugin in ipairs(plugins) do
@@ -74,10 +77,10 @@ function Map:loadPlugins(plugins)
 	end
 end
 
---- Create Tiles.
--- @param index Index of the Tileset.
--- @param tileset Tileset data.
--- @param gid First Global ID in Tileset.
+--- Create Tiles
+-- @param index Index of the Tileset
+-- @param tileset Tileset data
+-- @param gid First Global ID in Tileset
 -- @return number Next Tileset's first Global ID
 function Map:setTiles(index, tileset, gid)
 	local function getTiles(i, t, m, s)
@@ -157,9 +160,9 @@ function Map:setTiles(index, tileset, gid)
 	return gid
 end
 
---- Create Layers.
--- @param layer Layer data.
--- @param path (Optional) Path to an Image Layer's image.
+--- Create Layers
+-- @param layer Layer data
+-- @param path (Optional) Path to an Image Layer's image
 -- @return nil
 function Map:setLayer(layer, path)
 	layer.x      = layer.x or 0
@@ -189,8 +192,8 @@ function Map:setLayer(layer, path)
 	self.layers[layer.name] = layer
 end
 
---- Add Tiles to Tile Layer.
--- @param layer The Tile Layer.
+--- Add Tiles to Tile Layer
+-- @param layer The Tile Layer
 -- @return nil
 function Map:setTileData(layer)
 	local i   = 1
@@ -212,8 +215,8 @@ function Map:setTileData(layer)
 	layer.data = map
 end
 
---- Add Objects to Layer.
--- @param layer The Object Layer.
+--- Add Objects to Layer
+-- @param layer The Object Layer
 -- @return nil
 function Map:setObjectData(layer)
 	for _, object in ipairs(layer.objects) do
@@ -221,8 +224,8 @@ function Map:setObjectData(layer)
 	end
 end
 
---- Correct position and orientation of Objects in an Object Layer.
--- @param layer The Object Layer.
+--- Correct position and orientation of Objects in an Object Layer
+-- @param layer The Object Layer
 -- @return nil
 function Map:setObjectCoordinates(layer)
 	local function convertEllipseToPolygon(x, y, w, h, max_segments)
@@ -354,8 +357,8 @@ function Map:setObjectCoordinates(layer)
 	end
 end
 
---- Batch Tiles in Tile Layer for improved draw speed.
--- @param layer The Tile Layer.
+--- Batch Tiles in Tile Layer for improved draw speed
+-- @param layer The Tile Layer
 -- @return nil
 function Map:setSpriteBatches(layer)
 	local newBatch = love.graphics.newSpriteBatch
@@ -441,8 +444,8 @@ function Map:setSpriteBatches(layer)
 	layer.batches = batches
 end
 
---- Batch Tiles in Object Layer for improved draw speed.
--- @param layer The Object Layer.
+--- Batch Tiles in Object Layer for improved draw speed
+-- @param layer The Object Layer
 -- @return nil
 function Map:setObjectSpriteBatches(layer)
 	local newBatch = love.graphics.newSpriteBatch
@@ -478,11 +481,11 @@ function Map:setObjectSpriteBatches(layer)
 	layer.batches = batches
 end
 
---- Only draw what is visible on screen for improved draw speed.
--- @param tx Translate X axis (in pixels).
--- @param ty Translate Y axis (in pixels).
--- @param w Width of screen (in pixels).
--- @param h Height of screen (in pixels).
+--- Only draw what is visible on screen for improved draw speed
+-- @param tx Translate X axis (in pixels)
+-- @param ty Translate Y axis (in pixels)
+-- @param w Width of screen (in pixels)
+-- @param h Height of screen (in pixels)
 -- @return nil
 function Map:setDrawRange(tx, ty, w, h)
 	local tw, th = self.tilewidth, self.tileheight
@@ -513,9 +516,9 @@ function Map:setDrawRange(tx, ty, w, h)
 	}
 end
 
---- Create a Custom Layer to place userdata in (such as player sprites).
--- @param name Name of Custom Layer.
--- @param index Draw order within Layer stack.
+--- Create a Custom Layer to place userdata in (such as player sprites)
+-- @param name Name of Custom Layer
+-- @param index Draw order within Layer stack
 -- @return table Custom Layer
 function Map:addCustomLayer(name, index)
 	local layer = {
@@ -535,8 +538,8 @@ function Map:addCustomLayer(name, index)
 	return layer
 end
 
---- Convert another Layer into a Custom Layer.
--- @param index Index or name of Layer to convert.
+--- Convert another Layer into a Custom Layer
+-- @param index Index or name of Layer to convert
 -- @return table Custom Layer
 function Map:convertToCustomLayer(index)
 	local layer = assert(self.layers[index], "Layer not found: " .. index)
@@ -557,8 +560,8 @@ function Map:convertToCustomLayer(index)
 	return layer
 end
 
---- Remove a Layer from the Layer stack.
--- @param index Index or name of Layer to convert.
+--- Remove a Layer from the Layer stack
+-- @param index Index or name of Layer to convert
 -- @return nil
 function Map:removeLayer(index)
 	local layer = assert(self.layers[index], "Layer not found: " .. index)
@@ -578,8 +581,8 @@ function Map:removeLayer(index)
 	end
 end
 
---- Animate Tiles and update every Layer.
--- @param dt Delta Time.
+--- Animate Tiles and update every Layer
+-- @param dt Delta Time
 -- @return nil
 function Map:update(dt)
 	for gid, tile in pairs( self.tiles ) do
@@ -612,7 +615,7 @@ function Map:update(dt)
 	end
 end
 
---- Draw every Layer.
+--- Draw every Layer
 -- @return nil
 function Map:draw()
 	local current_canvas = love.graphics.getCanvas()
@@ -637,8 +640,8 @@ function Map:draw()
 	love.graphics.pop()
 end
 
---- Draw an individual Layer.
--- @param layer The Layer to draw.
+--- Draw an individual Layer
+-- @param layer The Layer to draw
 -- @return nil
 function Map:drawLayer(layer)
 	love.graphics.setColor(255, 255, 255, 255 * layer.opacity)
@@ -646,8 +649,8 @@ function Map:drawLayer(layer)
 	love.graphics.setColor(255, 255, 255, 255)
 end
 
---- Default draw function for Tile Layers.
--- @param layer The Tile Layer to draw.
+--- Default draw function for Tile Layers
+-- @param layer The Tile Layer to draw
 -- @return nil
 function Map:drawTileLayer(layer)
 	if type(layer) == "string" or type(layer) == "number" then
@@ -680,8 +683,8 @@ function Map:drawTileLayer(layer)
 	end
 end
 
---- Default draw function for Object Layers.
--- @param layer The Object Layer to draw.
+--- Default draw function for Object Layers
+-- @param layer The Object Layer to draw
 -- @return nil
 function Map:drawObjectLayer(layer)
 	if type(layer) == "string" or type(layer) == "number" then
@@ -757,8 +760,8 @@ function Map:drawObjectLayer(layer)
 	end
 end
 
---- Default draw function for Image Layers.
--- @param layer The Image Layer to draw.
+--- Default draw function for Image Layers
+-- @param layer The Image Layer to draw
 -- @return nil
 function Map:drawImageLayer(layer)
 	if type(layer) == "string" or type(layer) == "number" then
@@ -772,9 +775,9 @@ function Map:drawImageLayer(layer)
 	end
 end
 
---- Resize the drawable area of the Map.
--- @param w The new width of the drawable area (in pixels).
--- @param h The new Height of the drawable area (in pixels).
+--- Resize the drawable area of the Map
+-- @param w The new width of the drawable area (in pixels)
+-- @param h The new Height of the drawable area (in pixels)
 -- @return nil
 function Map:resize(w, h)
 	w = w or love.graphics.getWidth()
@@ -784,8 +787,8 @@ function Map:resize(w, h)
 	self.canvas:setFilter("nearest", "nearest")
 end
 
---- Create flipped or rotated Tiles based on bitop flags.
--- @param gid The flagged Global ID.
+--- Create flipped or rotated Tiles based on bitop flags
+-- @param gid The flagged Global ID
 -- @return table Flipped Tile
 function Map:setFlippedGID(gid)
 	local bit31   = 2147483648
@@ -858,8 +861,8 @@ function Map:setFlippedGID(gid)
 	return self.tiles[gid]
 end
 
---- Get custom properties from Layer.
--- @param layer The Layer.
+--- Get custom properties from Layer
+-- @param layer The Layer
 -- @return table List of properties
 function Map:getLayerProperties(layer)
 	local l = self.layers[layer]
@@ -869,10 +872,10 @@ function Map:getLayerProperties(layer)
 	return l.properties
 end
 
---- Get custom properties from Tile.
--- @param layer The Layer that the Tile belongs to.
--- @param x The X axis location of the Tile (in tiles).
--- @param y The Y axis location of the Tile (in tiles).
+--- Get custom properties from Tile
+-- @param layer The Layer that the Tile belongs to
+-- @param x The X axis location of the Tile (in tiles)
+-- @param y The Y axis location of the Tile (in tiles)
 -- @return table List of properties
 function Map:getTileProperties(layer, x, y)
 	local tile = self.layers[layer].data[y][x]
@@ -882,9 +885,9 @@ function Map:getTileProperties(layer, x, y)
 	return tile.properties
 end
 
---- Get custom properties from Object.
--- @param layer The Layer that the Object belongs to.
--- @param object The index or name of the Object.
+--- Get custom properties from Object
+-- @param layer The Layer that the Object belongs to
+-- @param object The index or name of the Object
 -- @return table List of properties
 function Map:getObjectProperties(layer, object)
 	local o = self.layers[layer].objects
@@ -905,11 +908,11 @@ function Map:getObjectProperties(layer, object)
 	return o.properties
 end
 
---- Project isometric position to orthoganal position.
--- @param x The X axis location of the point (in pixels).
--- @param y The Y axis location of the point (in pixels).
--- @return number The X axis location of the point (in pixels).
--- @return number The Y axis location of the point (in pixels).
+--- Project isometric position to orthoganal position
+-- @param x The X axis location of the point (in pixels)
+-- @param y The Y axis location of the point (in pixels)
+-- @return number The X axis location of the point (in pixels)
+-- @return number The Y axis location of the point (in pixels)
 function Map:convertIsometricToScreen(x, y)
 	local mw = self.width
 	local tw = self.tilewidth
@@ -921,11 +924,11 @@ function Map:convertIsometricToScreen(x, y)
 	return sx, sy
 end
 
---- Project orthoganal position to isometric position.
--- @param x The X axis location of the point (in pixels).
--- @param y The Y axis location of the point (in pixels).
--- @return number The X axis location of the point (in pixels).
--- @return number The Y axis location of the point (in pixels).
+--- Project orthoganal position to isometric position
+-- @param x The X axis location of the point (in pixels)
+-- @param y The Y axis location of the point (in pixels)
+-- @return number The X axis location of the point (in pixels)
+-- @return number The Y axis location of the point (in pixels)
 function Map:convertScreenToIsometric(x, y)
 	local mw = self.width
 	local mh = self.height
@@ -939,11 +942,11 @@ function Map:convertScreenToIsometric(x, y)
 	return tx, ty
 end
 
---- Convert orthoganal tile space to screen space.
--- @param x The X axis location of the point (in tiles).
--- @param y The Y axis location of the point (in tiles).
--- @return number The X axis location of the point (in pixels).
--- @return number The Y axis location of the point (in pixels).
+--- Convert orthoganal tile space to screen space
+-- @param x The X axis location of the point (in tiles)
+-- @param y The Y axis location of the point (in tiles)
+-- @return number The X axis location of the point (in pixels)
+-- @return number The Y axis location of the point (in pixels)
 function Map:convertTileToScreen(x, y)
 	local tw = self.tilewidth
 	local th = self.tileheight
@@ -953,11 +956,11 @@ function Map:convertTileToScreen(x, y)
 	return sx, sy
 end
 
---- Convert orthoganal screen space to tile space.
--- @param x The X axis location of the point (in pixels).
--- @param y The Y axis location of the point (in pixels).
--- @return number The X axis location of the point (in tiles).
--- @return number The Y axis location of the point (in tiles).
+--- Convert orthoganal screen space to tile space
+-- @param x The X axis location of the point (in pixels)
+-- @param y The Y axis location of the point (in pixels)
+-- @return number The X axis location of the point (in tiles)
+-- @return number The Y axis location of the point (in tiles)
 function Map:convertScreenToTile(x, y)
 	local tw = self.tilewidth
 	local th = self.tileheight
@@ -967,11 +970,11 @@ function Map:convertScreenToTile(x, y)
 	return tx, ty
 end
 
---- Convert isometric tile space to screen space.
--- @param x The X axis location of the point (in tiles).
--- @param y The Y axis location of the point (in tiles).
--- @return number The X axis location of the point (in pixels).
--- @return number The Y axis location of the point (in pixels).
+--- Convert isometric tile space to screen space
+-- @param x The X axis location of the point (in tiles)
+-- @param y The Y axis location of the point (in tiles)
+-- @return number The X axis location of the point (in pixels)
+-- @return number The Y axis location of the point (in pixels)
 function Map:convertIsometricTileToScreen(x, y)
 	local mw = self.width
 	local tw = self.tilewidth
@@ -983,11 +986,11 @@ function Map:convertIsometricTileToScreen(x, y)
 	return sx, sy
 end
 
---- Convert isometric screen space to tile space.
--- @param x The X axis location of the point (in pixels).
--- @param y The Y axis location of the point (in pixels).
--- @return number The X axis location of the point (in tiles).
--- @return number The Y axis location of the point (in tiles).
+--- Convert isometric screen space to tile space
+-- @param x The X axis location of the point (in pixels)
+-- @param y The Y axis location of the point (in pixels)
+-- @return number The X axis location of the point (in tiles)
+-- @return number The Y axis location of the point (in tiles)
 function Map:convertScreenToIsometricTile(x, y)
 	local mw = self.width
 	local tw = self.tilewidth
@@ -999,11 +1002,11 @@ function Map:convertScreenToIsometricTile(x, y)
 	return tx, ty
 end
 
---- Convert staggered isometric tile space to screen space.
--- @param x The X axis location of the point (in tiles).
--- @param y The Y axis location of the point (in tiles).
--- @return number The X axis location of the point (in pixels).
--- @return number The Y axis location of the point (in pixels).
+--- Convert staggered isometric tile space to screen space
+-- @param x The X axis location of the point (in tiles)
+-- @param y The Y axis location of the point (in tiles)
+-- @return number The X axis location of the point (in pixels)
+-- @return number The Y axis location of the point (in pixels)
 function Map:convertStaggeredTileToScreen(x, y)
 	local tw = self.tilewidth
 	local th = self.tileheight
@@ -1013,11 +1016,11 @@ function Map:convertStaggeredTileToScreen(x, y)
 	return sx, sy
 end
 
---- Convert staggered isometric screen space to tile space.
--- @param x The X axis location of the point (in pixels).
--- @param y The Y axis location of the point (in pixels).
--- @return number The X axis location of the point (in tiles).
--- @return number The Y axis location of the point (in tiles).
+--- Convert staggered isometric screen space to tile space
+-- @param x The X axis location of the point (in pixels)
+-- @param y The Y axis location of the point (in pixels)
+-- @return number The X axis location of the point (in tiles)
+-- @return number The Y axis location of the point (in tiles)
 function Map:convertScreenToStaggeredTile(x, y)
 	local function topLeft(x, y)
 		if (math.ceil(y) % 2) then
@@ -1076,3 +1079,153 @@ function Map:convertScreenToStaggeredTile(x, y)
 end
 
 return Map
+
+--- A list of individual layers indexed both by draw order and name
+-- @table Map.layers
+-- @see TileLayer
+-- @see ObjectLayer
+-- @see ImageLayer
+-- @see CustomLayer
+
+--- A list of individual tiles indexed by Global ID
+-- @table Map.tiles
+-- @see Tile
+-- @see Map.tileInstances
+
+--- A list of tile instances indexed by Global ID
+-- @table Map.tileInstances
+-- @see TileInstance
+-- @see Tile
+-- @see Map.tiles
+
+--- A list of individual objects indexed by Global ID
+-- @table Map.objects
+-- @see Object
+
+--- @table TileLayer
+-- @field name The name of the layer
+-- @field x Position on the X axis (in pixels)
+-- @field y Position on the Y axis (in pixels)
+-- @field width Width of layer (in tiles)
+-- @field height Height of layer (in tiles)
+-- @field visible Toggle if layer is visible or hidden
+-- @field opacity Opacity of layer
+-- @field properties Custom properties
+-- @field data A two dimensional table filled with individual tiles indexed by [y][x] (in tiles)
+-- @field update Update function
+-- @field draw Draw function
+-- @see Map.layers
+-- @see Tile
+
+--- @table ObjectLayer
+-- @field name The name of the layer
+-- @field x Position on the X axis (in pixels)
+-- @field y Position on the Y axis (in pixels)
+-- @field visible Toggle if layer is visible or hidden
+-- @field opacity Opacity of layer
+-- @field properties Custom properties
+-- @field objects List of objects indexed by draw order
+-- @field update Update function
+-- @field draw Draw function
+-- @see Map.layers
+-- @see Object
+
+--- @table ImageLayer
+-- @field name The name of the layer
+-- @field x Position on the X axis (in pixels)
+-- @field y Position on the Y axis (in pixels)
+-- @field visible Toggle if layer is visible or hidden
+-- @field opacity Opacity of layer
+-- @field properties Custom properties
+-- @field image Image to be drawn
+-- @field update Update function
+-- @field draw Draw function
+-- @see Map.layers
+
+--- Custom Layers are used to place userdata such as sprites within the draw order of the map.
+-- @table CustomLayer
+-- @field name The name of the layer
+-- @field x Position on the X axis (in pixels)
+-- @field y Position on the Y axis (in pixels)
+-- @field visible Toggle if layer is visible or hidden
+-- @field opacity Opacity of layer
+-- @field properties Custom properties
+-- @field update Update function
+-- @field draw Draw function
+-- @see Map.layers
+-- @usage
+--	-- Create a Custom Layer
+--	local spriteLayer = map:addCustomLayer("Sprite Layer", 3)
+--
+--	-- Add data to Custom Layer
+--	spriteLayer.sprites = {
+--		player = {
+--			image = love.graphics.newImage("assets/sprites/player.png"),
+--			x = 64,
+--			y = 64,
+--			r = 0,
+--		}
+--	}
+--
+--	-- Update callback for Custom Layer
+--	function spriteLayer:update(dt)
+--		for _, sprite in pairs(self.sprites) do
+--			sprite.r = sprite.r + math.rad(90 * dt)
+--		end
+--	end
+--
+--	-- Draw callback for Custom Layer
+--	function spriteLayer:draw()
+--		for _, sprite in pairs(self.sprites) do
+--			local x = math.floor(sprite.x)
+--			local y = math.floor(sprite.y)
+--			local r = sprite.r
+--			love.graphics.draw(sprite.image, x, y, r)
+--		end
+--	end
+
+--- @table Tile
+-- @field id Local ID within Tileset
+-- @field gid Global ID
+-- @field tileset Tileset ID
+-- @field quad Quad object
+-- @field properties Custom properties
+-- @field terrain Terrain data
+-- @field animation Animation data
+-- @field frame Current animation frame
+-- @field time Time spent on current animation frame
+-- @field width Width of tile
+-- @field height Height of tile
+-- @field sx Scale value on the X axis
+-- @field sy Scale value on the Y axis
+-- @field r Rotation of tile (in radians)
+-- @field offset Offset drawing position
+-- @field offset.x Offset value on the X axis
+-- @field offset.y Offset value on the Y axis
+-- @see Map.tiles
+
+--- @table TileInstance
+-- @field batch Spritebatch the Tile Instance belongs to
+-- @field id ID within the spritebatch
+-- @field gid Global ID
+-- @field x Position on the X axis (in pixels)
+-- @field y Position on the Y axis (in pixels)
+-- @see Map.tileInstances
+-- @see Tile
+
+--- @table Object
+-- @field id Global ID
+-- @field name Name of object (non-unique)
+-- @field shape Shape of object
+-- @field x Position of object on X axis (in pixels)
+-- @field y Position of object on Y axis (in pixels)
+-- @field width Width of object (in pixels)
+-- @field height Heigh tof object (in pixels)
+-- @field rotation Rotation of object (in radians)
+-- @field visible Toggle if object is visible or hidden
+-- @field properties Custom properties
+-- @field ellipse List of verticies of specific shape
+-- @field rectangle List of verticies of specific shape
+-- @field polygon List of verticies of specific shape
+-- @field polyline List of verticies of specific shape
+-- @see Map.objects

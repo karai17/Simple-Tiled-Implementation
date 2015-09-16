@@ -1,3 +1,7 @@
+--- Box2D plugin for STI
+-- @module box2d
+-- @usage Create a custom property named "collidable" in any layer, tile, or object with the value set to "true".
+
 return {
 	--- Initialize Box2D physics world.
 	-- @param world The Box2D world to add objects to.
