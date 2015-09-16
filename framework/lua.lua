@@ -1,6 +1,7 @@
 local lf = love.filesystem
 local lg = love.graphics
 local lm = love.math
+local lp = love.physics
 local framework = {}
 
 framework.version = "Lua"
@@ -25,6 +26,9 @@ function framework:newCanvas(w, h)
 	return canvas
 end
 
+-- Filesystem Calls
+framework.isFile = lf.isFile
+
 -- Graphics Calls
 framework.draw           = lg.draw
 framework.getCanvas      = lg.getCanvas
@@ -44,5 +48,14 @@ framework.push           = lg.push
 -- Math Calls
 framework.isConvex    = lm.isConvex
 framework.triangulate = lm.triangulate
+
+-- Physics Calls
+if lp then
+	framework.getMeter        = lp.getMeter
+	framework.newBody         = lp.newBody
+	framework.newChainShape   = lp.newChainShape
+	framework.newFixture      = lp.newFixture
+	framework.newPolygonShape = lp.newPolygonShape
+end
 
 return framework

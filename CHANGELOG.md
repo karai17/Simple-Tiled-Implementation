@@ -1,5 +1,12 @@
 # Change Log
 
+## 2015-09-16: v0.13.1.1
+
+* Added: LDoc documentation
+* Added: Plugin system where devs can extend STI
+* Added: Reinstated the Box2D integration as a plugin
+
+
 ## 2015-09-15: v0.13.1.0
 
 * Added: Map:convertToCustomLayer() now returns the layer

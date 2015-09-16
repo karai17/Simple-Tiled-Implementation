@@ -13,8 +13,18 @@ function love.load()
 	windowWidth  = love.graphics.getWidth()
 	windowHeight = love.graphics.getHeight()
 
+	-- Set world meter size (in pixels)
+	love.physics.setMeter(32)
+
 	-- Load a map exported to Lua from Tiled
-	map = sti.new("assets/maps/map01.lua")
+	-- This example uses default Box2D plugin.
+	map = sti.new("assets/maps/map01.lua", { "box2d" })
+
+	-- Prepare physics world with horizontal and vertical gravity
+	world = love.physics.newWorld(0, 0)
+
+	-- Prepare collision objects
+	collision = map:initWorldCollision(world)
 
 	-- Create a Custom Layer
 	map:addCustomLayer("Sprite Layer", 3)
@@ -62,6 +72,10 @@ function love.draw()
 
 	-- Draw the map and all objects within
 	map:draw()
+
+	-- Draw Collision Map (useful for debugging)
+	love.graphics.setColor(255, 0, 0, 255)
+	map:drawWorldCollision(collision)
 
 	-- Reset color
 	love.graphics.setColor(255, 255, 255, 255)
