@@ -7,7 +7,7 @@ return {
 	-- @param world The Box2D world to add objects to.
 	-- @return table List of collision objects
 	box2d_init = function(map, world)
-		assert(love.physics.newBody, "To use the built-in collision system, please enable the physics module.")
+		assert(love.physics, "To use the built-in collision system, please enable the physics module.")
 
 		local body      = love.physics.newBody(world)
 		local collision = {

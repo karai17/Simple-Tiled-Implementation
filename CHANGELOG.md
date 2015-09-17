@@ -1,5 +1,10 @@
 # Change Log
 
+## 2015-09-17: v0.13.1.4
+
+* Changed: sanity checks now search for love.physics instead of love.physics.*
+
+
 ## 2015-09-16: v0.13.1.3
 
 * Changed: Improved documentation

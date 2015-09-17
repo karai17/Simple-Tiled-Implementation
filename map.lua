@@ -245,7 +245,7 @@ function Map:setObjectCoordinates(layer)
 			local v = { 1, 2, math.ceil(segments/4-1), math.ceil(segments/4) }
 
 			local m
-			if love.physics.getMeter then
+			if love.physics then
 				m = love.physics.getMeter()
 			else
 				m = 32
