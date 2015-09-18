@@ -14,6 +14,64 @@ return {
 			body = body,
 		}
 
+		local function convertEllipseToPolygon(x, y, w, h, max_segments)
+			local function calc_segments(segments)
+				local function vdist(a, b)
+					local c = {
+						x = a.x - b.x,
+						y = a.y - b.y,
+					}
+
+					return c.x * c.x + c.y * c.y
+				end
+
+				segments = segments or 64
+				local vertices = {}
+
+				local v = { 1, 2, math.ceil(segments/4-1), math.ceil(segments/4) }
+
+				local m
+				if love.physics then
+					m = love.physics.getMeter()
+				else
+					m = 32
+				end
+
+				for _, i in ipairs(v) do
+					local angle = (i / segments) * math.pi * 2
+					local px    = x + w / 2 + math.cos(angle) * w / 2
+					local py    = y + h / 2 + math.sin(angle) * h / 2
+
+					table.insert(vertices, { x = px / m, y = py / m })
+				end
+
+				local dist1 = vdist(vertices[1], vertices[2])
+				local dist2 = vdist(vertices[3], vertices[4])
+
+				-- Box2D threshold
+				if dist1 < 0.0025 or dist2 < 0.0025 then
+					return calc_segments(segments-2)
+				end
+
+				return segments
+			end
+
+			local segments = calc_segments(max_segments)
+			local vertices = {}
+
+			table.insert(vertices, { x = x + w / 2, y = y + h / 2 })
+
+			for i=0, segments do
+				local angle = (i / segments) * math.pi * 2
+				local px    = x + w / 2 + math.cos(angle) * w / 2
+				local py    = y + h / 2 + math.sin(angle) * h / 2
+
+				table.insert(vertices, { x = px, y = py })
+			end
+
+			return vertices
+		end
+
 		local function rotateVertex(v, x, y, cos, sin)
 			local vertex = {
 				x = v.x,
