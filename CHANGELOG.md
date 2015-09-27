@@ -1,5 +1,12 @@
 # Change Log
 
+## 2015-09-27: v0.14.0.0
+
+* Added: Hexagonal map support (thanks EntranceJew!)
+* Added: Error message for compressed maps
+* Fixed: box2d plugin threw an error in some cases (thanks maxha651!)
+
+
 ## 2015-09-17: v0.13.1.4
 
 * Changed: sanity checks now search for love.physics instead of love.physics.*

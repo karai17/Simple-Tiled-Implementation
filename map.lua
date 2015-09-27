@@ -33,6 +33,10 @@ function Map:init(path, plugins)
 		self:loadPlugins(plugins)
 	end
 
+	if self.orientation == "hexagonal" then
+		self.tilewidth = self.tilewidth - 1
+	end
+
 	self:resize()
 	self.objects       = {}
 	self.tiles         = {}
@@ -165,6 +169,10 @@ end
 -- @param path (Optional) Path to an Image Layer's image
 -- @return nil
 function Map:setLayer(layer, path)
+	if layer.encoding then
+		assert(layer.encoding == "lua", "STI does not support compressed map data.\nPlease set your Tile Layer Format to \"CSV\".")
+	end
+
 	layer.x      = layer.x or 0
 	layer.y      = layer.y or 0
 	layer.update = function(dt) return end
