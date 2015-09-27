@@ -424,7 +424,7 @@ function Map:setSpriteBatches(layer)
 				elseif self.orientation == "isometric" then
 					tx = (x - y) * (tw / 2) + tile.offset.x + layer.width * tw / 2
 					ty = (x + y) * (th / 2) + tile.offset.y
-				elseif self.orientation == "staggered" then
+				elseif self.orientation == "staggered" or self.orientation == "hexagonal" then
 					if y % 2 == 0 then
 						tx = x * tw + tw / 2 + tile.offset.x
 					else
@@ -501,7 +501,7 @@ function Map:setDrawRange(tx, ty, w, h)
 		sy = math.ceil(((ty / (th / 2)) - (tx / (tw / 2))) / 2 - h / th)
 		ex = math.ceil(sx + (h / th) + (w / tw))
 		ey = math.ceil(sy + (h / th) * 2 + (w / tw))
-	elseif self.orientation == "staggered" then
+	elseif self.orientation == "staggered" or self.orientation == "hexagonal" then
 		sx = math.ceil(tx / tw - 1)
 		sy = math.ceil(ty / th)
 		ex = math.ceil(sx + w / tw + 1)
