@@ -1,5 +1,10 @@
 # Change Log
 
+## 2015-09-28: v0.14.0.1
+
+* Added: Support for all staggered types (x/y, even/odd, iso/hex)
+
+
 ## 2015-09-27: v0.14.0.0
 
 * Added: Hexagonal map support (thanks EntranceJew!)

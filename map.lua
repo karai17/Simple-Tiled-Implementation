@@ -33,10 +33,6 @@ function Map:init(path, plugins)
 		self:loadPlugins(plugins)
 	end
 
-	if self.orientation == "hexagonal" then
-		self.tilewidth = self.tilewidth - 1
-	end
-
 	self:resize()
 	self.objects       = {}
 	self.tiles         = {}
@@ -433,13 +429,47 @@ function Map:setSpriteBatches(layer)
 					tx = (x - y) * (tw / 2) + tile.offset.x + layer.width * tw / 2
 					ty = (x + y) * (th / 2) + tile.offset.y
 				elseif self.orientation == "staggered" or self.orientation == "hexagonal" then
-					if y % 2 == 0 then
-						tx = x * tw + tw / 2 + tile.offset.x
-					else
-						tx = x * tw + tile.offset.x
-					end
+					if self.staggeraxis == "y" then
+						if self.staggerindex == "odd" then
+							if y % 2 == 0 then
+								tx = x * tw + tw / 2 + (self.hexsidelength or 0) + tile.offset.x
+							else
+								tx = x * tw + (self.hexsidelength or 0) + tile.offset.x
+							end
+						else
+							if y % 2 == 0 then
+								tx = x * tw + (self.hexsidelength or 0) + tile.offset.x
+							else
+								tx = x * tw + tw / 2 + (self.hexsidelength or 0) + tile.offset.x
+							end
+						end
 
-					ty = y * th / 2 + tile.offset.y + th / 2
+						if self.orientation == "hexagonal" then
+							ty = y * (th - (th - self.hexsidelength) / 2) + tile.offset.y + (th - (th - self.hexsidelength) / 2)
+						else
+							ty = y * th / 2 + tile.offset.y + th / 2
+						end
+					else
+						if self.staggerindex == "odd" then
+							if x % 2 == 0 then
+								ty = y * th + th / 2 + (self.hexsidelength or 0) + tile.offset.y
+							else
+								ty = y * th + (self.hexsidelength or 0) + tile.offset.y
+							end
+						else
+							if x % 2 == 0 then
+								ty = y * th + (self.hexsidelength or 0) + tile.offset.y
+							else
+								ty = y * th + th / 2 + (self.hexsidelength or 0) + tile.offset.y
+							end
+						end
+
+						if self.orientation == "hexagonal" then
+							tx = x * (tw - (tw - self.hexsidelength) / 2) + tile.offset.x + (tw - (tw - self.hexsidelength) / 2)
+						else
+							tx = x * tw / 2 + tile.offset.x + tw / 2
+						end
+					end
 				end
 
 				id = batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
