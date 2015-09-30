@@ -1,5 +1,11 @@
 # Change Log
 
+## 2015-09-30: v0.14.1.0
+
+* Added: support for Base64 compressed maps (requires LuaJIT)
+* Added: support for zlib compressed maps (requires LOVE 0.10.0+)
+
+
 ## 2015-09-28: v0.14.0.1
 
 * Added: Support for all staggered types (x/y, even/odd, iso/hex)

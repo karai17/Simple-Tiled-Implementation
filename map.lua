@@ -166,7 +166,37 @@ end
 -- @return nil
 function Map:setLayer(layer, path)
 	if layer.encoding then
-		assert(layer.encoding == "lua", "STI does not support compressed map data.\nPlease set your Tile Layer Format to \"CSV\".")
+		if layer.encoding == "base64" then
+			local ffi = assert(require "ffi", "Compressed maps require LuaJIT FFI.\nPlease Switch your interperator to LuaJIT or your Tile Layer Format to \"CSV\".")
+			local fd  = love.filesystem.newFileData(layer.data, "data", "base64"):getString()
+
+			local function getDecompressedData(data)
+				local d       = {}
+				local decoded = ffi.cast("uint32_t*", data)
+
+				for i=0, data:len() / ffi.sizeof("uint32_t") do
+					table.insert(d, tonumber(decoded[i]))
+				end
+
+				return d
+			end
+
+			if not layer.compression then
+				layer.data = getDecompressedData(fd)
+			end
+
+			if layer.compression == "zlib" then
+				assert(love.math.decompress, "zlib compression requires LOVE 0.10.0+.\nPlease set your Tile Layer Format to \"CSV\".")
+				local data = love.math.decompress(fd, "zlib")
+				layer.data = getDecompressedData(data)
+			end
+
+			if layer.compression == "gzip" then
+				error("STI does not support gzip compressed map data.\nPlease set your Tile Layer Format to something else.")
+				local data = love.math.decompress(fd, "gzip")
+				layer.data = getDecompressedData(data)
+			end
+		end
 	end
 
 	layer.x      = layer.x or 0
