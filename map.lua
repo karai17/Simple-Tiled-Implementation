@@ -185,14 +185,14 @@ function Map:setLayer(layer, path)
 				layer.data = getDecompressedData(fd)
 			end
 
+			assert(love.math.decompress, "zlib and gzip compression require LOVE 0.10.0+.\nPlease set your Tile Layer Format to \"Base64 (uncompressed)\" or \"CSV\".")
+
 			if layer.compression == "zlib" then
-				assert(love.math.decompress, "zlib compression requires LOVE 0.10.0+.\nPlease set your Tile Layer Format to \"CSV\".")
 				local data = love.math.decompress(fd, "zlib")
 				layer.data = getDecompressedData(data)
 			end
 
 			if layer.compression == "gzip" then
-				error("STI does not support gzip compressed map data.\nPlease set your Tile Layer Format to something else.")
 				local data = love.math.decompress(fd, "gzip")
 				layer.data = getDecompressedData(data)
 			end

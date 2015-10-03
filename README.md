@@ -1,7 +1,6 @@
 # Simple Tiled Implementation
 
-Simple Tiled Implementation is a [**Tiled Map Editor**][Tiled] library designed for the *awesome* [**LÖVE**][LOVE] framework. Please read the library [**documentation**][dox] to learn how it all works!
-
+Simple Tiled Implementation is a [**Tiled**][Tiled] map loader and renderer designed for the *awesome* [**LÖVE**][LOVE] framework. Please read the [**documentation**][dox] to learn how it works!
 
 ## Quick Example
 
@@ -82,15 +81,13 @@ function love.draw()
 end
 ```
 
-
 ## Requirements
 
-This library requires LÖVE 0.9.2 and Tiled 0.13.1. If you are updating from an older version of Tiled, please re-export your Lua map files.
-
+This library requires LÖVE 0.9.2 or 0.10.0 and Tiled 0.14.1. If you are updating from an older version of Tiled, please re-export your Lua map files.
 
 ## License
 
-This code is licensed under the [**MIT Open Source License**][MIT]. Check out the LICENSE file for more information.
+This code is licensed under the [**MIT/X11 Open Source License**][MIT]. Check out the LICENSE file for more information.
 
 [Tiled]: http://www.mapeditor.org/
 [LOVE]: https://www.love2d.org/
