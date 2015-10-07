@@ -183,18 +183,18 @@ function Map:setLayer(layer, path)
 
 			if not layer.compression then
 				layer.data = getDecompressedData(fd)
-			end
+			else
+				assert(love.math.decompress, "zlib and gzip compression require LOVE 0.10.0+.\nPlease set your Tile Layer Format to \"Base64 (uncompressed)\" or \"CSV\".")
 
-			assert(love.math.decompress, "zlib and gzip compression require LOVE 0.10.0+.\nPlease set your Tile Layer Format to \"Base64 (uncompressed)\" or \"CSV\".")
+				if layer.compression == "zlib" then
+					local data = love.math.decompress(fd, "zlib")
+					layer.data = getDecompressedData(data)
+				end
 
-			if layer.compression == "zlib" then
-				local data = love.math.decompress(fd, "zlib")
-				layer.data = getDecompressedData(data)
-			end
-
-			if layer.compression == "gzip" then
-				local data = love.math.decompress(fd, "gzip")
-				layer.data = getDecompressedData(data)
+				if layer.compression == "gzip" then
+					local data = love.math.decompress(fd, "gzip")
+					layer.data = getDecompressedData(data)
+				end
 			end
 		end
 	end

@@ -5,6 +5,7 @@
 * Added: support for all render orders (rd, ru, ld, lu)
 * Added: support for sensors in th box2d plugin (only works on individual tiles and objects; sensor = true)
 * Changed: addCustomLayer's index argument is now optional and defaults to the end of the array
+* Fixed: a crash when using Base64 (uncompressed) with LOVE 0.9.2
 
 ## 2015-10-03: v0.14.1.1
 
