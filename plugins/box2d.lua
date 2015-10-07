@@ -1,8 +1,15 @@
 --- Box2D plugin for STI
 -- @module box2d
--- @usage Create a custom property named "collidable" in any layer, tile, or object with the value set to "true".
+-- @author Landon Manning
+-- @copyright 2015
+-- @license MIT/X11
 
 return {
+	box2d_LICENSE     = "MIT/X11",
+	box2d_URL         = "https://github.com/karai17/Simple-Tiled-Implementation",
+	box2d_VERSION     = "2.3.0.0",
+	box2d_DESCRIPTION = "Box2D hooks for STI.",
+
 	--- Initialize Box2D physics world.
 	-- @param world The Box2D world to add objects to.
 	-- @return table List of collision objects
@@ -100,6 +107,10 @@ return {
 
 			fixture:setUserData(userdata)
 
+			if userdata.properties.sensor == "true" then
+				fixture:setSensor(true)
+			end
+
 			local obj = {
 				shape   = shape,
 				fixture = fixture,
@@ -135,12 +146,15 @@ return {
 				polygon = object.polygon or object.polyline or object.ellipse or object.rectangle
 			}
 
-			local t = tile or { x=0, y=0 }
+			local t = {
+				x = tile and tile.x or 0,
+				y = tile and tile.y or 0
+			}
 
 			local userdata = {
-				object   = o,
-				instance = t,
-				tile     = t.gid and map.tiles[t.gid]
+				object     = o,
+				instance   = t,
+				properties = object.properties
 			}
 
 			if o.shape == "rectangle" then
@@ -226,24 +240,26 @@ return {
 			for _, tile in ipairs(tileset.tiles) do
 				local gid = tileset.firstgid + tile.id
 
+				-- Every object in every instance of a tile
 				if tile.objectGroup then
 					if map.tileInstances[gid] then
 						for _, instance in ipairs(map.tileInstances[gid]) do
 							for _, object in ipairs(tile.objectGroup.objects) do
-								-- Every object in every instance of a tile
 								calculateObjectPosition(object, instance)
 							end
 						end
 					end
+
+				-- Every instance of a tile
 				elseif tile.properties and tile.properties.collidable == "true" and map.tileInstances[gid] then
 					for _, instance in ipairs(map.tileInstances[gid]) do
-						-- Every instance of a tile
 						local object = {
-							shape  = "rectangle",
-							x      = 0,
-							y      = 0,
-							width  = tileset.tilewidth,
-							height = tileset.tileheight,
+							shape      = "rectangle",
+							x          = 0,
+							y          = 0,
+							width      = tileset.tilewidth,
+							height     = tileset.tileheight,
+							properties = tile.properties
 						}
 
 						calculateObjectPosition(object, instance)
@@ -253,18 +269,20 @@ return {
 		end
 
 		for _, layer in ipairs(map.layers) do
+			-- Entire layer
 			if layer.properties.collidable == "true" then
-				-- Entire layer
 				if layer.type == "tilelayer" then
 					for y, tiles in ipairs(layer.data) do
 						for x, tile in pairs(tiles) do
 							local object = {
-								shape  = "rectangle",
-								x      = x * map.tilewidth + tile.offset.x,
-								y      = y * map.tileheight + tile.offset.y,
-								width  = tile.width,
-								height = tile.height,
+								shape      = "rectangle",
+								x          = x * map.tilewidth + tile.offset.x,
+								y          = y * map.tileheight + tile.offset.y,
+								width      = tile.width,
+								height     = tile.height,
+								properties = tile.properties
 							}
+
 							calculateObjectPosition(object)
 						end
 					end
@@ -274,20 +292,22 @@ return {
 					end
 				elseif layer.type == "imagelayer" then
 					local object = {
-						shape  = "rectangle",
-						x      = layer.x or 0,
-						y      = layer.y or 0,
-						width  = layer.width,
-						height = layer.height,
+						shape      = "rectangle",
+						x          = layer.x or 0,
+						y          = layer.y or 0,
+						width      = layer.width,
+						height     = layer.height,
+						properties = layer.properties
 					}
+
 					calculateObjectPosition(object)
 				end
 			end
 
+			-- Individual objects
 			if layer.type == "objectgroup" then
 				for _, object in ipairs(layer.objects) do
 					if object.properties.collidable == "true" then
-						-- Individual objects
 						calculateObjectPosition(object)
 					end
 				end
@@ -306,3 +326,8 @@ return {
 		end
 	end,
 }
+
+--- Custom Properties in Tiled are used to tell this plugin what to do.
+-- @table Properties
+-- @field collidable set to "true", can be used on any Layer, Tile, or Object
+-- @field sensor set to "true", can be used on any Tile or Object that is also collidable

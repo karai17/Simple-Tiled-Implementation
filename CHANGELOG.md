@@ -1,5 +1,11 @@
 # Change Log
 
+## 2015-10-07: v0.14.1.2
+
+* Added: support for all render orders (rd, ru, ld, lu)
+* Added: support for sensors in th box2d plugin (only works on individual tiles and objects; sensor = true)
+* Changed: addCustomLayer's index argument is now optional and defaults to the end of the array
+
 ## 2015-10-03: v0.14.1.1
 
 * Added: support for gzip compressed maps (requires LOVE 0.10.0+)
@@ -31,7 +37,7 @@
 
 * Changed: Simplified plugins
 * Changed: Namespaced the box2d plugin
-* Removed: Non-LOVE frameworks (they didn't worked)
+* Removed: Non-LOVE frameworks (they didn't work)
 
 ## 2015-09-16: v0.13.1.1
 

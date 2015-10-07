@@ -132,7 +132,7 @@ function Map:setTiles(index, tileset, gid)
 				gid        = gid,
 				tileset    = index,
 				quad       = quad(qx, qy, tw, th, iw, ih),
-				properties = properties,
+				properties = properties or {},
 				terrain    = terrain,
 				animation  = animation,
 				frame      = 1,
@@ -402,6 +402,22 @@ function Map:setSpriteBatches(layer)
 	local th       = self.tileheight
 	local bw       = math.ceil(w / tw)
 	local bh       = math.ceil(h / th)
+	local sx, sy, ex, ey, ix, iy
+
+	-- Determine order to add tiles to sprite batch
+	if self.renderorder == "right-down" then
+		sx, ex, ix = 1, layer.width,  1
+		sy, ey, iy = 1, layer.height, 1
+	elseif self.renderorder == "right-up" then
+		sx, ex, ix = 1, layer.width,   1
+		sy, ey, iy = layer.height, 1, -1
+	elseif self.renderorder == "left-down" then
+		sx, ex, ix = layer.width, 1, -1
+		sy, ey, iy = 1, layer.height, 1
+	elseif self.renderorder == "left-up" then
+		sx, ex, ix = layer.width,  1, -1
+		sy, ey, iy = layer.height, 1, -1
+	end
 
 	-- Minimum of 400 tiles per batch
 	if bw < 20 then bw = 20 end
@@ -414,10 +430,10 @@ function Map:setSpriteBatches(layer)
 		data   = {},
 	}
 
-	for y = 1, layer.height do
+	for y=sy, ey, iy do
 		local by = math.ceil(y / bh)
 
-		for x = 1, layer.width do
+		for x=sx, ex, ix do
 			local tile = layer.data[y][x]
 			local bx   = math.ceil(x / bw)
 			local id
@@ -589,6 +605,7 @@ end
 -- @param index Draw order within Layer stack
 -- @return table Custom Layer
 function Map:addCustomLayer(name, index)
+	local index = index or #self.layers + 1
 	local layer = {
       type       = "customlayer",
       name       = name,

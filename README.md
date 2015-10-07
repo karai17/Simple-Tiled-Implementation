@@ -1,10 +1,12 @@
 # Simple Tiled Implementation
 
-Simple Tiled Implementation is a [**Tiled**][Tiled] map loader and renderer designed for the *awesome* [**LÖVE**][LOVE] framework. Please read the [**documentation**][dox] to learn how it works!
+Simple Tiled Implementation is a [**Tiled**][Tiled] map loader and renderer designed for the **\*awesome\*** [**LÖVE**][LOVE] framework. Please read the [**documentation**][dox] to learn how it works!
 
 ## Quick Example
 
 ```lua
+-- This example uses the default Box2D (love.physics) plugin!!
+
 local sti = require "sti"
 
 function love.load()
@@ -16,7 +18,6 @@ function love.load()
 	love.physics.setMeter(32)
 
 	-- Load a map exported to Lua from Tiled
-	-- This example uses default Box2D plugin.
 	map = sti.new("assets/maps/map01.lua", { "box2d" })
 
 	-- Prepare physics world with horizontal and vertical gravity
@@ -83,7 +84,7 @@ end
 
 ## Requirements
 
-This library requires LÖVE 0.9.2 or 0.10.0 and Tiled 0.14.1. If you are updating from an older version of Tiled, please re-export your Lua map files.
+This library recommends LÖVE 0.9.2 or 0.10.0 and Tiled 0.14.1. If you are updating from an older version of Tiled, please re-export your Lua map files.
 
 ## License
 
