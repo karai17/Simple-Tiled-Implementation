@@ -24,6 +24,32 @@ local function formatPath(path)
 	return path
 end
 
+-- Compensation for scale/rotation shift
+local function compensate(tile, x, y, tw, th)
+	local tx    = x + tile.offset.x
+	local ty    = y + tile.offset.y
+	local origx = tx
+	local origy = ty
+	local compx = 0
+	local compy = 0
+
+	if tile.sx < 0 then compx = tw end
+	if tile.sy < 0 then compy = th end
+
+	if tile.r > 0 then
+		tx = tx + th - compy
+		ty = ty + th - tw + compx
+	elseif tile.r < 0 then
+		tx = tx + compy
+		ty = ty + th - compx
+	else
+		tx = tx + compx
+		ty = ty + compy
+	end
+
+	return tx, ty
+end
+
 --- Instance a new map
 -- @param path Path to the map file
 -- @param plugins A list of plugins to load
@@ -450,27 +476,7 @@ function Map:setSpriteBatches(layer)
 				local tx, ty, origx, origy
 
 				if self.orientation == "orthogonal" then
-					tx    = x * tw + tile.offset.x
-					ty    = y * th + tile.offset.y
-					origx = tx
-					origy = ty
-
-					-- Compensation for scale/rotation shift
-					local compx = 0
-					local compy = 0
-					if tile.sx < 0 then compx = tw end
-					if tile.sy < 0 then compy = th end
-
-					if tile.r > 0 then
-						tx = tx + th - compy
-						ty = ty + th - tw + compx
-					elseif tile.r < 0 then
-						tx = tx + compy
-						ty = ty + th - compx
-					else
-						tx = tx + compx
-						ty = ty + compy
-					end
+					tx, ty = compensate(tile, x*tw, y*th, tw, th)
 				elseif self.orientation == "isometric" then
 					tx = (x - y) * (tw / 2) + tile.offset.x + layer.width * tw / 2
 					ty = (x + y) * (th / 2) + tile.offset.y
@@ -549,14 +555,15 @@ function Map:setObjectSpriteBatches(layer)
 			local batch = batches[ts]
 			local tx    = object.x + tw + tile.offset.x
 			local ty    = object.y + tile.offset.y
+			local tr    = math.rad(object.rotation)
 
 			-- Compensation for scale/rotation shift
 			if tile.sx < 0 then tx = tx + tw end
 			if tile.sy < 0 then ty = ty + th end
-			if tile.r  > 0 then tx = tx + tw end
-			if tile.r  < 0 then ty = ty + th end
+			if tr      > 0 then tx = tx + tw end
+			if tr      < 0 then ty = ty + th end
 
-			id = batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
+			id = batch:add(tile.quad, tx, ty, tr, tile.sx, tile.sy)
 			self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
 			table.insert(self.tileInstances[tile.gid], { batch=batch, id=id, gid=tile.gid, x=tx, y=ty })
 		end
@@ -670,25 +677,24 @@ end
 -- @param dt Delta Time
 -- @return nil
 function Map:update(dt)
-	for gid, tile in pairs( self.tiles ) do
-		local update, t
+	for gid, tile in pairs(self.tiles) do
+		local update = false
 
 		if tile.animation then
-			update    = false
 			tile.time = tile.time + dt * 1000
 
 			while tile.time > tonumber(tile.animation[tile.frame].duration) do
-				tile.time  = tile.time - tonumber(tile.animation[tile.frame].duration)
+				update     = true
+				tile.time  = tile.time  - tonumber(tile.animation[tile.frame].duration)
 				tile.frame = tile.frame + 1
 
 				if tile.frame > #tile.animation then tile.frame = 1 end
-
-				update = true
 			end
-			if update == true and self.tileInstances[gid] ~= nil then
-				for _, j in pairs(self.tileInstances[gid]) do
-					t = self.tiles[tile.animation[tile.frame].tileid + self.tilesets[tile.tileset].firstgid]
-					j.batch:set( j.id, t.quad, j.x, j.y, 0 )
+
+			if update == true and self.tileInstances[tile.gid] ~= nil then
+				for _, j in pairs(self.tileInstances[tile.gid]) do
+					local t = self.tiles[tonumber(tile.animation[tile.frame].tileid) + self.tilesets[tile.tileset].firstgid]
+					j.batch:set(j.id, t.quad, j.x, j.y, tile.r, tile.sx, tile.sy)
 				end
 			end
 		end
@@ -902,7 +908,7 @@ function Map:setFlippedGID(gid)
 	local tile = self.tiles[realgid]
 	local data = {
 		id         = tile.id,
-		gid        = tile.gid,
+		gid        = gid,
 		tileset    = tile.tileset,
 		frame      = tile.frame,
 		time       = tile.time,

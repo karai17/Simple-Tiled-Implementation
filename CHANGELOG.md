@@ -1,5 +1,9 @@
 # Change Log
 
+## 2015-10-09: v0.14.2.3-WIP
+
+* Fixed: Flipping animated tiles properly display
+
 ## 2015-10-07: v0.14.1.2
 
 * Added: support for all render orders (rd, ru, ld, lu)
