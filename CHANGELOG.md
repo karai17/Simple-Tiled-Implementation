@@ -6,6 +6,7 @@
 * Fixed: rotating animated tiles properly display
 * Fixed: rotating tile objects properly display
 * Fixed: box2d plugin properly creates rotated and flipped tile objects
+* Fixed: box2d plugin no longer crashes when drawing a line with two vertices
 
 ## 2015-10-07: v0.14.1.2
 

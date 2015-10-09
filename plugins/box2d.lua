@@ -324,7 +324,13 @@ return {
 	-- @return nil
 	box2d_draw = function(map, collision)
 		for _, obj in ipairs(collision) do
-			love.graphics.polygon("line", collision.body:getWorldPoints(obj.shape:getPoints()))
+			local points = {collision.body:getWorldPoints(obj.shape:getPoints())}
+
+			if #points == 4 then
+				love.graphics.line(points)
+			else
+				love.graphics.polygon("line", points)
+			end
 		end
 	end,
 }
