@@ -1,8 +1,11 @@
 # Change Log
 
-## 2015-10-09: v0.14.2.3-WIP
+## 2015-10-09: v0.14.1.3
 
-* Fixed: Flipping animated tiles properly display
+* Fixed: flipping animated tiles properly display
+* Fixed: rotating animated tiles properly display
+* Fixed: rotating tile objects properly display
+* Fixed: box2d plugin properly creates rotated and flipped tile objects
 
 ## 2015-10-07: v0.14.1.2
 

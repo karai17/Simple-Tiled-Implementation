@@ -526,7 +526,7 @@ function Map:setSpriteBatches(layer)
 
 				id = batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
 				self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
-				table.insert(self.tileInstances[tile.gid], { batch=batch, id=id, gid=tile.gid, x=origx or tx, y=origy or ty })
+				table.insert(self.tileInstances[tile.gid], { batch=batch, id=id, gid=tile.gid, x=origx or tx, y=origy or ty, r=tile.r, oy=0 })
 			end
 		end
 	end
@@ -556,16 +556,24 @@ function Map:setObjectSpriteBatches(layer)
 			local tx    = object.x + tw + tile.offset.x
 			local ty    = object.y + tile.offset.y
 			local tr    = math.rad(object.rotation)
+			local oy    = 0
 
 			-- Compensation for scale/rotation shift
-			if tile.sx < 0 then tx = tx + tw end
-			if tile.sy < 0 then ty = ty + th end
-			if tr      > 0 then tx = tx + tw end
-			if tr      < 0 then ty = ty + th end
+			if tile.sx == 1 and tile.sy == 1 then
+				if tr ~= 0 then
+					ty = ty + th
+					oy = th
+				end
+			else
+				if tile.sx < 0 then tx = tx + tw end
+				if tile.sy < 0 then ty = ty + th end
+				if tr      > 0 then tx = tx + tw end
+				if tr      < 0 then ty = ty + th end
+			end
 
-			id = batch:add(tile.quad, tx, ty, tr, tile.sx, tile.sy)
+			id = batch:add(tile.quad, tx, ty, tr, tile.sx, tile.sy, 0, oy)
 			self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
-			table.insert(self.tileInstances[tile.gid], { batch=batch, id=id, gid=tile.gid, x=tx, y=ty })
+			table.insert(self.tileInstances[tile.gid], { batch=batch, id=id, gid=tile.gid, x=tx, y=ty, r=tr, oy=oy })
 		end
 	end
 
@@ -691,10 +699,10 @@ function Map:update(dt)
 				if tile.frame > #tile.animation then tile.frame = 1 end
 			end
 
-			if update == true and self.tileInstances[tile.gid] ~= nil then
+			if update and self.tileInstances[tile.gid] then
 				for _, j in pairs(self.tileInstances[tile.gid]) do
 					local t = self.tiles[tonumber(tile.animation[tile.frame].tileid) + self.tilesets[tile.tileset].firstgid]
-					j.batch:set(j.id, t.quad, j.x, j.y, tile.r, tile.sx, tile.sy)
+					j.batch:set(j.id, t.quad, j.x, j.y, j.r, tile.sx, tile.sy, 0, j.oy)
 				end
 			end
 		end

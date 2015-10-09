@@ -7,7 +7,7 @@
 return {
 	box2d_LICENSE     = "MIT/X11",
 	box2d_URL         = "https://github.com/karai17/Simple-Tiled-Implementation",
-	box2d_VERSION     = "2.3.0.0",
+	box2d_VERSION     = "2.3.0.1",
 	box2d_DESCRIPTION = "Box2D hooks for STI.",
 
 	--- Initialize Box2D physics world.
@@ -79,10 +79,12 @@ return {
 			return vertices
 		end
 
-		local function rotateVertex(v, x, y, cos, sin)
+		local function rotateVertex(v, x, y, cos, sin, oy)
+			oy = oy or 0
+
 			local vertex = {
 				x = v.x,
-				y = v.y,
+				y = v.y - oy,
 			}
 
 			vertex.x = vertex.x - x
@@ -91,7 +93,7 @@ return {
 			local vx = cos * vertex.x - sin * vertex.y
 			local vy = sin * vertex.x + cos * vertex.y
 
-			return vx + x, vy + y
+			return vx + x, vy + y + oy
 		end
 
 		local function addObjectToWorld(objshape, vertices, userdata)
@@ -161,16 +163,18 @@ return {
 				o.r       = object.rotation or 0
 				local cos = math.cos(math.rad(o.r))
 				local sin = math.sin(math.rad(o.r))
+				local oy  = 0
 
 				if object.gid then
-					local tileset = map.tiles[object.gid].tileset
-					local lid     = object.gid - map.tilesets[tileset].firstgid
+					local tileset = map.tilesets[map.tiles[object.gid].tileset]
+					local lid     = object.gid - tileset.firstgid
 					local tile    = {}
 
 					-- This fixes a height issue
 					 o.y = o.y + map.tiles[object.gid].offset.y
+					 oy  = tileset.tileheight
 
-					for _, t in ipairs(map.tilesets[tileset].tiles) do
+					for _, t in ipairs(tileset.tiles) do
 						if t.id == lid then
 							tile = t
 							break
@@ -202,7 +206,7 @@ return {
 						vertex.x, vertex.y = map:convertIsometricToScreen(vertex.x, vertex.y)
 					end
 
-					vertex.x, vertex.y = rotateVertex(vertex, o.x, o.y, cos, sin)
+					vertex.x, vertex.y = rotateVertex(vertex, o.x, o.y, cos, sin, oy)
 				end
 
 				local vertices = getPolygonVertices(o, t, true)
@@ -236,34 +240,32 @@ return {
 			end
 		end
 
-		for _, tileset in ipairs(map.tilesets) do
-			for _, tile in ipairs(tileset.tiles) do
-				local gid = tileset.firstgid + tile.id
+		for _, tile in pairs(map.tiles) do
+			local tileset = map.tilesets[tile.tileset]
 
-				-- Every object in every instance of a tile
-				if tile.objectGroup then
-					if map.tileInstances[gid] then
-						for _, instance in ipairs(map.tileInstances[gid]) do
-							for _, object in ipairs(tile.objectGroup.objects) do
-								calculateObjectPosition(object, instance)
-							end
+			-- Every object in every instance of a tile
+			if tile.objectGroup then
+				if map.tileInstances[tile.gid] then
+					for _, instance in ipairs(map.tileInstances[tile.gid]) do
+						for _, object in ipairs(tile.objectGroup.objects) do
+							calculateObjectPosition(object, instance)
 						end
 					end
+				end
 
-				-- Every instance of a tile
-				elseif tile.properties and tile.properties.collidable == "true" and map.tileInstances[gid] then
-					for _, instance in ipairs(map.tileInstances[gid]) do
-						local object = {
-							shape      = "rectangle",
-							x          = 0,
-							y          = 0,
-							width      = tileset.tilewidth,
-							height     = tileset.tileheight,
-							properties = tile.properties
-						}
+			-- Every instance of a tile
+			elseif tile.properties and tile.properties.collidable == "true" and map.tileInstances[tile.gid] then
+				for _, instance in ipairs(map.tileInstances[tile.gid]) do
+					local object = {
+						shape      = "rectangle",
+						x          = 0,
+						y          = 0,
+						width      = tileset.tilewidth,
+						height     = tileset.tileheight,
+						properties = tile.properties
+					}
 
-						calculateObjectPosition(object, instance)
-					end
+					calculateObjectPosition(object, instance)
 				end
 			end
 		end
