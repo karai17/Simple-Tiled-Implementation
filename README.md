@@ -24,7 +24,7 @@ function love.load()
 	world = love.physics.newWorld(0, 0)
 
 	-- Prepare collision objects
-	collision = map:box2d_init(world)
+	map:box2d_init(world)
 
 	-- Create a Custom Layer
 	map:addCustomLayer("Sprite Layer", 3)
@@ -75,7 +75,7 @@ function love.draw()
 
 	-- Draw Collision Map (useful for debugging)
 	love.graphics.setColor(255, 0, 0, 255)
-	map:box2d_draw(collision)
+	map:box2d_draw()
 
 	-- Reset color
 	love.graphics.setColor(255, 255, 255, 255)

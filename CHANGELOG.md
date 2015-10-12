@@ -1,5 +1,10 @@
 # Change Log
 
+## 2015-10-12: v0.14.1.4
+
+* Fixed: removing a layer now properly removes tile and object instances
+* Fixed: box2d plugin now properly removes collision objects
+
 ## 2015-10-09: v0.14.1.3
 
 * Fixed: flipping animated tiles properly display
@@ -11,7 +16,7 @@
 ## 2015-10-07: v0.14.1.2
 
 * Added: support for all render orders (rd, ru, ld, lu)
-* Added: support for sensors in th box2d plugin (only works on individual tiles and objects; sensor = true)
+* Added: support for sensors in the box2d plugin (only works on individual tiles and objects; sensor = true)
 * Changed: addCustomLayer's index argument is now optional and defaults to the end of the array
 * Fixed: a crash when using Base64 (uncompressed) with LOVE 0.9.2
 

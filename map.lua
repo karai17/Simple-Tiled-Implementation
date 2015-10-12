@@ -280,6 +280,7 @@ end
 -- @return nil
 function Map:setObjectData(layer)
 	for _, object in ipairs(layer.objects) do
+		object.layer            = layer
 		self.objects[object.id] = object
 	end
 end
@@ -526,7 +527,16 @@ function Map:setSpriteBatches(layer)
 
 				id = batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
 				self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
-				table.insert(self.tileInstances[tile.gid], { batch=batch, id=id, gid=tile.gid, x=origx or tx, y=origy or ty, r=tile.r, oy=0 })
+				table.insert(self.tileInstances[tile.gid], {
+					layer = layer,
+					batch = batch,
+					id    = id,
+					gid   = tile.gid,
+					x     = origx or tx,
+					y     = origy or ty,
+					r     = tile.r,
+					oy    = 0
+				})
 			end
 		end
 	end
@@ -541,8 +551,7 @@ function Map:setObjectSpriteBatches(layer)
 	local newBatch = love.graphics.newSpriteBatch
 	local tw       = self.tilewidth
 	local th       = self.tileheight
-	local batches  = {
-	}
+	local batches  = {}
 
 	for _, object in ipairs(layer.objects) do
 		if object.gid then
@@ -573,7 +582,16 @@ function Map:setObjectSpriteBatches(layer)
 
 			id = batch:add(tile.quad, tx, ty, tr, tile.sx, tile.sy, 0, oy)
 			self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
-			table.insert(self.tileInstances[tile.gid], { batch=batch, id=id, gid=tile.gid, x=tx, y=ty, r=tr, oy=oy })
+			table.insert(self.tileInstances[tile.gid], {
+				layer = layer,
+				batch = batch,
+				id    = id,
+				gid   = tile.gid,
+				x     = tx,
+				y     = ty,
+				r     = tr,
+				oy    = oy
+			})
 		end
 	end
 
@@ -678,6 +696,27 @@ function Map:removeLayer(index)
 		local name = self.layers[index].name
 		table.remove(self.layers, index)
 		self.layers[name] = nil
+	end
+
+	-- Remove tile instances
+	if layer.batches then
+		for gid, tiles in pairs(self.tileInstances) do
+			for i=#tiles, 1, -1 do
+				local tile = tiles[i]
+				if tile.layer == layer then
+					table.remove(tiles, i)
+				end
+			end
+		end
+	end
+
+	-- Remove objects
+	if layer.objects then
+		for i, object in pairs(self.objects) do
+			if object.layer == layer then
+				self.objects[i] = nil
+			end
+		end
 	end
 end
 

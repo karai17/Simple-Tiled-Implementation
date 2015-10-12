@@ -7,14 +7,14 @@
 return {
 	box2d_LICENSE     = "MIT/X11",
 	box2d_URL         = "https://github.com/karai17/Simple-Tiled-Implementation",
-	box2d_VERSION     = "2.3.0.1",
+	box2d_VERSION     = "2.3.0.2",
 	box2d_DESCRIPTION = "Box2D hooks for STI.",
 
 	--- Initialize Box2D physics world.
 	-- @param world The Box2D world to add objects to.
-	-- @return table List of collision objects
+	-- @return nil
 	box2d_init = function(map, world)
-		assert(love.physics, "To use the built-in collision system, please enable the physics module.")
+		assert(love.physics, "To use the Box2D plugin, please enable the love.physics module.")
 
 		local body      = love.physics.newBody(world)
 		local collision = {
@@ -96,7 +96,7 @@ return {
 			return vx + x, vy + y + oy
 		end
 
-		local function addObjectToWorld(objshape, vertices, userdata)
+		local function addObjectToWorld(objshape, vertices, userdata, object)
 			local shape
 
 			if objshape == "polyline" then
@@ -114,6 +114,7 @@ return {
 			end
 
 			local obj = {
+				object  = object,
 				shape   = shape,
 				fixture = fixture,
 			}
@@ -121,18 +122,11 @@ return {
 			table.insert(collision, obj)
 		end
 
-		local function getPolygonVertices(object, tile, precalc)
-			local ox, oy = 0, 0
-
-			if not precalc then
-				ox = object.x
-				oy = object.y
-			end
-
+		local function getPolygonVertices(object)
 			local vertices = {}
 			for _, vertex in ipairs(object.polygon) do
-				table.insert(vertices, tile.x + ox + vertex.x)
-				table.insert(vertices, tile.y + oy + vertex.y)
+				table.insert(vertices, vertex.x)
+				table.insert(vertices, vertex.y)
 			end
 
 			return vertices
@@ -148,14 +142,8 @@ return {
 				polygon = object.polygon or object.polyline or object.ellipse or object.rectangle
 			}
 
-			local t = {
-				x = tile and tile.x or 0,
-				y = tile and tile.y or 0
-			}
-
 			local userdata = {
 				object     = o,
-				instance   = t,
 				properties = object.properties
 			}
 
@@ -209,34 +197,28 @@ return {
 					vertex.x, vertex.y = rotateVertex(vertex, o.x, o.y, cos, sin, oy)
 				end
 
-				local vertices = getPolygonVertices(o, t, true)
-				addObjectToWorld(o.shape, vertices, userdata)
+				local vertices = getPolygonVertices(o)
+				addObjectToWorld(o.shape, vertices, userdata, tile or object)
 			elseif o.shape == "ellipse" then
 				if not o.polygon then
 					o.polygon = convertEllipseToPolygon(o.x, o.y, o.w, o.h)
 				end
-				local vertices  = getPolygonVertices(o, t, true)
+				local vertices  = getPolygonVertices(o)
 				local triangles = love.math.triangulate(vertices)
 
 				for _, triangle in ipairs(triangles) do
-					addObjectToWorld(o.shape, triangle, userdata)
+					addObjectToWorld(o.shape, triangle, userdata, object)
 				end
 			elseif o.shape == "polygon" then
-				local precalc = false
-				if not t.gid then precalc = true end
-
-				local vertices  = getPolygonVertices(o, t, precalc)
+				local vertices  = getPolygonVertices(o)
 				local triangles = love.math.triangulate(vertices)
 
 				for _, triangle in ipairs(triangles) do
-					addObjectToWorld(o.shape, triangle, userdata)
+					addObjectToWorld(o.shape, triangle, userdata, object)
 				end
 			elseif o.shape == "polyline" then
-				local precalc = false
-				if not t.gid then precalc = true end
-
-				local vertices	= getPolygonVertices(o, t, precalc)
-				addObjectToWorld(o.shape, vertices, userdata)
+				local vertices	= getPolygonVertices(o)
+				addObjectToWorld(o.shape, vertices, userdata, object)
 			end
 		end
 
@@ -258,8 +240,8 @@ return {
 				for _, instance in ipairs(map.tileInstances[tile.gid]) do
 					local object = {
 						shape      = "rectangle",
-						x          = 0,
-						y          = 0,
+						x          = instance.x,
+						y          = instance.y,
 						width      = tileset.tilewidth,
 						height     = tileset.tileheight,
 						properties = tile.properties
@@ -274,18 +256,23 @@ return {
 			-- Entire layer
 			if layer.properties.collidable == "true" then
 				if layer.type == "tilelayer" then
-					for y, tiles in ipairs(layer.data) do
-						for x, tile in pairs(tiles) do
-							local object = {
-								shape      = "rectangle",
-								x          = x * map.tilewidth + tile.offset.x,
-								y          = y * map.tileheight + tile.offset.y,
-								width      = tile.width,
-								height     = tile.height,
-								properties = tile.properties
-							}
+					for gid, tiles in pairs(map.tileInstances) do
+						local tile = map.tiles[gid]
+						local tileset = map.tilesets[tile.tileset]
 
-							calculateObjectPosition(object)
+						for _, instance in ipairs(tiles) do
+							if instance.layer == layer then
+								local object = {
+									shape      = "rectangle",
+									x          = instance.x,
+									y          = instance.y,
+									width      = tileset.tilewidth,
+									height     = tileset.tileheight,
+									properties = tile.properties
+								}
+
+								calculateObjectPosition(object, instance)
+							end
 						end
 					end
 				elseif layer.type == "objectgroup" then
@@ -316,13 +303,36 @@ return {
 			end
 		end
 
-		return collision
+		map.box2d_collision = collision
+	end,
+
+	--- Remove Box2D fixtures and shapes from world.
+	-- @param index The index or name of the layer being removed
+	-- @return nil
+	box2d_removeLayer = function(map, index)
+		local layer = assert(map.layers[index], "Layer not found: " .. index)
+		local collision = map.box2d_collision
+
+		-- Remove collision objects
+		for i=#collision, 1, -1 do
+			local obj = collision[i]
+
+			if obj.object.layer == layer
+			and (
+				layer.properties.collidable == "true"
+				or obj.object.properties.collidable == "true"
+			) then
+				obj.fixture:destroy()
+				table.remove(collision, i)
+			end
+		end
 	end,
 
 	--- Draw Box2D physics world.
-	-- @param collision A list of collision objects.
 	-- @return nil
-	box2d_draw = function(map, collision)
+	box2d_draw = function(map)
+		local collision = map.box2d_collision
+
 		for _, obj in ipairs(collision) do
 			local points = {collision.body:getWorldPoints(obj.shape:getPoints())}
 
