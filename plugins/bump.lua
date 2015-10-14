@@ -8,9 +8,8 @@ return {
 
 	bump_LICENSE        = "MIT/X11",
 	bump_URL            = "https://github.com/karai17/Simple-Tiled-Implementation",
-	bump_VERSION        = "3.1.5",
+	bump_VERSION        = "3.1.5.1",
 	bump_DESCRIPTION    = "Bump hooks for STI.",
-	bump_PLUGIN_VERSION = "0.0.0.1" --HeHe
 
 
 	--- Adds each collidable tile to the Bump world.
@@ -57,9 +56,9 @@ return {
 	end,
 
 	--- Remove layer
-	--@params index to layer to be removed
-	--@params world bump world the holds the tiles
-	--@return nil
+	-- @params index to layer to be removed
+	-- @params world bump world the holds the tiles
+	-- @return nil
 	bump_removeLayer = function(map, index, world)
 		local layer = assert(map.layers[index], "Layer not found: " .. index)
 		local collidables = map.bump_collidables
