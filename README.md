@@ -1,6 +1,6 @@
 # Simple Tiled Implementation
 
-Simple Tiled Implementation is a [**Tiled**][Tiled] map loader and renderer designed for the **\*awesome\*** [**LÖVE**][LOVE] framework. Please read the [**documentation**][dox] to learn how it works!
+Simple Tiled Implementation is a [**Tiled**][Tiled] map loader and renderer designed for the __\*awesome\*__ [**LÖVE**][LOVE] framework. Please read the [**documentation**][dox] to learn how it works!
 
 ## Quick Example
 
