@@ -1,5 +1,9 @@
 # Change Log
 
+## 2015-10-14: v0.14.1.5
+
+* Added: bump.lua plugin (thanks @bobbyjoness)
+
 ## 2015-10-12: v0.14.1.4
 
 * Fixed: removing a layer now properly removes tile and object instances
