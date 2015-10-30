@@ -79,6 +79,7 @@ return {
 	end,
 
 	--- Draw bump collisions world.
+	-- @params world bump world holding the tiles geometry
 	-- @return nil
 	bump_draw = function(map, world)
 		for k,collidable in pairs(map.bump_collidables) do
