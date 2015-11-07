@@ -77,7 +77,9 @@ function Map:init(path, plugins)
 
 		local image   = formatPath(path .. tileset.image)
 		tileset.image = love.graphics.newImage(image)
-		gid           = self:setTiles(i, tileset, gid)
+		tileset.image:setFilter("nearest", "nearest")
+
+		gid = self:setTiles(i, tileset, gid)
 	end
 
 	-- Set layers

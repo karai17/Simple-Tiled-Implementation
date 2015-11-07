@@ -1,5 +1,10 @@
 # Change Log
 
+## 2015-11-07: v0.14.1.6
+
+* Fixed: tileset images not being properly filtered
+* Fixed: bump.lua plugin missing world argument in draw
+
 ## 2015-10-14: v0.14.1.5
 
 * Added: bump.lua plugin (thanks @bobbyjoness)
