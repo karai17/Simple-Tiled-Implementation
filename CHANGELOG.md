@@ -1,5 +1,10 @@
 # Change Log
 
+## 2015-11-15: v0.14.1.7
+* Added: support for offsetting maps [sponsored by Binary Cocoa]
+* Changed: Map.setDrawRange is more optimized via recycling tables
+* Changed: render order now defaults to "right-down"
+
 ## 2015-11-07: v0.14.1.6
 
 * Fixed: tileset images not being properly filtered

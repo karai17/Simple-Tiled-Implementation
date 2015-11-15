@@ -53,8 +53,10 @@ end
 --- Instance a new map
 -- @param path Path to the map file
 -- @param plugins A list of plugins to load
+-- @param ox Offset of map on the X axis (in pixels)
+-- @param oy Offset of map on the Y axis (in pixels)
 -- @return nil
-function Map:init(path, plugins)
+function Map:init(path, plugins, ox, oy)
 	if type(plugins) == "table" then
 		self:loadPlugins(plugins)
 	end
@@ -69,6 +71,8 @@ function Map:init(path, plugins)
 		ex = self.width,
 		ey = self.height,
 	}
+	self.offsetx = ox or 0
+	self.offsety = oy or 0
 
 	-- Set tiles, images
 	local gid = 1
@@ -227,8 +231,8 @@ function Map:setLayer(layer, path)
 		end
 	end
 
-	layer.x      = layer.x or 0
-	layer.y      = layer.y or 0
+	layer.x      = (layer.x or 0) + self.offsetx
+	layer.y      = (layer.y or 0) + self.offsety
 	layer.update = function(dt) return end
 
 	if layer.type == "tilelayer" then
@@ -431,13 +435,16 @@ function Map:setSpriteBatches(layer)
 	local th       = self.tileheight
 	local bw       = math.ceil(w / tw)
 	local bh       = math.ceil(h / th)
-	local sx, sy, ex, ey, ix, iy
+	local sx       = 1
+	local sy       = 1
+	local ex       = layer.width
+	local ey       = layer.height
+	local ix       = 1
+	local iy       = 1
 
 	-- Determine order to add tiles to sprite batch
-	if self.renderorder == "right-down" then
-		sx, ex, ix = 1, layer.width,  1
-		sy, ey, iy = 1, layer.height, 1
-	elseif self.renderorder == "right-up" then
+	-- Defaults to right-down
+	if self.renderorder == "right-up" then
 		sx, ex, ix = 1, layer.width,   1
 		sy, ey, iy = layer.height, 1, -1
 	elseif self.renderorder == "left-down" then
@@ -476,7 +483,7 @@ function Map:setSpriteBatches(layer)
 				batches.data[ts][by][bx] = batches.data[ts][by][bx] or newBatch(image, size)
 
 				local batch = batches.data[ts][by][bx]
-				local tx, ty, origx, origy
+				local tx, ty
 
 				if self.orientation == "orthogonal" then
 					tx, ty = compensate(tile, x*tw, y*th, tw, th)
@@ -534,8 +541,8 @@ function Map:setSpriteBatches(layer)
 					batch = batch,
 					id    = id,
 					gid   = tile.gid,
-					x     = origx or tx,
-					y     = origy or ty,
+					x     = tx,
+					y     = ty,
 					r     = tile.r,
 					oy    = 0
 				})
@@ -627,12 +634,10 @@ function Map:setDrawRange(tx, ty, w, h)
 		ey = math.ceil(sy + h / th * 2)
 	end
 
-	self.drawRange = {
-		sx = sx,
-		sy = sy,
-		ex = ex,
-		ey = ey,
-	}
+	self.drawRange.sx = sx
+	self.drawRange.sy = sy
+	self.drawRange.ex = ex
+	self.drawRange.ey = ey
 end
 
 --- Create a Custom Layer to place userdata in (such as player sprites)
