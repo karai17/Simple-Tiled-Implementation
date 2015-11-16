@@ -1,6 +1,12 @@
 # Change Log
 
+## 2015-11-16: v0.14.1.8
+
+* Added: image cache to STI module [sponsored by Binary Cocoa]
+* Added: STI:flush() to clear out image cache
+
 ## 2015-11-15: v0.14.1.7
+
 * Added: support for offsetting maps [sponsored by Binary Cocoa]
 * Changed: Map.setDrawRange is more optimized via recycling tables
 * Changed: render order now defaults to "right-down"
