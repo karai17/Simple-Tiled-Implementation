@@ -1,5 +1,9 @@
 # Change Log
 
+## 2015-11-19: v0.14.1.9
+
+* Changed: key in image cache to formatted path of image
+
 ## 2015-11-16: v0.14.1.8
 
 * Added: image cache to STI module [sponsored by Binary Cocoa]

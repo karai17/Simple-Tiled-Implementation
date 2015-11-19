@@ -51,10 +51,10 @@ local function compensate(tile, x, y, tw, th)
 end
 
 -- Cache images in main STI module
-local function cache_image(sti, map_path, image_path)
-	local image = love.graphics.newImage(formatPath(map_path .. image_path))
+local function cache_image(sti, path)
+	local image = love.graphics.newImage(path)
 	image:setFilter("nearest", "nearest")
-	sti.cache[image_path] = image
+	sti.cache[path] = image
 end
 
 --- Instance a new map
@@ -88,12 +88,13 @@ function Map:init(STI, path, plugins, ox, oy)
 		assert(tileset.image, "STI does not support Tile Collections.\nYou need to create a Texture Atlas.")
 
 		-- Cache images
-		if not self.sti.cache[tileset.image] then
-			cache_image(self.sti, path, tileset.image)
+		local formatted_path = formatPath(path .. tileset.image)
+		if not self.sti.cache[formatted_path] then
+			cache_image(self.sti, formatted_path)
 		end
 
 		-- Pull images from cache
-		tileset.image = self.sti.cache[tileset.image]
+		tileset.image = self.sti.cache[formatted_path]
 
 		gid = self:setTiles(i, tileset, gid)
 	end
@@ -260,11 +261,12 @@ function Map:setLayer(layer, path)
 		layer.draw = function() self:drawImageLayer(layer) end
 
 		if layer.image ~= "" then
-			if not self.sti.cache[layer.image] then
-				cache_image(self.sti, path, layer.image)
+			local formatted_path = formatPath(path .. layer.image)
+			if not self.sti.cache[formatted_path] then
+				cache_image(self.sti, formatted_path)
 			end
 
-			layer.image  = self.sti.cache[layer.image]
+			layer.image  = self.sti.cache[formatted_path]
 			layer.width  = layer.image:getWidth()
 			layer.height = layer.image:getHeight()
 		end
