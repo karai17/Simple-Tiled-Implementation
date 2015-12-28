@@ -44,6 +44,14 @@ return {
 							table.insert(collidables,t)
 							
 						end
+				end
+				elseif layer.type == "objectgroup" then
+					for _, obj in ipairs(layer.objects) do
+						if obj.shape == "rectangle" then
+							local t = {properties = obj.properties, x = obj.x, y = obj.y - obj.height, width = obj.width, height = obj.height, type = obj.type, name = obj.name, id = obj.id, gid = obj.gid, layer = layer }
+							world:add(t, t.x,t.y, t.width,t.height )
+							table.insert(collidables,t)
+						end -- TODO implement other object shapes?
 					end
 				elseif layer.type == "imagelayer" then
 					local t = { properties = layer.properties, x = x or 0, y = y or 0, width = layer.width, height = layer.height, layer = layer }
