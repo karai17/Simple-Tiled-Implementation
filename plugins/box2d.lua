@@ -125,8 +125,8 @@ return {
 		local function getPolygonVertices(object)
 			local vertices = {}
 			for _, vertex in ipairs(object.polygon) do
-				table.insert(vertices, vertex.x)
-				table.insert(vertices, vertex.y)
+				table.insert(vertices, vertex.x + object.x)
+				table.insert(vertices, vertex.y + object.y)
 			end
 
 			return vertices
@@ -183,10 +183,10 @@ return {
 				end
 
 				o.polygon = {
-					{ x=o.x,       y=o.y       },
-					{ x=o.x + o.w, y=o.y       },
-					{ x=o.x + o.w, y=o.y + o.h },
-					{ x=o.x,       y=o.y + o.h },
+					{ x=0,   y=0       },
+					{ x=o.w, y=0       },
+					{ x=o.w, y=o.h },
+					{ x=0,   y=o.h },
 				}
 
 				for _, vertex in ipairs(o.polygon) do
@@ -217,7 +217,7 @@ return {
 					addObjectToWorld(o.shape, triangle, userdata, object)
 				end
 			elseif o.shape == "polyline" then
-				local vertices	= getPolygonVertices(o)
+				local vertices = getPolygonVertices(o)
 				addObjectToWorld(o.shape, vertices, userdata, object)
 			end
 		end
@@ -230,6 +230,9 @@ return {
 				if map.tileInstances[tile.gid] then
 					for _, instance in ipairs(map.tileInstances[tile.gid]) do
 						for _, object in ipairs(tile.objectGroup.objects) do
+							-- Offset the object by the tile's position.
+							object.x = object.x + instance.x
+							object.y = object.y + instance.y
 							calculateObjectPosition(object, instance)
 						end
 					end
