@@ -157,12 +157,13 @@ function Map:setTiles(index, tileset, gid)
 			local id = gid - tileset.firstgid
 			local qx = (x - 1) * tw + m + (x - 1) * s
 			local qy = (y - 1) * th + m + (y - 1) * s
-			local properties, terrain, animation
+			local properties, terrain, animation, objectGroup
 
 			for _, tile in pairs(tileset.tiles) do
 				if tile.id == id then
 					properties = tile.properties
 					animation  = tile.animation
+					objectGroup = tile.objectGroup
 					if tile.terrain then
 						terrain = {}
 						for i=1,#tile.terrain do
@@ -180,6 +181,7 @@ function Map:setTiles(index, tileset, gid)
 				properties = properties or {},
 				terrain    = terrain,
 				animation  = animation,
+				objectGroup = objectGroup,
 				frame      = 1,
 				time       = 0,
 				width      = tw,
