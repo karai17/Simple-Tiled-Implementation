@@ -135,8 +135,8 @@ return {
 		local function calculateObjectPosition(object, tile)
 			local o = {
 				shape   = object.shape,
-				x       = object.x,
-				y       = object.y,
+				x       = object.dx or object.x,
+				y       = object.dy or object.y,
 				w       = object.width,
 				h       = object.height,
 				polygon = object.polygon or object.polyline or object.ellipse or object.rectangle
@@ -230,8 +230,8 @@ return {
 				if map.tileInstances[tile.gid] then
 					for _, instance in ipairs(map.tileInstances[tile.gid]) do
 						for _, object in ipairs(tile.objectGroup.objects) do
-							object.x = object.x + instance.x
-							object.y = object.y + instance.y
+							object.dx = object.x + instance.x
+							object.dy = object.y + instance.y
 							calculateObjectPosition(object, instance)
 						end
 					end
