@@ -7,7 +7,7 @@
 return {
 	box2d_LICENSE     = "MIT/X11",
 	box2d_URL         = "https://github.com/karai17/Simple-Tiled-Implementation",
-	box2d_VERSION     = "2.3.0.2",
+	box2d_VERSION     = "2.3.2.0",
 	box2d_DESCRIPTION = "Box2D hooks for STI.",
 
 	--- Initialize Box2D physics world.
@@ -217,7 +217,7 @@ return {
 					addObjectToWorld(o.shape, triangle, userdata, object)
 				end
 			elseif o.shape == "polyline" then
-				local vertices	= getPolygonVertices(o)
+				local vertices = getPolygonVertices(o)
 				addObjectToWorld(o.shape, vertices, userdata, object)
 			end
 		end
@@ -230,6 +230,8 @@ return {
 				if map.tileInstances[tile.gid] then
 					for _, instance in ipairs(map.tileInstances[tile.gid]) do
 						for _, object in ipairs(tile.objectGroup.objects) do
+							object.x = object.x + instance.x
+							object.y = object.y + instance.y
 							calculateObjectPosition(object, instance)
 						end
 					end
