@@ -125,8 +125,8 @@ return {
 		local function getPolygonVertices(object)
 			local vertices = {}
 			for _, vertex in ipairs(object.polygon) do
-				table.insert(vertices, vertex.x)
-				table.insert(vertices, vertex.y)
+				table.insert(vertices, vertex.x + object.x)
+				table.insert(vertices, vertex.y + object.y)
 			end
 
 			return vertices
@@ -183,10 +183,10 @@ return {
 				end
 
 				o.polygon = {
-					{ x=o.x,       y=o.y       },
-					{ x=o.x + o.w, y=o.y       },
-					{ x=o.x + o.w, y=o.y + o.h },
-					{ x=o.x,       y=o.y + o.h },
+					{ x=0,       y=0       },
+					{ x=o.w,     y=0       },
+					{ x=o.w,     y=o.h     },
+					{ x=0,       y=o.h     },
 				}
 
 				for _, vertex in ipairs(o.polygon) do
@@ -207,18 +207,18 @@ return {
 				local triangles = love.math.triangulate(vertices)
 
 				for _, triangle in ipairs(triangles) do
-					addObjectToWorld(o.shape, triangle, userdata, object)
+					addObjectToWorld(o.shape, triangle, userdata, tile or object)
 				end
 			elseif o.shape == "polygon" then
 				local vertices  = getPolygonVertices(o)
 				local triangles = love.math.triangulate(vertices)
 
 				for _, triangle in ipairs(triangles) do
-					addObjectToWorld(o.shape, triangle, userdata, object)
+					addObjectToWorld(o.shape, triangle, userdata, tile or object)
 				end
 			elseif o.shape == "polyline" then
 				local vertices = getPolygonVertices(o)
-				addObjectToWorld(o.shape, vertices, userdata, object)
+				addObjectToWorld(o.shape, vertices, userdata, tile or object)
 			end
 		end
 
