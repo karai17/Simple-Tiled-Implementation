@@ -319,11 +319,7 @@ return {
 		for i=#collision, 1, -1 do
 			local obj = collision[i]
 
-			if obj.object.layer == layer
-			and (
-				layer.properties.collidable == "true"
-				or obj.object.properties.collidable == "true"
-			) then
+			if obj.object.layer == layer then
 				obj.fixture:destroy()
 				table.remove(collision, i)
 			end
