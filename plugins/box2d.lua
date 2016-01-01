@@ -16,7 +16,7 @@ return {
 	box2d_init = function(map, world)
 		assert(love.physics, "To use the Box2D plugin, please enable the love.physics module.")
 
-		local body      = love.physics.newBody(world)
+		local body      = love.physics.newBody(world, map.offsetx, map.offsety)
 		local collision = {
 			body = body,
 		}
