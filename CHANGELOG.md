@@ -1,5 +1,33 @@
 # Change Log
 
+## 2013-12-31: v0.14.1.10
+
+* Fixed: Box2D plugin was not recognizing a tile's embedded object group
+
+## 2015-11-19: v0.14.1.9
+
+* Changed: key in image cache to formatted path of image
+
+## 2015-11-16: v0.14.1.8
+
+* Added: image cache to STI module [sponsored by Binary Cocoa]
+* Added: STI:flush() to clear out image cache
+
+## 2015-11-15: v0.14.1.7
+
+* Added: support for offsetting maps [sponsored by Binary Cocoa]
+* Changed: Map.setDrawRange is more optimized via recycling tables
+* Changed: render order now defaults to "right-down"
+
+## 2015-11-07: v0.14.1.6
+
+* Fixed: tileset images not being properly filtered
+* Fixed: bump.lua plugin missing world argument in draw
+
+## 2015-10-14: v0.14.1.5
+
+* Added: bump.lua plugin (thanks @bobbyjoness)
+
 ## 2015-10-12: v0.14.1.4
 
 * Fixed: removing a layer now properly removes tile and object instances

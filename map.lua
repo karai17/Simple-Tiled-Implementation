@@ -50,11 +50,20 @@ local function compensate(tile, x, y, tw, th)
 	return tx, ty
 end
 
+-- Cache images in main STI module
+local function cache_image(sti, path)
+	local image = love.graphics.newImage(path)
+	image:setFilter("nearest", "nearest")
+	sti.cache[path] = image
+end
+
 --- Instance a new map
 -- @param path Path to the map file
 -- @param plugins A list of plugins to load
+-- @param ox Offset of map on the X axis (in pixels)
+-- @param oy Offset of map on the Y axis (in pixels)
 -- @return nil
-function Map:init(path, plugins)
+function Map:init(STI, path, plugins, ox, oy)
 	if type(plugins) == "table" then
 		self:loadPlugins(plugins)
 	end
@@ -69,15 +78,25 @@ function Map:init(path, plugins)
 		ex = self.width,
 		ey = self.height,
 	}
+	self.offsetx = ox or 0
+	self.offsety = oy or 0
+	self.sti     = STI
 
 	-- Set tiles, images
 	local gid = 1
 	for i, tileset in ipairs(self.tilesets) do
 		assert(tileset.image, "STI does not support Tile Collections.\nYou need to create a Texture Atlas.")
 
-		local image   = formatPath(path .. tileset.image)
-		tileset.image = love.graphics.newImage(image)
-		gid           = self:setTiles(i, tileset, gid)
+		-- Cache images
+		local formatted_path = formatPath(path .. tileset.image)
+		if not self.sti.cache[formatted_path] then
+			cache_image(self.sti, formatted_path)
+		end
+
+		-- Pull images from cache
+		tileset.image = self.sti.cache[formatted_path]
+
+		gid = self:setTiles(i, tileset, gid)
 	end
 
 	-- Set layers
@@ -138,15 +157,18 @@ function Map:setTiles(index, tileset, gid)
 			local id = gid - tileset.firstgid
 			local qx = (x - 1) * tw + m + (x - 1) * s
 			local qy = (y - 1) * th + m + (y - 1) * s
-			local properties, terrain, animation
+			local properties, terrain, animation, objectGroup
 
 			for _, tile in pairs(tileset.tiles) do
 				if tile.id == id then
-					properties = tile.properties
-					animation  = tile.animation
+					properties  = tile.properties
+					animation   = tile.animation
+					objectGroup = tile.objectGroup
+
 					if tile.terrain then
 						terrain = {}
-						for i=1,#tile.terrain do
+
+						for i=1, #tile.terrain do
 							terrain[i] = tileset.terrains[tile.terrain[i] + 1]
 						end
 					end
@@ -154,21 +176,22 @@ function Map:setTiles(index, tileset, gid)
 			end
 
 			local tile = {
-				id         = id,
-				gid        = gid,
-				tileset    = index,
-				quad       = quad(qx, qy, tw, th, iw, ih),
-				properties = properties or {},
-				terrain    = terrain,
-				animation  = animation,
-				frame      = 1,
-				time       = 0,
-				width      = tw,
-				height     = th,
-				sx         = 1,
-				sy         = 1,
-				r          = 0,
-				offset     = {
+				id          = id,
+				gid         = gid,
+				tileset     = index,
+				quad        = quad(qx, qy, tw, th, iw, ih),
+				properties  = properties or {},
+				terrain     = terrain,
+				animation   = animation,
+				objectGroup = objectGroup,
+				frame       = 1,
+				time        = 0,
+				width       = tw,
+				height      = th,
+				sx          = 1,
+				sy          = 1,
+				r           = 0,
+				offset      = {
 					x = -mw + tileset.tileoffset.x,
 					y = -th + tileset.tileoffset.y,
 				},
@@ -225,8 +248,8 @@ function Map:setLayer(layer, path)
 		end
 	end
 
-	layer.x      = layer.x or 0
-	layer.y      = layer.y or 0
+	layer.x      = (layer.x or 0) + self.offsetx
+	layer.y      = (layer.y or 0) + self.offsety
 	layer.update = function(dt) return end
 
 	if layer.type == "tilelayer" then
@@ -242,8 +265,12 @@ function Map:setLayer(layer, path)
 		layer.draw = function() self:drawImageLayer(layer) end
 
 		if layer.image ~= "" then
-			local image  = formatPath(path..layer.image)
-			layer.image  = love.graphics.newImage(image)
+			local formatted_path = formatPath(path .. layer.image)
+			if not self.sti.cache[formatted_path] then
+				cache_image(self.sti, formatted_path)
+			end
+
+			layer.image  = self.sti.cache[formatted_path]
 			layer.width  = layer.image:getWidth()
 			layer.height = layer.image:getHeight()
 		end
@@ -429,13 +456,16 @@ function Map:setSpriteBatches(layer)
 	local th       = self.tileheight
 	local bw       = math.ceil(w / tw)
 	local bh       = math.ceil(h / th)
-	local sx, sy, ex, ey, ix, iy
+	local sx       = 1
+	local sy       = 1
+	local ex       = layer.width
+	local ey       = layer.height
+	local ix       = 1
+	local iy       = 1
 
 	-- Determine order to add tiles to sprite batch
-	if self.renderorder == "right-down" then
-		sx, ex, ix = 1, layer.width,  1
-		sy, ey, iy = 1, layer.height, 1
-	elseif self.renderorder == "right-up" then
+	-- Defaults to right-down
+	if self.renderorder == "right-up" then
 		sx, ex, ix = 1, layer.width,   1
 		sy, ey, iy = layer.height, 1, -1
 	elseif self.renderorder == "left-down" then
@@ -474,7 +504,7 @@ function Map:setSpriteBatches(layer)
 				batches.data[ts][by][bx] = batches.data[ts][by][bx] or newBatch(image, size)
 
 				local batch = batches.data[ts][by][bx]
-				local tx, ty, origx, origy
+				local tx, ty
 
 				if self.orientation == "orthogonal" then
 					tx, ty = compensate(tile, x*tw, y*th, tw, th)
@@ -532,8 +562,8 @@ function Map:setSpriteBatches(layer)
 					batch = batch,
 					id    = id,
 					gid   = tile.gid,
-					x     = origx or tx,
-					y     = origy or ty,
+					x     = tx,
+					y     = ty,
 					r     = tile.r,
 					oy    = 0
 				})
@@ -625,12 +655,10 @@ function Map:setDrawRange(tx, ty, w, h)
 		ey = math.ceil(sy + h / th * 2)
 	end
 
-	self.drawRange = {
-		sx = sx,
-		sy = sy,
-		ex = ex,
-		ey = ey,
-	}
+	self.drawRange.sx = sx
+	self.drawRange.sy = sy
+	self.drawRange.ex = ex
+	self.drawRange.ey = ey
 end
 
 --- Create a Custom Layer to place userdata in (such as player sprites)
