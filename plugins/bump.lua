@@ -8,7 +8,7 @@ return {
 
 	bump_LICENSE        = "MIT/X11",
 	bump_URL            = "https://github.com/karai17/Simple-Tiled-Implementation",
-	bump_VERSION        = "3.1.5.1",
+	bump_VERSION        = "3.1.5.2",
 	bump_DESCRIPTION    = "Bump hooks for STI.",
 
 
@@ -42,7 +42,7 @@ return {
 							local t = {properties = tile.properties, x = x * map.tilewidth + tile.offset.x + map.offsetx, y = y * map.tileheight + tile.offset.y + map.offsety, width = tile.width, height = tile.height, layer = layer }
 							world:add(t, t.x,t.y, t.width,t.height )
 							table.insert(collidables,t)
-							
+
 						end
 					end
 				elseif layer.type == "imagelayer" then
@@ -86,4 +86,3 @@ return {
 		end
 	end
 }
-

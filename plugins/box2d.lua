@@ -7,7 +7,7 @@
 return {
 	box2d_LICENSE     = "MIT/X11",
 	box2d_URL         = "https://github.com/karai17/Simple-Tiled-Implementation",
-	box2d_VERSION     = "2.3.2.0",
+	box2d_VERSION     = "2.3.2.1",
 	box2d_DESCRIPTION = "Box2D hooks for STI.",
 
 	--- Initialize Box2D physics world.
@@ -183,10 +183,10 @@ return {
 				end
 
 				o.polygon = {
-					{ x=0,       y=0       },
-					{ x=o.w,     y=0       },
-					{ x=o.w,     y=o.h     },
-					{ x=0,       y=o.h     },
+					{ x=0,   y=0   },
+					{ x=o.w, y=0   },
+					{ x=o.w, y=o.h },
+					{ x=0,   y=o.h },
 				}
 
 				for _, vertex in ipairs(o.polygon) do

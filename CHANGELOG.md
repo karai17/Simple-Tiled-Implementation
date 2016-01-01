@@ -1,6 +1,11 @@
 # Change Log
 
-## 2013-12-31: v0.14.1.10
+## 2016-01-01: v0.14.1.11
+
+* Fixed: Various bugs in the Box2D plugin (thanks @ChrisWeisiger)
+* Fixed: Various bugs in the Bump plugin (thanks @bobbyjoness)
+
+## 2015-12-31: v0.14.1.10
 
 * Fixed: Box2D plugin was not recognizing a tile's embedded object group
 
