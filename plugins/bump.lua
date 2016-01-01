@@ -1,7 +1,7 @@
 --- Bump.lua plugin for STI
 -- @module bump.lua
 -- @author David Serrano (BobbyJones|FrenchFryLord)
--- @copyright 2015
+-- @copyright 2016
 -- @license MIT/X11
 
 return {
@@ -25,7 +25,7 @@ return {
 				-- Every object in every instance of a tile
 				if tile.properties and tile.properties.collidable == "true" and map.tileInstances[gid] then
 					for _, instance in ipairs(map.tileInstances[gid]) do
-						local t = {properties = tile.properties, x = instance.x, y = instance.y, width = map.tilewidth, height = map.tileheight, layer = instance.layer }
+						local t = {properties = tile.properties, x = instance.x + map.offsetx, y = instance.y + map.offsety, width = map.tilewidth, height = map.tileheight, layer = instance.layer }
 						world:add(t,  t.x,t.y, t.width,t.height)
 						table.insert(collidables,t)
 					end
@@ -39,16 +39,15 @@ return {
 				if layer.type == "tilelayer" then
 					for y, tiles in ipairs(layer.data) do
 						for x, tile in pairs(tiles) do
-							local t = {properties = tile.properties, x = x * map.tilewidth + tile.offset.x, y = y * map.tileheight + tile.offset.y, width = tile.width, height = tile.height, layer = layer }
+							local t = {properties = tile.properties, x = x * map.tilewidth + tile.offset.x + map.offsetx, y = y * map.tileheight + tile.offset.y + map.offsety, width = tile.width, height = tile.height, layer = layer }
 							world:add(t, t.x,t.y, t.width,t.height )
 							table.insert(collidables,t)
 							
 						end
 					end
 				elseif layer.type == "imagelayer" then
-					local t = { properties = layer.properties, x = x or 0, y = y or 0, width = layer.width, height = layer.height, layer = layer }
-					world:add(layer, t.x,t.y, t.width,t.height)
-					table.insert(collidables,t)
+					world:add(layer, layer.x,layer.y, layer.width,layer.height)
+					table.insert(collidables,layer)
 				end
 			end
 		end
