@@ -7,7 +7,7 @@
 return {
 	box2d_LICENSE     = "MIT/X11",
 	box2d_URL         = "https://github.com/karai17/Simple-Tiled-Implementation",
-	box2d_VERSION     = "2.3.0.2",
+	box2d_VERSION     = "2.3.2.1",
 	box2d_DESCRIPTION = "Box2D hooks for STI.",
 
 	--- Initialize Box2D physics world.
@@ -16,7 +16,7 @@ return {
 	box2d_init = function(map, world)
 		assert(love.physics, "To use the Box2D plugin, please enable the love.physics module.")
 
-		local body      = love.physics.newBody(world)
+		local body      = love.physics.newBody(world, map.offsetx, map.offsety)
 		local collision = {
 			body = body,
 		}
@@ -125,8 +125,8 @@ return {
 		local function getPolygonVertices(object)
 			local vertices = {}
 			for _, vertex in ipairs(object.polygon) do
-				table.insert(vertices, vertex.x)
-				table.insert(vertices, vertex.y)
+				table.insert(vertices, vertex.x + object.x)
+				table.insert(vertices, vertex.y + object.y)
 			end
 
 			return vertices
@@ -135,8 +135,8 @@ return {
 		local function calculateObjectPosition(object, tile)
 			local o = {
 				shape   = object.shape,
-				x       = object.x,
-				y       = object.y,
+				x       = object.dx or object.x,
+				y       = object.dy or object.y,
 				w       = object.width,
 				h       = object.height,
 				polygon = object.polygon or object.polyline or object.ellipse or object.rectangle
@@ -183,10 +183,10 @@ return {
 				end
 
 				o.polygon = {
-					{ x=o.x,       y=o.y       },
-					{ x=o.x + o.w, y=o.y       },
-					{ x=o.x + o.w, y=o.y + o.h },
-					{ x=o.x,       y=o.y + o.h },
+					{ x=0,   y=0   },
+					{ x=o.w, y=0   },
+					{ x=o.w, y=o.h },
+					{ x=0,   y=o.h },
 				}
 
 				for _, vertex in ipairs(o.polygon) do
@@ -207,18 +207,18 @@ return {
 				local triangles = love.math.triangulate(vertices)
 
 				for _, triangle in ipairs(triangles) do
-					addObjectToWorld(o.shape, triangle, userdata, object)
+					addObjectToWorld(o.shape, triangle, userdata, tile or object)
 				end
 			elseif o.shape == "polygon" then
 				local vertices  = getPolygonVertices(o)
 				local triangles = love.math.triangulate(vertices)
 
 				for _, triangle in ipairs(triangles) do
-					addObjectToWorld(o.shape, triangle, userdata, object)
+					addObjectToWorld(o.shape, triangle, userdata, tile or object)
 				end
 			elseif o.shape == "polyline" then
-				local vertices	= getPolygonVertices(o)
-				addObjectToWorld(o.shape, vertices, userdata, object)
+				local vertices = getPolygonVertices(o)
+				addObjectToWorld(o.shape, vertices, userdata, tile or object)
 			end
 		end
 
@@ -230,6 +230,8 @@ return {
 				if map.tileInstances[tile.gid] then
 					for _, instance in ipairs(map.tileInstances[tile.gid]) do
 						for _, object in ipairs(tile.objectGroup.objects) do
+							object.dx = object.x + instance.x
+							object.dy = object.y + instance.y
 							calculateObjectPosition(object, instance)
 						end
 					end
@@ -317,11 +319,7 @@ return {
 		for i=#collision, 1, -1 do
 			local obj = collision[i]
 
-			if obj.object.layer == layer
-			and (
-				layer.properties.collidable == "true"
-				or obj.object.properties.collidable == "true"
-			) then
+			if obj.object.layer == layer then
 				obj.fixture:destroy()
 				table.remove(collision, i)
 			end

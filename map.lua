@@ -157,15 +157,18 @@ function Map:setTiles(index, tileset, gid)
 			local id = gid - tileset.firstgid
 			local qx = (x - 1) * tw + m + (x - 1) * s
 			local qy = (y - 1) * th + m + (y - 1) * s
-			local properties, terrain, animation
+			local properties, terrain, animation, objectGroup
 
 			for _, tile in pairs(tileset.tiles) do
 				if tile.id == id then
-					properties = tile.properties
-					animation  = tile.animation
+					properties  = tile.properties
+					animation   = tile.animation
+					objectGroup = tile.objectGroup
+
 					if tile.terrain then
 						terrain = {}
-						for i=1,#tile.terrain do
+
+						for i=1, #tile.terrain do
 							terrain[i] = tileset.terrains[tile.terrain[i] + 1]
 						end
 					end
@@ -173,21 +176,22 @@ function Map:setTiles(index, tileset, gid)
 			end
 
 			local tile = {
-				id         = id,
-				gid        = gid,
-				tileset    = index,
-				quad       = quad(qx, qy, tw, th, iw, ih),
-				properties = properties or {},
-				terrain    = terrain,
-				animation  = animation,
-				frame      = 1,
-				time       = 0,
-				width      = tw,
-				height     = th,
-				sx         = 1,
-				sy         = 1,
-				r          = 0,
-				offset     = {
+				id          = id,
+				gid         = gid,
+				tileset     = index,
+				quad        = quad(qx, qy, tw, th, iw, ih),
+				properties  = properties or {},
+				terrain     = terrain,
+				animation   = animation,
+				objectGroup = objectGroup,
+				frame       = 1,
+				time        = 0,
+				width       = tw,
+				height      = th,
+				sx          = 1,
+				sy          = 1,
+				r           = 0,
+				offset      = {
 					x = -mw + tileset.tileoffset.x,
 					y = -th + tileset.tileoffset.y,
 				},
