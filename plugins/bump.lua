@@ -42,14 +42,29 @@ return {
 							local t = {properties = tile.properties, x = x * map.tilewidth + tile.offset.x + map.offsetx, y = y * map.tileheight + tile.offset.y + map.offsety, width = tile.width, height = tile.height, layer = layer }
 							world:add(t, t.x,t.y, t.width,t.height )
 							table.insert(collidables,t)
-
 						end
 					end
 				elseif layer.type == "imagelayer" then
 					world:add(layer, layer.x,layer.y, layer.width,layer.height)
 					table.insert(collidables,layer)
 				end
-			end
+		  end
+			-- individual collidable objects in a layer that is not "collidable"
+			-- or whole collidable objects layer
+		  if layer.type == "objectgroup" then
+				for _, obj in ipairs(layer.objects) do
+					if (layer.properties and layer.properties.collidable == "true")
+					  or (obj.properties and obj.properties.collidable == "true") then
+							if obj.shape == "rectangle" then
+								local t = {properties = obj.properties, x = obj.x, y = obj.y, width = obj.width, height = obj.height, type = obj.type, name = obj.name, id = obj.id, gid = obj.gid, layer = layer }
+								if obj.gid then t.y = t.y - obj.height end
+								world:add(t, t.x,t.y, t.width,t.height )
+								table.insert(collidables,t)
+							end -- TODO implement other object shapes?
+					end
+				end
+  		end
+
 		end
 		map.bump_collidables = collidables
 	end,
