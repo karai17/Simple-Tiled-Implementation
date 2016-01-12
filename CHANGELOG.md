@@ -1,5 +1,10 @@
 # Change Log
 
+## 2016-01-12: v0.14.1.12
+
+* Changed: new line token from CRLF to LF
+* Fixed: sprite batches should now respect the map draw order
+
 ## 2016-01-01: v0.14.1.11
 
 * Fixed: Various bugs in the Box2D plugin (thanks @ChrisWeisiger)

@@ -466,14 +466,14 @@ function Map:setSpriteBatches(layer)
 	-- Determine order to add tiles to sprite batch
 	-- Defaults to right-down
 	if self.renderorder == "right-up" then
-		sx, ex, ix = 1, layer.width,   1
-		sy, ey, iy = layer.height, 1, -1
+		sx, ex, ix = sx, ex,  1
+		sy, ey, iy = ey, sy, -1
 	elseif self.renderorder == "left-down" then
-		sx, ex, ix = layer.width, 1, -1
-		sy, ey, iy = 1, layer.height, 1
+		sx, ex, ix = ex, sx, -1
+		sy, ey, iy = sy, ey,  1
 	elseif self.renderorder == "left-up" then
-		sx, ex, ix = layer.width,  1, -1
-		sy, ey, iy = layer.height, 1, -1
+		sx, ex, ix = ex, sx, -1
+		sy, ey, iy = ey, sy, -1
 	end
 
 	-- Minimum of 400 tiles per batch
@@ -831,11 +831,26 @@ function Map:drawTileLayer(layer)
 	local sy = math.ceil((self.drawRange.sy - layer.y / self.tileheight	- 1) / bh)
 	local ex = math.ceil((self.drawRange.ex - layer.x / self.tilewidth	+ 1) / bw)
 	local ey = math.ceil((self.drawRange.ey - layer.y / self.tileheight	+ 1) / bh)
+	local ix = 1
+	local iy = 1
 	local mx = math.ceil(self.width / bw)
 	local my = math.ceil(self.height / bh)
 
-	for by=sy, ey do
-		for bx=sx, ex do
+	-- Determine order to draw batches
+	-- Defaults to right-down
+	if self.renderorder == "right-up" then
+		sx, ex, ix = sx, ex,  1
+		sy, ey, iy = ey, sy, -1
+	elseif self.renderorder == "left-down" then
+		sx, ex, ix = ex, sx, -1
+		sy, ey, iy = sy, ey,  1
+	elseif self.renderorder == "left-up" then
+		sx, ex, ix = ex, sx, -1
+		sy, ey, iy = ey, sy, -1
+	end
+
+	for by=sy, ey, iy do
+		for bx=sx, ex, ix do
 			if bx >= 1 and bx <= mx and by >= 1 and by <= my then
 				for _, batches in pairs(layer.batches.data) do
 					local batch = batches[by] and batches[by][bx]
