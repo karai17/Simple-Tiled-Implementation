@@ -1152,8 +1152,6 @@ function Map:convertWorldToScreen(x,y)
 		local sy = y * (th / 2) + th/2
 
 		return sx, sy
-	elseif self.orientation == "hexagonal" then
-		
 	end
 end
 
@@ -1234,8 +1232,6 @@ function Map:convertScreenToWorld(x,y)
 		end
 
 		return tx, ty
-	elseif self.orientation == "hexagonal" then
-		
 	end
 end
 
