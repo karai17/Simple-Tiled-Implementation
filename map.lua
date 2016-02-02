@@ -1123,140 +1123,116 @@ function Map:convertScreenToIsometric(x, y)
 	return tx, ty
 end
 
---- Convert orthoganal tile space to screen space
+--- Convert tile space to screen space
 -- @param x The X axis location of the point (in tiles)
 -- @param y The Y axis location of the point (in tiles)
 -- @return number The X axis location of the point (in pixels)
 -- @return number The Y axis location of the point (in pixels)
-function Map:convertTileToScreen(x, y)
-	local tw = self.tilewidth
-	local th = self.tileheight
-	local sx = x * tw
-	local sy = y * th
+function Map:convertWorldToScreen(x,y)
+	if self.orientation == "orthogonal" then
+		local tw = self.tilewidth
+		local th = self.tileheight
+		local sx = x * tw
+		local sy = y * th
 
-	return sx, sy
+		return sx, sy
+	elseif self.orientation == "isometric" then
+		local mw = self.width
+		local tw = self.tilewidth
+		local th = self.tileheight
+		local ox = mw * tw / 2
+		local sx = (x - y) * tw / 2 + ox
+		local sy = (x + y) * th / 2
+
+		return sx, sy
+	elseif self.orientation == "staggered" then
+		local tw = self.tilewidth
+		local th = self.tileheight
+		local sx = x * tw + math.abs(math.ceil(y) % 2) * (tw / 2) - (math.ceil(y) % 2 * tw/2)
+		local sy = y * (th / 2) + th/2
+
+		return sx, sy
+	end
 end
 
---- Convert orthoganal screen space to tile space
+--- Convert screen space to tile space
 -- @param x The X axis location of the point (in pixels)
 -- @param y The Y axis location of the point (in pixels)
 -- @return number The X axis location of the point (in tiles)
 -- @return number The Y axis location of the point (in tiles)
-function Map:convertScreenToTile(x, y)
-	local tw = self.tilewidth
-	local th = self.tileheight
-	local tx = x / tw
-	local ty = y / th
+function Map:convertScreenToWorld(x,y)
+	if self.orientation == "orthogonal" then
+		local tw = self.tilewidth
+		local th = self.tileheight
+		local tx = x / tw
+		local ty = y / th
 
-	return tx, ty
-end
+		return tx, ty
+	elseif self.orientation == "isometric" then
+		local mw = self.width
+		local tw = self.tilewidth
+		local th = self.tileheight
+		local ox = mw * tw / 2
+		local tx = y / th + (x - ox) / tw
+		local ty = y / th - (x - ox) / tw
 
---- Convert isometric tile space to screen space
--- @param x The X axis location of the point (in tiles)
--- @param y The Y axis location of the point (in tiles)
--- @return number The X axis location of the point (in pixels)
--- @return number The Y axis location of the point (in pixels)
-function Map:convertIsometricTileToScreen(x, y)
-	local mw = self.width
-	local tw = self.tilewidth
-	local th = self.tileheight
-	local ox = mw * tw / 2
-	local sx = (x - y) * tw / 2 + ox
-	local sy = (x + y) * th / 2
-
-	return sx, sy
-end
-
---- Convert isometric screen space to tile space
--- @param x The X axis location of the point (in pixels)
--- @param y The Y axis location of the point (in pixels)
--- @return number The X axis location of the point (in tiles)
--- @return number The Y axis location of the point (in tiles)
-function Map:convertScreenToIsometricTile(x, y)
-	local mw = self.width
-	local tw = self.tilewidth
-	local th = self.tileheight
-	local ox = mw * tw / 2
-	local tx = y / th + (x - ox) / tw
-	local ty = y / th - (x - ox) / tw
-
-	return tx, ty
-end
-
---- Convert staggered isometric tile space to screen space
--- @param x The X axis location of the point (in tiles)
--- @param y The Y axis location of the point (in tiles)
--- @return number The X axis location of the point (in pixels)
--- @return number The Y axis location of the point (in pixels)
-function Map:convertStaggeredTileToScreen(x, y)
-	local tw = self.tilewidth
-	local th = self.tileheight
-	local sx = x * tw + math.abs(math.ceil(y) % 2) * (tw / 2) - (math.ceil(y) % 2 * tw/2)
-	local sy = y * (th / 2) + th/2
-
-	return sx, sy
-end
-
---- Convert staggered isometric screen space to tile space
--- @param x The X axis location of the point (in pixels)
--- @param y The Y axis location of the point (in pixels)
--- @return number The X axis location of the point (in tiles)
--- @return number The Y axis location of the point (in tiles)
-function Map:convertScreenToStaggeredTile(x, y)
-	local function topLeft(x, y)
-		if (math.ceil(y) % 2) then
-			return x, y - 1
-		else
-			return x - 1, y - 1
+		return tx, ty
+	elseif self.orientation == "staggered" then
+		local function topLeft(x, y)
+			if (math.ceil(y) % 2) then
+				return x, y - 1
+			else
+				return x - 1, y - 1
+			end
 		end
-	end
 
-	local function topRight(x, y)
-		if (math.ceil(y) % 2) then
-			return x + 1, y - 1
-		else
-			return x, y - 1
+		local function topRight(x, y)
+			if (math.ceil(y) % 2) then
+				return x + 1, y - 1
+			else
+				return x, y - 1
+			end
 		end
-	end
 
-	local function bottomLeft(x, y)
-		if (math.ceil(y) % 2) then
-			return x, y + 1
-		else
-			return x - 1, y + 1
+		local function bottomLeft(x, y)
+			if (math.ceil(y) % 2) then
+				return x, y + 1
+			else
+				return x - 1, y + 1
+			end
 		end
-	end
 
-	local function bottomRight(x, y)
-		if (math.ceil(y) % 2) then
-			return x + 1, y + 1
-		else
-			return x, y + 1
+		local function bottomRight(x, y)
+			if (math.ceil(y) % 2) then
+				return x + 1, y + 1
+			else
+				return x, y + 1
+			end
 		end
+
+		local tw    = self.tilewidth
+		local th    = self.tileheight
+		local hh    = th / 2
+		local ratio = th / tw
+		local tx    = x / tw
+		local ty    = y / th * 2
+		local ctx   = math.ceil(x / tw)
+		local cty   = math.ceil(y / th) * 2
+		local rx    = x - ctx * tw
+		local ry    = y - (cty / 2) * th
+
+		if (hh - rx * ratio > ry) then
+			return topLeft(tx, ty)
+		elseif (-hh + rx * ratio > ry) then
+			return topRight(tx, ty)
+		elseif (hh + rx * ratio < ry) then
+			return bottomLeft(tx, ty)
+		elseif (hh * 3 - rx * ratio < ry) then
+			return bottomRight(tx, ty)
+		end
+
+		return tx, ty
 	end
-
-	local tw    = self.tilewidth
-	local th    = self.tileheight
-	local hh    = th / 2
-	local ratio = th / tw
-	local tx    = x / tw
-	local ty    = y / th * 2
-	local ctx   = math.ceil(x / tw)
-	local cty   = math.ceil(y / th) * 2
-	local rx    = x - ctx * tw
-	local ry    = y - (cty / 2) * th
-
-	if (hh - rx * ratio > ry) then
-		return topLeft(tx, ty)
-	elseif (-hh + rx * ratio > ry) then
-		return topRight(tx, ty)
-	elseif (hh + rx * ratio < ry) then
-		return bottomLeft(tx, ty)
-	elseif (hh * 3 - rx * ratio < ry) then
-		return bottomRight(tx, ty)
-	end
-
-	return tx, ty
 end
 
 return Map
