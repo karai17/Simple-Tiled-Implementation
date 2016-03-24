@@ -666,6 +666,7 @@ end
 -- @param index Draw order within Layer stack
 -- @return table Custom Layer
 function Map:addCustomLayer(name, index)
+	assert(type(name) == "string", "The type of first argument must be string")
 	local index = index or #self.layers + 1
 	local layer = {
       type       = "customlayer",
@@ -793,8 +794,8 @@ function Map:draw()
 		love.graphics.clear(r,g,b,a,self.canvas)
 	end
 
-	for _, layer in ipairs(self.layers) do
-		if layer.visible and layer.opacity > 0 then
+	for k, layer in pairs(self.layers) do
+		if type(k) == "number" and layer.visible and layer.opacity > 0 then
 			self:drawLayer(layer)
 		end
 	end
