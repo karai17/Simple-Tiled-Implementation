@@ -148,6 +148,7 @@ return {
 			}
 
 			if o.shape == "rectangle" then
+				assert(o.w > 0 and o.h > 0, "The width and height of rectangle physics object named \" " .. object.name .. "\" both need a positive number")
 				o.r       = object.rotation or 0
 				local cos = math.cos(math.rad(o.r))
 				local sin = math.sin(math.rad(o.r))

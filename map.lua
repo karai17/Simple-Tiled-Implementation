@@ -666,6 +666,7 @@ end
 -- @param index Draw order within Layer stack
 -- @return table Custom Layer
 function Map:addCustomLayer(name, index)
+	assert(type(name) == "string", "The type of first argument must be string")
 	local index = index or #self.layers + 1
 	local layer = {
       type       = "customlayer",
@@ -781,6 +782,19 @@ function Map:update(dt)
 	end
 end
 
+local pairsByKeys = function (t)
+    local a = {}
+    for k, v in pairs(t) do
+		if type(k) == "number" then a[#a+1] = k end
+    end
+    table.sort(a)
+    local i = 0
+    return function()
+        i = i + 1
+        return a[i], t[a[i]]
+    end
+end
+
 --- Draw every Layer
 -- @return nil
 function Map:draw()
@@ -793,7 +807,7 @@ function Map:draw()
 		love.graphics.clear(r,g,b,a,self.canvas)
 	end
 
-	for _, layer in ipairs(self.layers) do
+	for k, layer in pairsByKeys(self.layers) do
 		if layer.visible and layer.opacity > 0 then
 			self:drawLayer(layer)
 		end
