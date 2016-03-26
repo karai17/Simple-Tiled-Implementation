@@ -782,6 +782,19 @@ function Map:update(dt)
 	end
 end
 
+local pairsByKeys = function (t)
+    local a = {}
+    for k, v in pairs(t) do
+		if type(k) == "number" then a[#a+1] = k end
+    end
+    table.sort(a)
+    local i = 0
+    return function()
+        i = i + 1
+        return a[i], t[a[i]]
+    end
+end
+
 --- Draw every Layer
 -- @return nil
 function Map:draw()
@@ -794,8 +807,8 @@ function Map:draw()
 		love.graphics.clear(r,g,b,a,self.canvas)
 	end
 
-	for k, layer in pairs(self.layers) do
-		if type(k) == "number" and layer.visible and layer.opacity > 0 then
+	for k, layer in pairsByKeys(self.layers) do
+		if layer.visible and layer.opacity > 0 then
 			self:drawLayer(layer)
 		end
 	end
