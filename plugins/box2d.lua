@@ -125,8 +125,8 @@ return {
 		local function getPolygonVertices(object)
 			local vertices = {}
 			for _, vertex in ipairs(object.polygon) do
-				table.insert(vertices, vertex.x + object.x)
-				table.insert(vertices, vertex.y + object.y)
+				table.insert(vertices, vertex.x)
+				table.insert(vertices, vertex.y)
 			end
 
 			return vertices
@@ -183,10 +183,10 @@ return {
 				end
 
 				o.polygon = {
-					{ x=0,   y=0   },
-					{ x=o.w, y=0   },
-					{ x=o.w, y=o.h },
-					{ x=0,   y=o.h },
+					{ x=o.x+0,   y=o.y+0   },
+					{ x=o.x+o.w, y=o.y+0   },
+					{ x=o.x+o.w, y=o.y+o.h },
+					{ x=o.x+0,   y=o.y+o.h },
 				}
 
 				for _, vertex in ipairs(o.polygon) do
