@@ -503,46 +503,54 @@ function Map:setSpriteBatches(layer)
 					tx = (x - y) * (tw / 2) + tile.offset.x + layer.width * tw / 2
 					ty = (x + y) * (th / 2) + tile.offset.y
 				elseif self.orientation == "staggered" or self.orientation == "hexagonal" then
+					local hl = self.hexsidelength or 0
+
 					if self.staggeraxis == "y" then
 						if self.staggerindex == "odd" then
 							if y % 2 == 0 then
-								tx = x * tw + tw / 2 + (self.hexsidelength or 0) + tile.offset.x
+								tx = x * tw + tw / 2 + hl + tile.offset.x
 							else
-								tx = x * tw + (self.hexsidelength or 0) + tile.offset.x
+								tx = x * tw + hl + tile.offset.x
 							end
 						else
 							if y % 2 == 0 then
-								tx = x * tw + (self.hexsidelength or 0) + tile.offset.x
+								tx = x * tw + hl + tile.offset.x
 							else
-								tx = x * tw + tw / 2 + (self.hexsidelength or 0) + tile.offset.x
+								tx = x * tw + tw / 2 + hl + tile.offset.x
 							end
 						end
 
 						if self.orientation == "hexagonal" then
-							ty = y * (th - (th - self.hexsidelength) / 2) + tile.offset.y + (th - (th - self.hexsidelength) / 2)
+							ty = y * (th - (th - hl) / 2) + tile.offset.y + (th - (th - hl) / 2)
 						else
 							ty = y * th / 2 + tile.offset.y + th / 2
 						end
 					else
 						if self.staggerindex == "odd" then
 							if x % 2 == 0 then
-								ty = y * th + th / 2 + (self.hexsidelength or 0) + tile.offset.y
+								ty = y * th + th / 2 + hl + tile.offset.y
 							else
-								ty = y * th + (self.hexsidelength or 0) + tile.offset.y
+								ty = y * th + hl + tile.offset.y
 							end
 						else
 							if x % 2 == 0 then
-								ty = y * th + (self.hexsidelength or 0) + tile.offset.y
+								ty = y * th + hl + tile.offset.y
 							else
-								ty = y * th + th / 2 + (self.hexsidelength or 0) + tile.offset.y
+								ty = y * th + th / 2 + hl + tile.offset.y
 							end
 						end
 
 						if self.orientation == "hexagonal" then
-							tx = x * (tw - (tw - self.hexsidelength) / 2) + tile.offset.x + (tw - (tw - self.hexsidelength) / 2)
+							tx = x * (tw - (tw - hl) / 2) + tile.offset.x + (tw - (tw - hl) / 2)
 						else
 							tx = x * tw / 2 + tile.offset.x + tw / 2
 						end
+					end
+
+					-- I FEEL LIKE THIS IS WRONG
+					if self.orientation == "hexagonal" then
+						tx = tx - tw / 2 - 2
+						ty = ty - th / 2 - 2
 					end
 				end
 
