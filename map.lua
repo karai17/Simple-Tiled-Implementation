@@ -374,11 +374,11 @@ function Map:setObjectCoordinates(layer)
 		return vertices
 	end
 
-	local function rotateVertex(v, x, y, cos, sin)
-		local vertex = {
-			x = v.x,
-			y = v.y,
-		}
+	local function rotateVertex(vertex, x, y, cos, sin)
+		if self.orientation == "isometric" then
+			x, y               = self:convertIsometricToScreen(x, y)
+			vertex.x, vertex.y = self:convertIsometricToScreen(vertex.x, vertex.y)
+		end
 
 		vertex.x = vertex.x - x
 		vertex.y = vertex.y - y
@@ -387,15 +387,6 @@ function Map:setObjectCoordinates(layer)
 		local vy = sin * vertex.x + cos * vertex.y
 
 		return vx + x, vy + y
-	end
-
-	local function updateVertex(vertex, x, y, cos, sin)
-		if self.orientation == "isometric" then
-			x, y               = self:convertIsometricToScreen(x, y)
-			vertex.x, vertex.y = self:convertIsometricToScreen(vertex.x, vertex.y)
-		end
-
-		return rotateVertex(vertex, x, y, cos, sin)
 	end
 
 	for _, object in ipairs(layer.objects) do
@@ -418,7 +409,7 @@ function Map:setObjectCoordinates(layer)
 			}
 
 			for _, vertex in ipairs(vertices) do
-				vertex.x, vertex.y = updateVertex(vertex, x, y, cos, sin)
+				vertex.x, vertex.y = rotateVertex(vertex, x, y, cos, sin)
 				table.insert(object.rectangle, { x = vertex.x, y = vertex.y })
 			end
 		elseif object.shape == "ellipse" then
@@ -426,20 +417,20 @@ function Map:setObjectCoordinates(layer)
 			local vertices = convertEllipseToPolygon(x, y, w, h)
 
 			for _, vertex in ipairs(vertices) do
-				vertex.x, vertex.y = updateVertex(vertex, x, y, cos, sin)
+				vertex.x, vertex.y = rotateVertex(vertex, x, y, cos, sin)
 				table.insert(object.ellipse, { x = vertex.x, y = vertex.y })
 			end
 		elseif object.shape == "polygon" then
 			for _, vertex in ipairs(object.polygon) do
 				vertex.x           = vertex.x + x
 				vertex.y           = vertex.y + y
-				vertex.x, vertex.y = updateVertex(vertex, x, y, cos, sin)
+				vertex.x, vertex.y = rotateVertex(vertex, x, y, cos, sin)
 			end
 		elseif object.shape == "polyline" then
 			for _, vertex in ipairs(object.polyline) do
 				vertex.x           = vertex.x + x
 				vertex.y           = vertex.y + y
-				vertex.x, vertex.y = updateVertex(vertex, x, y, cos, sin)
+				vertex.x, vertex.y = rotateVertex(vertex, x, y, cos, sin)
 			end
 		end
 	end
@@ -1089,38 +1080,25 @@ function Map:getObjectProperties(layer, object)
 	return o.properties
 end
 
---- Project isometric position to orthoganal position
+--- Project isometric position to caresian position
 -- @param x The X axis location of the point (in pixels)
 -- @param y The Y axis location of the point (in pixels)
 -- @return number The X axis location of the point (in pixels)
 -- @return number The Y axis location of the point (in pixels)
 function Map:convertIsometricToScreen(x, y)
-	local mw = self.width
-	local tw = self.tilewidth
-	local th = self.tileheight
-	local ox = mw * tw / 2
-	local sx = (x - y) + ox
-	local sy = (x + y) / 2
-
-	return sx, sy
-end
-
---- Project orthoganal position to isometric position
--- @param x The X axis location of the point (in pixels)
--- @param y The Y axis location of the point (in pixels)
--- @return number The X axis location of the point (in pixels)
--- @return number The Y axis location of the point (in pixels)
-function Map:convertScreenToIsometric(x, y)
-	local mw = self.width
 	local mh = self.height
 	local tw = self.tilewidth
 	local th = self.tileheight
-	local ox = mw * tw / 2
-	local oy = mh * th / 2
-	local tx = (x / 2 + y) - ox / 2
-	local ty = (-x / 2 + y) + oy
+	local ox = mh * tw / 2
 
-	return tx, ty
+	local tx = x / th
+	local ty = y / th
+
+
+	local sx = (tx - ty) * tw / 2 + ox
+	local sy = (tx + ty) * th / 2
+
+	return sx, sy
 end
 
 --- Convert tile space to screen space
@@ -1132,26 +1110,24 @@ function Map:convertWorldToScreen(x,y)
 	if self.orientation == "orthogonal" then
 		local tw = self.tilewidth
 		local th = self.tileheight
-		local sx = x * tw
-		local sy = y * th
-
-		return sx, sy
+		return
+			x * tw,
+			y * th
 	elseif self.orientation == "isometric" then
-		local mw = self.width
+		local mh = self.height
 		local tw = self.tilewidth
 		local th = self.tileheight
-		local ox = mw * tw / 2
-		local sx = (x - y) * tw / 2 + ox
-		local sy = (x + y) * th / 2
-
-		return sx, sy
+		local ox = mh * tw / 2
+		return
+			(x - y) * tw / 2 + ox,
+			(x + y) * th / 2
 	elseif self.orientation == "staggered" then
+		local abs, ceil = math.abs, math.ceil
 		local tw = self.tilewidth
 		local th = self.tileheight
-		local sx = x * tw + math.abs(math.ceil(y) % 2) * (tw / 2) - (math.ceil(y) % 2 * tw/2)
-		local sy = y * (th / 2) + th/2
-
-		return sx, sy
+		return
+			x * tw + abs(ceil(y) % 2) * (tw / 2) - (ceil(y) % 2 * tw / 2),
+			y * (th / 2) + th / 2
 	end
 end
 
@@ -1164,22 +1140,21 @@ function Map:convertScreenToWorld(x,y)
 	if self.orientation == "orthogonal" then
 		local tw = self.tilewidth
 		local th = self.tileheight
-		local tx = x / tw
-		local ty = y / th
-
-		return tx, ty
+		return
+			x / tw,
+			y / th
 	elseif self.orientation == "isometric" then
-		local mw = self.width
+		local mh = self.height
 		local tw = self.tilewidth
 		local th = self.tileheight
-		local ox = mw * tw / 2
-		local tx = y / th + (x - ox) / tw
-		local ty = y / th - (x - ox) / tw
-
-		return tx, ty
+		local ox = mh * tw / 2
+		return
+			y / th + (x - ox) / tw,
+			y / th - (x - ox) / tw
 	elseif self.orientation == "staggered" then
+		local ceil = math.ceil
 		local function topLeft(x, y)
-			if (math.ceil(y) % 2) then
+			if (ceil(y) % 2) then
 				return x, y - 1
 			else
 				return x - 1, y - 1
@@ -1187,7 +1162,7 @@ function Map:convertScreenToWorld(x,y)
 		end
 
 		local function topRight(x, y)
-			if (math.ceil(y) % 2) then
+			if (ceil(y) % 2) then
 				return x + 1, y - 1
 			else
 				return x, y - 1
@@ -1195,7 +1170,7 @@ function Map:convertScreenToWorld(x,y)
 		end
 
 		local function bottomLeft(x, y)
-			if (math.ceil(y) % 2) then
+			if (ceil(y) % 2) then
 				return x, y + 1
 			else
 				return x - 1, y + 1
@@ -1203,7 +1178,7 @@ function Map:convertScreenToWorld(x,y)
 		end
 
 		local function bottomRight(x, y)
-			if (math.ceil(y) % 2) then
+			if (ceil(y) % 2) then
 				return x + 1, y + 1
 			else
 				return x, y + 1
@@ -1216,8 +1191,8 @@ function Map:convertScreenToWorld(x,y)
 		local ratio = th / tw
 		local tx    = x / tw
 		local ty    = y / th * 2
-		local ctx   = math.ceil(x / tw)
-		local cty   = math.ceil(y / th) * 2
+		local ctx   = ceil(x / tw)
+		local cty   = ceil(y / th) * 2
 		local rx    = x - ctx * tw
 		local ry    = y - (cty / 2) * th
 

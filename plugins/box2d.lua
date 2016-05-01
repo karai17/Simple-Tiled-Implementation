@@ -79,13 +79,11 @@ return {
 			return vertices
 		end
 
-		local function rotateVertex(v, x, y, cos, sin, oy)
-			oy = oy or 0
-
-			local vertex = {
-				x = v.x,
-				y = v.y - oy,
-			}
+		local function rotateVertex(vertex, x, y, cos, sin)
+			if map.orientation == "isometric" then
+				x, y               = map:convertIsometricToScreen(x, y)
+				vertex.x, vertex.y = map:convertIsometricToScreen(vertex.x, vertex.y)
+			end
 
 			vertex.x = vertex.x - x
 			vertex.y = vertex.y - y
@@ -93,7 +91,7 @@ return {
 			local vx = cos * vertex.x - sin * vertex.y
 			local vy = sin * vertex.x + cos * vertex.y
 
-			return vx + x, vy + y + oy
+			return vx + x, vy + y
 		end
 
 		local function addObjectToWorld(objshape, vertices, userdata, object)
@@ -190,10 +188,6 @@ return {
 				}
 
 				for _, vertex in ipairs(o.polygon) do
-					if map.orientation == "isometric" then
-						vertex.x, vertex.y = map:convertIsometricToScreen(vertex.x, vertex.y)
-					end
-
 					vertex.x, vertex.y = rotateVertex(vertex, o.x, o.y, cos, sin, oy)
 				end
 
