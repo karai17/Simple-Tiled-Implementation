@@ -1,5 +1,7 @@
 # Simple Tiled Implementation
 
+[![Join the chat at https://gitter.im/karai17/Simple-Tiled-Implementation](https://badges.gitter.im/karai17/Simple-Tiled-Implementation.svg)](https://gitter.im/karai17/Simple-Tiled-Implementation?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Simple Tiled Implementation is a [**Tiled**][Tiled] map loader and renderer designed for the **\*awesome\*** [**LÖVE**][LOVE] framework. Please read the [**documentation**][dox] to learn how it works!
 
 ## Quick Example
