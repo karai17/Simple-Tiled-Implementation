@@ -1088,6 +1088,43 @@ function Map:getObjectProperties(layer, object)
 	return o.properties
 end
 
+--- Swap a tile in a spritebatch
+-- @param instance The current Instance object we want to replace
+-- @param tile The Tile object we want to use
+-- @return none
+function Map:swapTile(instance, tile)
+	-- Update sprite batch
+	instance.batch:set(
+		instance.id,
+		tile.quad,
+		instance.x,
+		instance.y,
+		tile.r,
+		tile.sx,
+		tile.sy
+	)
+
+	-- Add new tile instance
+	table.insert(self.tileInstances[tile.gid], {
+		layer = instance.layer,
+		batch = instance.batch,
+		id    = instance.id,
+		gid   = tile.gid,
+		x     = instance.x,
+		y     = instance.y,
+		r     = tile.r,
+		oy    = tile.r ~= 0 and tile.height or 0
+	})
+
+	-- Remove old tile instance
+	for i, ins in ipairs(self.tileInstances[instance.gid]) do
+		if  ins.batch == instance.batch and ins.id == instance.id then
+			table.remove(self.tileInstances[instance.gid], i)
+			break
+		end
+	end
+end
+
 --- Project isometric position to caresian position
 -- @param x The X axis location of the point (in pixels)
 -- @param y The Y axis location of the point (in pixels)
