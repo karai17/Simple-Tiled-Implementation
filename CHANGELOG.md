@@ -1,5 +1,12 @@
 # Change Log
 
+## 2016-05-19: v0.14.1.13
+
+* Added: Test maps for visual varification between Tiled and STI
+* Added: Map:swapTile so you can cleanly swap tiles in Tile Layers
+* Changed: All conversion functions consolidated into two functions (thanks @entrancejew)
+* Fixed: shapes were off in noman's land in some cases (thanks @loribranford)
+
 ## 2016-01-12: v0.14.1.12
 
 * Added: Basic support for object layers in Bump plugin (thanks @premek)
