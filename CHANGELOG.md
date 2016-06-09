@@ -1,5 +1,9 @@
 # Change Log
 
+## 2016-06-09: v0.14.2.0
+
+* Added: Proper support for Layer offsets (thanks @Drauthius!)
+
 ## 2016-05-19: v0.14.1.13
 
 * Added: Test maps for visual varification between Tiled and STI

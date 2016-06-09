@@ -248,8 +248,8 @@ function Map:setLayer(layer, path)
 		end
 	end
 
-	layer.x      = (layer.x or 0) + (layer.offsetx or 0) + self.offsetx
-	layer.y      = (layer.y or 0) + (layer.offsety or 0) + self.offsety
+	layer.x      = (layer.x or 0) + layer.offsetx + self.offsetx
+	layer.y      = (layer.y or 0) + layer.offsety + self.offsety
 	layer.update = function(dt) return end
 
 	if layer.type == "tilelayer" then
