@@ -1,8 +1,13 @@
 # Change Log
 
+## 2016-06-09: v0.16.0.1
+
+* Changed: Moved local functions to an internal utils file to tidy things up
+* Changed: Box2D plugin now uses utils file instead of duplicate functions
+
 ## 2016-06-09: v0.16.0.0
 
-* Changed: Custom Properties now support proper boolean values in both Box2D and Bump plugins.
+* Changed: Custom Properties now support proper boolean values in both Box2D and Bump plugins
 
 ## 2016-06-09: v0.14.2.0
 

@@ -3,59 +3,8 @@
 
 local path       = (...):gsub('%.[^%.]+$', '') .. "."
 local pluginPath = string.gsub(path, "[.]", "/") .. "plugins/"
+local utils      = require(path .. "utils")
 local Map        = {}
-
--- https://github.com/stevedonovan/Penlight/blob/master/lua/pl/path.lua#L286
-local function formatPath(path)
-	local np_gen1,np_gen2  = '[^SEP]+SEP%.%.SEP?','SEP+%.?SEP'
-	local np_pat1, np_pat2 = np_gen1:gsub('SEP','/'), np_gen2:gsub('SEP','/')
-	local k
-
-	repeat -- /./ -> /
-		path,k = path:gsub(np_pat2,'/')
-	until k == 0
-
-	repeat -- A/../ -> (empty)
-		path,k = path:gsub(np_pat1,'')
-	until k == 0
-
-	if path == '' then path = '.' end
-
-	return path
-end
-
--- Compensation for scale/rotation shift
-local function compensate(tile, x, y, tw, th)
-	local tx    = x + tile.offset.x
-	local ty    = y + tile.offset.y
-	local origx = tx
-	local origy = ty
-	local compx = 0
-	local compy = 0
-
-	if tile.sx < 0 then compx = tw end
-	if tile.sy < 0 then compy = th end
-
-	if tile.r > 0 then
-		tx = tx + th - compy
-		ty = ty + th - tw + compx
-	elseif tile.r < 0 then
-		tx = tx + compy
-		ty = ty + th - compx
-	else
-		tx = tx + compx
-		ty = ty + compy
-	end
-
-	return tx, ty
-end
-
--- Cache images in main STI module
-local function cache_image(sti, path)
-	local image = love.graphics.newImage(path)
-	image:setFilter("nearest", "nearest")
-	sti.cache[path] = image
-end
 
 --- Instance a new map
 -- @param path Path to the map file
@@ -88,9 +37,9 @@ function Map:init(STI, path, plugins, ox, oy)
 		assert(tileset.image, "STI does not support Tile Collections.\nYou need to create a Texture Atlas.")
 
 		-- Cache images
-		local formatted_path = formatPath(path .. tileset.image)
+		local formatted_path = utils.format_path(path .. tileset.image)
 		if not self.sti.cache[formatted_path] then
-			cache_image(self.sti, formatted_path)
+			utils.cache_image(self.sti, formatted_path)
 		end
 
 		-- Pull images from cache
@@ -112,7 +61,7 @@ function Map:loadPlugins(plugins)
 	for _, plugin in ipairs(plugins) do
 		local p = pluginPath .. plugin .. ".lua"
 		if love.filesystem.isFile(p) then
-			local file = love.filesystem.load(p)()
+			local file = love.filesystem.load(p)(path)
 			for k, func in pairs(file) do
 				if not self[k] then
 					self[k] = func
@@ -128,19 +77,6 @@ end
 -- @param gid First Global ID in Tileset
 -- @return number Next Tileset's first Global ID
 function Map:setTiles(index, tileset, gid)
-	local function getTiles(i, t, m, s)
-		i = i - m
-		local n = 0
-
-		while i >= t do
-			i = i - t
-			if n ~= 0 then i = i - s end
-			if i >= 0 then n = n + 1 end
-		end
-
-		return n
-	end
-
 	local quad = love.graphics.newQuad
 	local mw   = self.tilewidth
 	local iw   = tileset.imagewidth
@@ -149,8 +85,8 @@ function Map:setTiles(index, tileset, gid)
 	local th   = tileset.tileheight
 	local s    = tileset.spacing
 	local m    = tileset.margin
-	local w    = getTiles(iw, tw, m, s)
-	local h    = getTiles(ih, th, m, s)
+	local w    = utils.get_tiles(iw, tw, m, s)
+	local h    = utils.get_tiles(ih, th, m, s)
 
 	for y = 1, h do
 		for x = 1, w do
@@ -219,30 +155,19 @@ function Map:setLayer(layer, path)
 			local ffi = assert(require "ffi", "Compressed maps require LuaJIT FFI.\nPlease Switch your interperator to LuaJIT or your Tile Layer Format to \"CSV\".")
 			local fd  = love.filesystem.newFileData(layer.data, "data", "base64"):getString()
 
-			local function getDecompressedData(data)
-				local d       = {}
-				local decoded = ffi.cast("uint32_t*", data)
-
-				for i=0, data:len() / ffi.sizeof("uint32_t") do
-					table.insert(d, tonumber(decoded[i]))
-				end
-
-				return d
-			end
-
 			if not layer.compression then
-				layer.data = getDecompressedData(fd)
+				layer.data = utils.get_decompressed_data(fd)
 			else
 				assert(love.math.decompress, "zlib and gzip compression require LOVE 0.10.0+.\nPlease set your Tile Layer Format to \"Base64 (uncompressed)\" or \"CSV\".")
 
 				if layer.compression == "zlib" then
 					local data = love.math.decompress(fd, "zlib")
-					layer.data = getDecompressedData(data)
+					layer.data = utils.get_decompressed_data(data)
 				end
 
 				if layer.compression == "gzip" then
 					local data = love.math.decompress(fd, "gzip")
-					layer.data = getDecompressedData(data)
+					layer.data = utils.get_decompressed_data(data)
 				end
 			end
 		end
@@ -265,9 +190,9 @@ function Map:setLayer(layer, path)
 		layer.draw = function() self:drawImageLayer(layer) end
 
 		if layer.image ~= "" then
-			local formatted_path = formatPath(path .. layer.image)
+			local formatted_path = utils.format_path(path .. layer.image)
 			if not self.sti.cache[formatted_path] then
-				cache_image(self.sti, formatted_path)
+				utils.cache_image(self.sti, formatted_path)
 			end
 
 			layer.image  = self.sti.cache[formatted_path]
@@ -316,79 +241,6 @@ end
 -- @param layer The Object Layer
 -- @return nil
 function Map:setObjectCoordinates(layer)
-	local function convertEllipseToPolygon(x, y, w, h, max_segments)
-		local function calc_segments(segments)
-			local function vdist(a, b)
-				local c = {
-					x = a.x - b.x,
-					y = a.y - b.y,
-				}
-
-				return c.x * c.x + c.y * c.y
-			end
-
-			segments = segments or 64
-			local vertices = {}
-
-			local v = { 1, 2, math.ceil(segments/4-1), math.ceil(segments/4) }
-
-			local m
-			if love.physics then
-				m = love.physics.getMeter()
-			else
-				m = 32
-			end
-
-			for _, i in ipairs(v) do
-				local angle = (i / segments) * math.pi * 2
-				local px    = x + w / 2 + math.cos(angle) * w / 2
-				local py    = y + h / 2 + math.sin(angle) * h / 2
-
-				table.insert(vertices, { x = px / m, y = py / m })
-			end
-
-			local dist1 = vdist(vertices[1], vertices[2])
-			local dist2 = vdist(vertices[3], vertices[4])
-
-			-- Box2D threshold
-			if dist1 < 0.0025 or dist2 < 0.0025 then
-				return calc_segments(segments-2)
-			end
-
-			return segments
-		end
-
-		local segments = calc_segments(max_segments)
-		local vertices = {}
-
-		table.insert(vertices, { x = x + w / 2, y = y + h / 2 })
-
-		for i=0, segments do
-			local angle = (i / segments) * math.pi * 2
-			local px    = x + w / 2 + math.cos(angle) * w / 2
-			local py    = y + h / 2 + math.sin(angle) * h / 2
-
-			table.insert(vertices, { x = px, y = py })
-		end
-
-		return vertices
-	end
-
-	local function rotateVertex(vertex, x, y, cos, sin)
-		if self.orientation == "isometric" then
-			x, y               = self:convertIsometricToScreen(x, y)
-			vertex.x, vertex.y = self:convertIsometricToScreen(vertex.x, vertex.y)
-		end
-
-		vertex.x = vertex.x - x
-		vertex.y = vertex.y - y
-
-		local vx = cos * vertex.x - sin * vertex.y
-		local vy = sin * vertex.x + cos * vertex.y
-
-		return vx + x, vy + y
-	end
-
 	for _, object in ipairs(layer.objects) do
 		local x   = layer.x + object.x
 		local y   = layer.y + object.y
@@ -409,28 +261,28 @@ function Map:setObjectCoordinates(layer)
 			}
 
 			for _, vertex in ipairs(vertices) do
-				vertex.x, vertex.y = rotateVertex(vertex, x, y, cos, sin)
+				vertex.x, vertex.y = utils:rotate_vertex(self, vertex, x, y, cos, sin)
 				table.insert(object.rectangle, { x = vertex.x, y = vertex.y })
 			end
 		elseif object.shape == "ellipse" then
 			object.ellipse = {}
-			local vertices = convertEllipseToPolygon(x, y, w, h)
+			local vertices = utils.convert_ellipse_to_polygon(x, y, w, h)
 
 			for _, vertex in ipairs(vertices) do
-				vertex.x, vertex.y = rotateVertex(vertex, x, y, cos, sin)
+				vertex.x, vertex.y = utils:rotate_vertex(self, vertex, x, y, cos, sin)
 				table.insert(object.ellipse, { x = vertex.x, y = vertex.y })
 			end
 		elseif object.shape == "polygon" then
 			for _, vertex in ipairs(object.polygon) do
 				vertex.x           = vertex.x + x
 				vertex.y           = vertex.y + y
-				vertex.x, vertex.y = rotateVertex(vertex, x, y, cos, sin)
+				vertex.x, vertex.y = utils:rotate_vertex(self, vertex, x, y, cos, sin)
 			end
 		elseif object.shape == "polyline" then
 			for _, vertex in ipairs(object.polyline) do
 				vertex.x           = vertex.x + x
 				vertex.y           = vertex.y + y
-				vertex.x, vertex.y = rotateVertex(vertex, x, y, cos, sin)
+				vertex.x, vertex.y = utils:rotate_vertex(self, vertex, x, y, cos, sin)
 			end
 		end
 	end
@@ -498,7 +350,7 @@ function Map:setSpriteBatches(layer)
 				local tx, ty
 
 				if self.orientation == "orthogonal" then
-					tx, ty = compensate(tile, x*tw, y*th, tw, th)
+					tx, ty = utils.compensate(tile, x*tw, y*th, tw, th)
 				elseif self.orientation == "isometric" then
 					tx = (x - y) * (tw / 2) + tile.offset.x + layer.width * tw / 2
 					ty = (x + y) * (th / 2) + tile.offset.y
@@ -1123,27 +975,6 @@ function Map:swapTile(instance, tile)
 			break
 		end
 	end
-end
-
---- Project isometric position to caresian position
--- @param x The X axis location of the point (in pixels)
--- @param y The Y axis location of the point (in pixels)
--- @return number The X axis location of the point (in pixels)
--- @return number The Y axis location of the point (in pixels)
-function Map:convertIsometricToScreen(x, y)
-	local mh = self.height
-	local tw = self.tilewidth
-	local th = self.tileheight
-	local ox = mh * tw / 2
-
-	local tx = x / th
-	local ty = y / th
-
-
-	local sx = (tx - ty) * tw / 2 + ox
-	local sy = (tx + ty) * th / 2
-
-	return sx, sy
 end
 
 --- Convert tile space to screen space
