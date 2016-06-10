@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="isometric" renderorder="right-down" width="6" height="6" tilewidth="184" tileheight="184" nextobjectid="7">
+ <tileset firstgid="1" name="iso" tilewidth="184" tileheight="184" tilecount="1" columns="1">
+  <image source="iso.png" width="184" height="184"/>
+ </tileset>
+ <layer name="Grid" width="6" height="6">
+  <data encoding="csv">
+1,1,1,1,1,1,
+1,1,1,1,1,1,
+1,1,1,1,1,1,
+1,1,1,1,1,1,
+1,1,1,1,1,1,
+1,1,1,1,1,1
+</data>
+ </layer>
+ <objectgroup name="Objects">
+  <properties>
+   <property name="collidable" type="bool" value="true"/>
+  </properties>
+  <object id="1" x="184" y="368" width="184" height="184"/>
+  <object id="2" x="644" y="277" width="260" height="260" rotation="45"/>
+  <object id="3" x="410" y="910">
+   <polygon points="-41.9565,10 141.996,10.0616 -42.0254,-173.96"/>
+  </object>
+  <object id="4" x="681" y="851" rotation="45">
+   <polygon points="-41.9565,10 141.996,10.0616 -42.0254,-173.96"/>
+  </object>
+  <object id="5" x="828" y="828">
+   <polyline points="0,0 92.0312,-91.9688 275.969,-91.9688 276,92"/>
+  </object>
+  <object id="6" x="790" y="108" rotation="45">
+   <polyline points="0,0 92.0312,-91.9688 275.969,-91.9688 276,92"/>
+  </object>
+ </objectgroup>
+</map>

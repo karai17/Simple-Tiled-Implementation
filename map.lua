@@ -3,59 +3,8 @@
 
 local path       = (...):gsub('%.[^%.]+$', '') .. "."
 local pluginPath = string.gsub(path, "[.]", "/") .. "plugins/"
+local utils      = require(path .. "utils")
 local Map        = {}
-
--- https://github.com/stevedonovan/Penlight/blob/master/lua/pl/path.lua#L286
-local function formatPath(path)
-	local np_gen1,np_gen2  = '[^SEP]+SEP%.%.SEP?','SEP+%.?SEP'
-	local np_pat1, np_pat2 = np_gen1:gsub('SEP','/'), np_gen2:gsub('SEP','/')
-	local k
-
-	repeat -- /./ -> /
-		path,k = path:gsub(np_pat2,'/')
-	until k == 0
-
-	repeat -- A/../ -> (empty)
-		path,k = path:gsub(np_pat1,'')
-	until k == 0
-
-	if path == '' then path = '.' end
-
-	return path
-end
-
--- Compensation for scale/rotation shift
-local function compensate(tile, x, y, tw, th)
-	local tx    = x + tile.offset.x
-	local ty    = y + tile.offset.y
-	local origx = tx
-	local origy = ty
-	local compx = 0
-	local compy = 0
-
-	if tile.sx < 0 then compx = tw end
-	if tile.sy < 0 then compy = th end
-
-	if tile.r > 0 then
-		tx = tx + th - compy
-		ty = ty + th - tw + compx
-	elseif tile.r < 0 then
-		tx = tx + compy
-		ty = ty + th - compx
-	else
-		tx = tx + compx
-		ty = ty + compy
-	end
-
-	return tx, ty
-end
-
--- Cache images in main STI module
-local function cache_image(sti, path)
-	local image = love.graphics.newImage(path)
-	image:setFilter("nearest", "nearest")
-	sti.cache[path] = image
-end
 
 --- Instance a new map
 -- @param path Path to the map file
@@ -88,9 +37,9 @@ function Map:init(STI, path, plugins, ox, oy)
 		assert(tileset.image, "STI does not support Tile Collections.\nYou need to create a Texture Atlas.")
 
 		-- Cache images
-		local formatted_path = formatPath(path .. tileset.image)
+		local formatted_path = utils.format_path(path .. tileset.image)
 		if not self.sti.cache[formatted_path] then
-			cache_image(self.sti, formatted_path)
+			utils.cache_image(self.sti, formatted_path)
 		end
 
 		-- Pull images from cache
@@ -112,7 +61,7 @@ function Map:loadPlugins(plugins)
 	for _, plugin in ipairs(plugins) do
 		local p = pluginPath .. plugin .. ".lua"
 		if love.filesystem.isFile(p) then
-			local file = love.filesystem.load(p)()
+			local file = love.filesystem.load(p)(path)
 			for k, func in pairs(file) do
 				if not self[k] then
 					self[k] = func
@@ -128,19 +77,6 @@ end
 -- @param gid First Global ID in Tileset
 -- @return number Next Tileset's first Global ID
 function Map:setTiles(index, tileset, gid)
-	local function getTiles(i, t, m, s)
-		i = i - m
-		local n = 0
-
-		while i >= t do
-			i = i - t
-			if n ~= 0 then i = i - s end
-			if i >= 0 then n = n + 1 end
-		end
-
-		return n
-	end
-
 	local quad = love.graphics.newQuad
 	local mw   = self.tilewidth
 	local iw   = tileset.imagewidth
@@ -149,8 +85,8 @@ function Map:setTiles(index, tileset, gid)
 	local th   = tileset.tileheight
 	local s    = tileset.spacing
 	local m    = tileset.margin
-	local w    = getTiles(iw, tw, m, s)
-	local h    = getTiles(ih, th, m, s)
+	local w    = utils.get_tiles(iw, tw, m, s)
+	local h    = utils.get_tiles(ih, th, m, s)
 
 	for y = 1, h do
 		for x = 1, w do
@@ -219,37 +155,26 @@ function Map:setLayer(layer, path)
 			local ffi = assert(require "ffi", "Compressed maps require LuaJIT FFI.\nPlease Switch your interperator to LuaJIT or your Tile Layer Format to \"CSV\".")
 			local fd  = love.filesystem.newFileData(layer.data, "data", "base64"):getString()
 
-			local function getDecompressedData(data)
-				local d       = {}
-				local decoded = ffi.cast("uint32_t*", data)
-
-				for i=0, data:len() / ffi.sizeof("uint32_t") do
-					table.insert(d, tonumber(decoded[i]))
-				end
-
-				return d
-			end
-
 			if not layer.compression then
-				layer.data = getDecompressedData(fd)
+				layer.data = utils.get_decompressed_data(fd)
 			else
 				assert(love.math.decompress, "zlib and gzip compression require LOVE 0.10.0+.\nPlease set your Tile Layer Format to \"Base64 (uncompressed)\" or \"CSV\".")
 
 				if layer.compression == "zlib" then
 					local data = love.math.decompress(fd, "zlib")
-					layer.data = getDecompressedData(data)
+					layer.data = utils.get_decompressed_data(data)
 				end
 
 				if layer.compression == "gzip" then
 					local data = love.math.decompress(fd, "gzip")
-					layer.data = getDecompressedData(data)
+					layer.data = utils.get_decompressed_data(data)
 				end
 			end
 		end
 	end
 
-	layer.x      = (layer.x or 0) + self.offsetx
-	layer.y      = (layer.y or 0) + self.offsety
+	layer.x      = (layer.x or 0) + layer.offsetx + self.offsetx
+	layer.y      = (layer.y or 0) + layer.offsety + self.offsety
 	layer.update = function(dt) return end
 
 	if layer.type == "tilelayer" then
@@ -265,9 +190,9 @@ function Map:setLayer(layer, path)
 		layer.draw = function() self:drawImageLayer(layer) end
 
 		if layer.image ~= "" then
-			local formatted_path = formatPath(path .. layer.image)
+			local formatted_path = utils.format_path(path .. layer.image)
 			if not self.sti.cache[formatted_path] then
-				cache_image(self.sti, formatted_path)
+				utils.cache_image(self.sti, formatted_path)
 			end
 
 			layer.image  = self.sti.cache[formatted_path]
@@ -316,88 +241,6 @@ end
 -- @param layer The Object Layer
 -- @return nil
 function Map:setObjectCoordinates(layer)
-	local function convertEllipseToPolygon(x, y, w, h, max_segments)
-		local function calc_segments(segments)
-			local function vdist(a, b)
-				local c = {
-					x = a.x - b.x,
-					y = a.y - b.y,
-				}
-
-				return c.x * c.x + c.y * c.y
-			end
-
-			segments = segments or 64
-			local vertices = {}
-
-			local v = { 1, 2, math.ceil(segments/4-1), math.ceil(segments/4) }
-
-			local m
-			if love.physics then
-				m = love.physics.getMeter()
-			else
-				m = 32
-			end
-
-			for _, i in ipairs(v) do
-				local angle = (i / segments) * math.pi * 2
-				local px    = x + w / 2 + math.cos(angle) * w / 2
-				local py    = y + h / 2 + math.sin(angle) * h / 2
-
-				table.insert(vertices, { x = px / m, y = py / m })
-			end
-
-			local dist1 = vdist(vertices[1], vertices[2])
-			local dist2 = vdist(vertices[3], vertices[4])
-
-			-- Box2D threshold
-			if dist1 < 0.0025 or dist2 < 0.0025 then
-				return calc_segments(segments-2)
-			end
-
-			return segments
-		end
-
-		local segments = calc_segments(max_segments)
-		local vertices = {}
-
-		table.insert(vertices, { x = x + w / 2, y = y + h / 2 })
-
-		for i=0, segments do
-			local angle = (i / segments) * math.pi * 2
-			local px    = x + w / 2 + math.cos(angle) * w / 2
-			local py    = y + h / 2 + math.sin(angle) * h / 2
-
-			table.insert(vertices, { x = px, y = py })
-		end
-
-		return vertices
-	end
-
-	local function rotateVertex(v, x, y, cos, sin)
-		local vertex = {
-			x = v.x,
-			y = v.y,
-		}
-
-		vertex.x = vertex.x - x
-		vertex.y = vertex.y - y
-
-		local vx = cos * vertex.x - sin * vertex.y
-		local vy = sin * vertex.x + cos * vertex.y
-
-		return vx + x, vy + y
-	end
-
-	local function updateVertex(vertex, x, y, cos, sin)
-		if self.orientation == "isometric" then
-			x, y               = self:convertIsometricToScreen(x, y)
-			vertex.x, vertex.y = self:convertIsometricToScreen(vertex.x, vertex.y)
-		end
-
-		return rotateVertex(vertex, x, y, cos, sin)
-	end
-
 	for _, object in ipairs(layer.objects) do
 		local x   = layer.x + object.x
 		local y   = layer.y + object.y
@@ -418,28 +261,28 @@ function Map:setObjectCoordinates(layer)
 			}
 
 			for _, vertex in ipairs(vertices) do
-				vertex.x, vertex.y = updateVertex(vertex, x, y, cos, sin)
+				vertex.x, vertex.y = utils:rotate_vertex(self, vertex, x, y, cos, sin)
 				table.insert(object.rectangle, { x = vertex.x, y = vertex.y })
 			end
 		elseif object.shape == "ellipse" then
 			object.ellipse = {}
-			local vertices = convertEllipseToPolygon(x, y, w, h)
+			local vertices = utils.convert_ellipse_to_polygon(x, y, w, h)
 
 			for _, vertex in ipairs(vertices) do
-				vertex.x, vertex.y = updateVertex(vertex, x, y, cos, sin)
+				vertex.x, vertex.y = utils:rotate_vertex(self, vertex, x, y, cos, sin)
 				table.insert(object.ellipse, { x = vertex.x, y = vertex.y })
 			end
 		elseif object.shape == "polygon" then
 			for _, vertex in ipairs(object.polygon) do
 				vertex.x           = vertex.x + x
 				vertex.y           = vertex.y + y
-				vertex.x, vertex.y = updateVertex(vertex, x, y, cos, sin)
+				vertex.x, vertex.y = utils:rotate_vertex(self, vertex, x, y, cos, sin)
 			end
 		elseif object.shape == "polyline" then
 			for _, vertex in ipairs(object.polyline) do
 				vertex.x           = vertex.x + x
 				vertex.y           = vertex.y + y
-				vertex.x, vertex.y = updateVertex(vertex, x, y, cos, sin)
+				vertex.x, vertex.y = utils:rotate_vertex(self, vertex, x, y, cos, sin)
 			end
 		end
 	end
@@ -507,51 +350,59 @@ function Map:setSpriteBatches(layer)
 				local tx, ty
 
 				if self.orientation == "orthogonal" then
-					tx, ty = compensate(tile, x*tw, y*th, tw, th)
+					tx, ty = utils.compensate(tile, x*tw, y*th, tw, th)
 				elseif self.orientation == "isometric" then
 					tx = (x - y) * (tw / 2) + tile.offset.x + layer.width * tw / 2
 					ty = (x + y) * (th / 2) + tile.offset.y
 				elseif self.orientation == "staggered" or self.orientation == "hexagonal" then
+					local hl = self.hexsidelength or 0
+
 					if self.staggeraxis == "y" then
 						if self.staggerindex == "odd" then
 							if y % 2 == 0 then
-								tx = x * tw + tw / 2 + (self.hexsidelength or 0) + tile.offset.x
+								tx = x * tw + tw / 2 + hl + tile.offset.x
 							else
-								tx = x * tw + (self.hexsidelength or 0) + tile.offset.x
+								tx = x * tw + hl + tile.offset.x
 							end
 						else
 							if y % 2 == 0 then
-								tx = x * tw + (self.hexsidelength or 0) + tile.offset.x
+								tx = x * tw + hl + tile.offset.x
 							else
-								tx = x * tw + tw / 2 + (self.hexsidelength or 0) + tile.offset.x
+								tx = x * tw + tw / 2 + hl + tile.offset.x
 							end
 						end
 
 						if self.orientation == "hexagonal" then
-							ty = y * (th - (th - self.hexsidelength) / 2) + tile.offset.y + (th - (th - self.hexsidelength) / 2)
+							ty = y * (th - (th - hl) / 2) + tile.offset.y + (th - (th - hl) / 2)
 						else
 							ty = y * th / 2 + tile.offset.y + th / 2
 						end
 					else
 						if self.staggerindex == "odd" then
 							if x % 2 == 0 then
-								ty = y * th + th / 2 + (self.hexsidelength or 0) + tile.offset.y
+								ty = y * th + th / 2 + hl + tile.offset.y
 							else
-								ty = y * th + (self.hexsidelength or 0) + tile.offset.y
+								ty = y * th + hl + tile.offset.y
 							end
 						else
 							if x % 2 == 0 then
-								ty = y * th + (self.hexsidelength or 0) + tile.offset.y
+								ty = y * th + hl + tile.offset.y
 							else
-								ty = y * th + th / 2 + (self.hexsidelength or 0) + tile.offset.y
+								ty = y * th + th / 2 + hl + tile.offset.y
 							end
 						end
 
 						if self.orientation == "hexagonal" then
-							tx = x * (tw - (tw - self.hexsidelength) / 2) + tile.offset.x + (tw - (tw - self.hexsidelength) / 2)
+							tx = x * (tw - (tw - hl) / 2) + tile.offset.x + (tw - (tw - hl) / 2)
 						else
 							tx = x * tw / 2 + tile.offset.x + tw / 2
 						end
+					end
+
+					-- I FEEL LIKE THIS IS WRONG
+					if self.orientation == "hexagonal" then
+						tx = tx - tw / 2 - 2
+						ty = ty - th / 2 - 2
 					end
 				end
 
@@ -1089,38 +940,41 @@ function Map:getObjectProperties(layer, object)
 	return o.properties
 end
 
---- Project isometric position to orthoganal position
--- @param x The X axis location of the point (in pixels)
--- @param y The Y axis location of the point (in pixels)
--- @return number The X axis location of the point (in pixels)
--- @return number The Y axis location of the point (in pixels)
-function Map:convertIsometricToScreen(x, y)
-	local mw = self.width
-	local tw = self.tilewidth
-	local th = self.tileheight
-	local ox = mw * tw / 2
-	local sx = (x - y) + ox
-	local sy = (x + y) / 2
+--- Swap a tile in a spritebatch
+-- @param instance The current Instance object we want to replace
+-- @param tile The Tile object we want to use
+-- @return none
+function Map:swapTile(instance, tile)
+	-- Update sprite batch
+	instance.batch:set(
+		instance.id,
+		tile.quad,
+		instance.x,
+		instance.y,
+		tile.r,
+		tile.sx,
+		tile.sy
+	)
 
-	return sx, sy
-end
+	-- Add new tile instance
+	table.insert(self.tileInstances[tile.gid], {
+		layer = instance.layer,
+		batch = instance.batch,
+		id    = instance.id,
+		gid   = tile.gid,
+		x     = instance.x,
+		y     = instance.y,
+		r     = tile.r,
+		oy    = tile.r ~= 0 and tile.height or 0
+	})
 
---- Project orthoganal position to isometric position
--- @param x The X axis location of the point (in pixels)
--- @param y The Y axis location of the point (in pixels)
--- @return number The X axis location of the point (in pixels)
--- @return number The Y axis location of the point (in pixels)
-function Map:convertScreenToIsometric(x, y)
-	local mw = self.width
-	local mh = self.height
-	local tw = self.tilewidth
-	local th = self.tileheight
-	local ox = mw * tw / 2
-	local oy = mh * th / 2
-	local tx = (x / 2 + y) - ox / 2
-	local ty = (-x / 2 + y) + oy
-
-	return tx, ty
+	-- Remove old tile instance
+	for i, ins in ipairs(self.tileInstances[instance.gid]) do
+		if  ins.batch == instance.batch and ins.id == instance.id then
+			table.remove(self.tileInstances[instance.gid], i)
+			break
+		end
+	end
 end
 
 --- Convert tile space to screen space
@@ -1132,26 +986,24 @@ function Map:convertWorldToScreen(x,y)
 	if self.orientation == "orthogonal" then
 		local tw = self.tilewidth
 		local th = self.tileheight
-		local sx = x * tw
-		local sy = y * th
-
-		return sx, sy
+		return
+			x * tw,
+			y * th
 	elseif self.orientation == "isometric" then
-		local mw = self.width
+		local mh = self.height
 		local tw = self.tilewidth
 		local th = self.tileheight
-		local ox = mw * tw / 2
-		local sx = (x - y) * tw / 2 + ox
-		local sy = (x + y) * th / 2
-
-		return sx, sy
+		local ox = mh * tw / 2
+		return
+			(x - y) * tw / 2 + ox,
+			(x + y) * th / 2
 	elseif self.orientation == "staggered" then
+		local abs, ceil = math.abs, math.ceil
 		local tw = self.tilewidth
 		local th = self.tileheight
-		local sx = x * tw + math.abs(math.ceil(y) % 2) * (tw / 2) - (math.ceil(y) % 2 * tw/2)
-		local sy = y * (th / 2) + th/2
-
-		return sx, sy
+		return
+			x * tw + abs(ceil(y) % 2) * (tw / 2) - (ceil(y) % 2 * tw / 2),
+			y * (th / 2) + th / 2
 	end
 end
 
@@ -1164,22 +1016,21 @@ function Map:convertScreenToWorld(x,y)
 	if self.orientation == "orthogonal" then
 		local tw = self.tilewidth
 		local th = self.tileheight
-		local tx = x / tw
-		local ty = y / th
-
-		return tx, ty
+		return
+			x / tw,
+			y / th
 	elseif self.orientation == "isometric" then
-		local mw = self.width
+		local mh = self.height
 		local tw = self.tilewidth
 		local th = self.tileheight
-		local ox = mw * tw / 2
-		local tx = y / th + (x - ox) / tw
-		local ty = y / th - (x - ox) / tw
-
-		return tx, ty
+		local ox = mh * tw / 2
+		return
+			y / th + (x - ox) / tw,
+			y / th - (x - ox) / tw
 	elseif self.orientation == "staggered" then
+		local ceil = math.ceil
 		local function topLeft(x, y)
-			if (math.ceil(y) % 2) then
+			if (ceil(y) % 2) then
 				return x, y - 1
 			else
 				return x - 1, y - 1
@@ -1187,7 +1038,7 @@ function Map:convertScreenToWorld(x,y)
 		end
 
 		local function topRight(x, y)
-			if (math.ceil(y) % 2) then
+			if (ceil(y) % 2) then
 				return x + 1, y - 1
 			else
 				return x, y - 1
@@ -1195,7 +1046,7 @@ function Map:convertScreenToWorld(x,y)
 		end
 
 		local function bottomLeft(x, y)
-			if (math.ceil(y) % 2) then
+			if (ceil(y) % 2) then
 				return x, y + 1
 			else
 				return x - 1, y + 1
@@ -1203,7 +1054,7 @@ function Map:convertScreenToWorld(x,y)
 		end
 
 		local function bottomRight(x, y)
-			if (math.ceil(y) % 2) then
+			if (ceil(y) % 2) then
 				return x + 1, y + 1
 			else
 				return x, y + 1
@@ -1216,8 +1067,8 @@ function Map:convertScreenToWorld(x,y)
 		local ratio = th / tw
 		local tx    = x / tw
 		local ty    = y / th * 2
-		local ctx   = math.ceil(x / tw)
-		local cty   = math.ceil(y / th) * 2
+		local ctx   = ceil(x / tw)
+		local cty   = ceil(y / th) * 2
 		local rx    = x - ctx * tw
 		local ry    = y - (cty / 2) * th
 

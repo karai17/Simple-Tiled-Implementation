@@ -1,5 +1,25 @@
 # Change Log
 
+## 2016-06-09: v0.16.0.1
+
+* Changed: Moved local functions to an internal utils file to tidy things up
+* Changed: Box2D plugin now uses utils file instead of duplicate functions
+
+## 2016-06-09: v0.16.0.0
+
+* Changed: Custom Properties now support proper boolean values in both Box2D and Bump plugins
+
+## 2016-06-09: v0.14.2.0
+
+* Added: Proper support for Layer offsets (thanks @Drauthius!)
+
+## 2016-05-19: v0.14.1.13
+
+* Added: Test maps for visual varification between Tiled and STI
+* Added: Map:swapTile so you can cleanly swap tiles in Tile Layers
+* Changed: All conversion functions consolidated into two functions (thanks @entrancejew)
+* Fixed: shapes were off in noman's land in some cases (thanks @loribranford)
+
 ## 2016-01-12: v0.14.1.12
 
 * Added: Basic support for object layers in Bump plugin (thanks @premek)

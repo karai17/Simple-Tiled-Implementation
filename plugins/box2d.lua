@@ -1,13 +1,16 @@
 --- Box2D plugin for STI
 -- @module box2d
 -- @author Landon Manning
--- @copyright 2015
+-- @copyright 2016
 -- @license MIT/X11
+
+local path  = ...
+local utils = require(path .. "utils")
 
 return {
 	box2d_LICENSE     = "MIT/X11",
 	box2d_URL         = "https://github.com/karai17/Simple-Tiled-Implementation",
-	box2d_VERSION     = "2.3.2.1",
+	box2d_VERSION     = "2.3.2.3",
 	box2d_DESCRIPTION = "Box2D hooks for STI.",
 
 	--- Initialize Box2D physics world.
@@ -20,81 +23,6 @@ return {
 		local collision = {
 			body = body,
 		}
-
-		local function convertEllipseToPolygon(x, y, w, h, max_segments)
-			local function calc_segments(segments)
-				local function vdist(a, b)
-					local c = {
-						x = a.x - b.x,
-						y = a.y - b.y,
-					}
-
-					return c.x * c.x + c.y * c.y
-				end
-
-				segments = segments or 64
-				local vertices = {}
-
-				local v = { 1, 2, math.ceil(segments/4-1), math.ceil(segments/4) }
-
-				local m
-				if love.physics then
-					m = love.physics.getMeter()
-				else
-					m = 32
-				end
-
-				for _, i in ipairs(v) do
-					local angle = (i / segments) * math.pi * 2
-					local px    = x + w / 2 + math.cos(angle) * w / 2
-					local py    = y + h / 2 + math.sin(angle) * h / 2
-
-					table.insert(vertices, { x = px / m, y = py / m })
-				end
-
-				local dist1 = vdist(vertices[1], vertices[2])
-				local dist2 = vdist(vertices[3], vertices[4])
-
-				-- Box2D threshold
-				if dist1 < 0.0025 or dist2 < 0.0025 then
-					return calc_segments(segments-2)
-				end
-
-				return segments
-			end
-
-			local segments = calc_segments(max_segments)
-			local vertices = {}
-
-			table.insert(vertices, { x = x + w / 2, y = y + h / 2 })
-
-			for i=0, segments do
-				local angle = (i / segments) * math.pi * 2
-				local px    = x + w / 2 + math.cos(angle) * w / 2
-				local py    = y + h / 2 + math.sin(angle) * h / 2
-
-				table.insert(vertices, { x = px, y = py })
-			end
-
-			return vertices
-		end
-
-		local function rotateVertex(v, x, y, cos, sin, oy)
-			oy = oy or 0
-
-			local vertex = {
-				x = v.x,
-				y = v.y - oy,
-			}
-
-			vertex.x = vertex.x - x
-			vertex.y = vertex.y - y
-
-			local vx = cos * vertex.x - sin * vertex.y
-			local vy = sin * vertex.x + cos * vertex.y
-
-			return vx + x, vy + y + oy
-		end
 
 		local function addObjectToWorld(objshape, vertices, userdata, object)
 			local shape
@@ -109,7 +37,7 @@ return {
 
 			fixture:setUserData(userdata)
 
-			if userdata.properties.sensor == "true" then
+			if userdata.properties.sensor == true then
 				fixture:setSensor(true)
 			end
 
@@ -190,18 +118,14 @@ return {
 				}
 
 				for _, vertex in ipairs(o.polygon) do
-					if map.orientation == "isometric" then
-						vertex.x, vertex.y = map:convertIsometricToScreen(vertex.x, vertex.y)
-					end
-
-					vertex.x, vertex.y = rotateVertex(vertex, o.x, o.y, cos, sin, oy)
+					vertex.x, vertex.y = utils:rotate_vertex(map, vertex, o.x, o.y, cos, sin, oy)
 				end
 
 				local vertices = getPolygonVertices(o)
 				addObjectToWorld(o.shape, vertices, userdata, tile or object)
 			elseif o.shape == "ellipse" then
 				if not o.polygon then
-					o.polygon = convertEllipseToPolygon(o.x, o.y, o.w, o.h)
+					o.polygon = utils.convert_ellipse_to_polygon(o.x, o.y, o.w, o.h)
 				end
 				local vertices  = getPolygonVertices(o)
 				local triangles = love.math.triangulate(vertices)
@@ -238,7 +162,7 @@ return {
 				end
 
 			-- Every instance of a tile
-			elseif tile.properties and tile.properties.collidable == "true" and map.tileInstances[tile.gid] then
+			elseif tile.properties and tile.properties.collidable == true and map.tileInstances[tile.gid] then
 				for _, instance in ipairs(map.tileInstances[tile.gid]) do
 					local object = {
 						shape      = "rectangle",
@@ -256,7 +180,7 @@ return {
 
 		for _, layer in ipairs(map.layers) do
 			-- Entire layer
-			if layer.properties.collidable == "true" then
+			if layer.properties.collidable == true then
 				if layer.type == "tilelayer" then
 					for gid, tiles in pairs(map.tileInstances) do
 						local tile = map.tiles[gid]
@@ -298,7 +222,7 @@ return {
 			-- Individual objects
 			if layer.type == "objectgroup" then
 				for _, object in ipairs(layer.objects) do
-					if object.properties.collidable == "true" then
+					if object.properties.collidable == true then
 						calculateObjectPosition(object)
 					end
 				end
@@ -345,5 +269,5 @@ return {
 
 --- Custom Properties in Tiled are used to tell this plugin what to do.
 -- @table Properties
--- @field collidable set to "true", can be used on any Layer, Tile, or Object
--- @field sensor set to "true", can be used on any Tile or Object that is also collidable
+-- @field collidable set to true, can be used on any Layer, Tile, or Object
+-- @field sensor set to true, can be used on any Tile or Object that is also collidable
