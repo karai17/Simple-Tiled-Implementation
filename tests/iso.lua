@@ -1,7 +1,7 @@
 return {
   version = "1.1",
   luaversion = "5.1",
-  tiledversion = "0.15.2",
+  tiledversion = "0.16.0",
   orientation = "isometric",
   renderorder = "right-down",
   width = 6,
@@ -62,7 +62,7 @@ return {
       offsetx = 0,
       offsety = 0,
       properties = {
-        ["collidable"] = "true"
+        ["collidable"] = true
       },
       objects = {
         {

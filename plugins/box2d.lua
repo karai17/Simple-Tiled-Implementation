@@ -7,7 +7,7 @@
 return {
 	box2d_LICENSE     = "MIT/X11",
 	box2d_URL         = "https://github.com/karai17/Simple-Tiled-Implementation",
-	box2d_VERSION     = "2.3.2.1",
+	box2d_VERSION     = "2.3.2.2",
 	box2d_DESCRIPTION = "Box2D hooks for STI.",
 
 	--- Initialize Box2D physics world.
@@ -107,7 +107,7 @@ return {
 
 			fixture:setUserData(userdata)
 
-			if userdata.properties.sensor == "true" then
+			if userdata.properties.sensor == true then
 				fixture:setSensor(true)
 			end
 
@@ -232,7 +232,7 @@ return {
 				end
 
 			-- Every instance of a tile
-			elseif tile.properties and tile.properties.collidable == "true" and map.tileInstances[tile.gid] then
+			elseif tile.properties and tile.properties.collidable == true and map.tileInstances[tile.gid] then
 				for _, instance in ipairs(map.tileInstances[tile.gid]) do
 					local object = {
 						shape      = "rectangle",
@@ -250,7 +250,7 @@ return {
 
 		for _, layer in ipairs(map.layers) do
 			-- Entire layer
-			if layer.properties.collidable == "true" then
+			if layer.properties.collidable == true then
 				if layer.type == "tilelayer" then
 					for gid, tiles in pairs(map.tileInstances) do
 						local tile = map.tiles[gid]
@@ -292,7 +292,7 @@ return {
 			-- Individual objects
 			if layer.type == "objectgroup" then
 				for _, object in ipairs(layer.objects) do
-					if object.properties.collidable == "true" then
+					if object.properties.collidable == true then
 						calculateObjectPosition(object)
 					end
 				end
@@ -339,5 +339,5 @@ return {
 
 --- Custom Properties in Tiled are used to tell this plugin what to do.
 -- @table Properties
--- @field collidable set to "true", can be used on any Layer, Tile, or Object
--- @field sensor set to "true", can be used on any Tile or Object that is also collidable
+-- @field collidable set to true, can be used on any Layer, Tile, or Object
+-- @field sensor set to true, can be used on any Tile or Object that is also collidable

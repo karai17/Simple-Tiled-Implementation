@@ -15,7 +15,7 @@
  </layer>
  <objectgroup name="Objects">
   <properties>
-   <property name="collidable" value="true"/>
+   <property name="collidable" type="bool" value="true"/>
   </properties>
   <object id="1" x="184" y="368" width="184" height="184"/>
   <object id="2" x="644" y="277" width="260" height="260" rotation="45"/>

@@ -41,7 +41,7 @@
  </layer>
  <objectgroup name="Shapes">
   <properties>
-   <property name="collidable" value="true"/>
+   <property name="collidable" type="bool" value="true"/>
   </properties>
   <object id="1" x="207" y="106" width="98" height="98"/>
   <object id="3" x="411" y="208" width="98" height="98">
@@ -61,4 +61,7 @@
    <polyline points="-0.9375,1.3125 96.9583,-96.6458 198.958,1.27083 300.938,-96.6667 402.958,103.25 304.938,205.271"/>
   </object>
  </objectgroup>
+ <imagelayer name="Image Layer 1" offsetx="52" offsety="52">
+  <image source="iso.png" width="184" height="184"/>
+ </imagelayer>
 </map>

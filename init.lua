@@ -1,13 +1,13 @@
 --- Simple and fast Tiled map loader and renderer.
 -- @module sti
 -- @author Landon Manning
--- @copyright 2015
+-- @copyright 2016
 -- @license MIT/X11
 
 local STI = {
 	_LICENSE     = "MIT/X11",
 	_URL         = "https://github.com/karai17/Simple-Tiled-Implementation",
-	_VERSION     = "0.14.2.0",
+	_VERSION     = "0.16.0.0",
 	_DESCRIPTION = "Simple Tiled Implementation is a Tiled Map Editor library designed for the *awesome* LÖVE framework.",
 	cache        = {}
 }

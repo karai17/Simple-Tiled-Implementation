@@ -1,5 +1,9 @@
 # Change Log
 
+## 2016-06-09: v0.16.0.0
+
+* Changed: Custom Properties now support proper boolean values in both Box2D and Bump plugins.
+
 ## 2016-06-09: v0.14.2.0
 
 * Added: Proper support for Layer offsets (thanks @Drauthius!)

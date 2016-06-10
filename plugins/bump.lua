@@ -8,7 +8,7 @@ return {
 
 	bump_LICENSE        = "MIT/X11",
 	bump_URL            = "https://github.com/karai17/Simple-Tiled-Implementation",
-	bump_VERSION        = "3.1.5.2",
+	bump_VERSION        = "3.1.5.3",
 	bump_DESCRIPTION    = "Bump hooks for STI.",
 
 
@@ -23,7 +23,7 @@ return {
 			for _, tile in ipairs(tileset.tiles) do
 				local gid = tileset.firstgid + tile.id
 				-- Every object in every instance of a tile
-				if tile.properties and tile.properties.collidable == "true" and map.tileInstances[gid] then
+				if tile.properties and tile.properties.collidable == true and map.tileInstances[gid] then
 					for _, instance in ipairs(map.tileInstances[gid]) do
 						local t = {properties = tile.properties, x = instance.x + map.offsetx, y = instance.y + map.offsety, width = map.tilewidth, height = map.tileheight, layer = instance.layer }
 						world:add(t,  t.x,t.y, t.width,t.height)
@@ -35,7 +35,7 @@ return {
 
 		for _, layer in ipairs(map.layers) do
 			-- Entire layer
-			if layer.properties.collidable == "true" then
+			if layer.properties.collidable == true then
 				if layer.type == "tilelayer" then
 					for y, tiles in ipairs(layer.data) do
 						for x, tile in pairs(tiles) do
@@ -53,8 +53,8 @@ return {
 			-- or whole collidable objects layer
 		  if layer.type == "objectgroup" then
 				for _, obj in ipairs(layer.objects) do
-					if (layer.properties and layer.properties.collidable == "true")
-					  or (obj.properties and obj.properties.collidable == "true") then
+					if (layer.properties and layer.properties.collidable == true)
+					  or (obj.properties and obj.properties.collidable == true) then
 							if obj.shape == "rectangle" then
 								local t = {properties = obj.properties, x = obj.x, y = obj.y, width = obj.width, height = obj.height, type = obj.type, name = obj.name, id = obj.id, gid = obj.gid, layer = layer }
 								if obj.gid then t.y = t.y - obj.height end
@@ -83,8 +83,8 @@ return {
 
 			if obj.layer == layer
 			and (
-				layer.properties.collidable == "true"
-				or obj.properties.collidable == "true"
+				layer.properties.collidable == true
+				or obj.properties.collidable == true
 			) then
 				world:remove(obj)
 				table.remove(collidables, i)
