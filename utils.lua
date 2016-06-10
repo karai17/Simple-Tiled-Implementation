@@ -1,5 +1,7 @@
 -- Some utility functions that shouldn't be exposed.
 
+local ffi = require "ffi"
+
 return {
 	-- https://github.com/stevedonovan/Penlight/blob/master/lua/pl/path.lua#L286
 	format_path = function(path)
