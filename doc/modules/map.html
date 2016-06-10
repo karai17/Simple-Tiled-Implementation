@@ -1,0 +1,1442 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>STI Documentation</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>Simple Tiled Implementation</h1>
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Functions">Functions</a></li>
+<li><a href="#Tables">Tables</a></li>
+</ul>
+
+
+<h2>Modules</h2>
+<ul class="$(kind=='Topics' and '' or 'nowrap'">
+  <li><a href="../modules/box2d.html">box2d</a></li>
+  <li><a href="../modules/bump.lua.html">bump.lua</a></li>
+  <li><strong>map</strong></li>
+  <li><a href="../modules/sti.html">sti</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Module <code>map</code></h1>
+<p>Map object</p>
+<p></p>
+
+
+<h2><a href="#Functions">Functions</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#Map:addCustomLayer">Map:addCustomLayer (name, index)</a></td>
+	<td class="summary">Create a Custom Layer to place userdata in (such as player sprites)</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Map:convertScreenToWorld">Map:convertScreenToWorld (x, y)</a></td>
+	<td class="summary">Convert screen space to tile space</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Map:convertToCustomLayer">Map:convertToCustomLayer (index)</a></td>
+	<td class="summary">Convert another Layer into a Custom Layer</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Map:convertWorldToScreen">Map:convertWorldToScreen (x, y)</a></td>
+	<td class="summary">Convert tile space to screen space</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Map:draw">Map:draw ()</a></td>
+	<td class="summary">Draw every Layer</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Map:drawImageLayer">Map:drawImageLayer (layer)</a></td>
+	<td class="summary">Default draw function for Image Layers</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Map:drawLayer">Map:drawLayer (layer)</a></td>
+	<td class="summary">Draw an individual Layer</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Map:drawObjectLayer">Map:drawObjectLayer (layer)</a></td>
+	<td class="summary">Default draw function for Object Layers</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Map:drawTileLayer">Map:drawTileLayer (layer)</a></td>
+	<td class="summary">Default draw function for Tile Layers</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Map:getLayerProperties">Map:getLayerProperties (layer)</a></td>
+	<td class="summary">Get custom properties from Layer</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Map:getObjectProperties">Map:getObjectProperties (layer, object)</a></td>
+	<td class="summary">Get custom properties from Object</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Map:getTileProperties">Map:getTileProperties (layer, x, y)</a></td>
+	<td class="summary">Get custom properties from Tile</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Map:init">Map:init (path, plugins, ox, oy)</a></td>
+	<td class="summary">Instance a new map</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Map:loadPlugins">Map:loadPlugins (plugins)</a></td>
+	<td class="summary">Load plugins</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Map:removeLayer">Map:removeLayer (index)</a></td>
+	<td class="summary">Remove a Layer from the Layer stack</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Map:resize">Map:resize (w, h)</a></td>
+	<td class="summary">Resize the drawable area of the Map</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Map:setDrawRange">Map:setDrawRange (tx, ty, w, h)</a></td>
+	<td class="summary">Only draw what is visible on screen for improved draw speed</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Map:setFlippedGID">Map:setFlippedGID (gid)</a></td>
+	<td class="summary">Create flipped or rotated Tiles based on bitop flags</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Map:setLayer">Map:setLayer (layer, path)</a></td>
+	<td class="summary">Create Layers</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Map:setObjectCoordinates">Map:setObjectCoordinates (layer)</a></td>
+	<td class="summary">Correct position and orientation of Objects in an Object Layer</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Map:setObjectData">Map:setObjectData (layer)</a></td>
+	<td class="summary">Add Objects to Layer</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Map:setObjectSpriteBatches">Map:setObjectSpriteBatches (layer)</a></td>
+	<td class="summary">Batch Tiles in Object Layer for improved draw speed</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Map:setSpriteBatches">Map:setSpriteBatches (layer)</a></td>
+	<td class="summary">Batch Tiles in Tile Layer for improved draw speed</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Map:setTileData">Map:setTileData (layer)</a></td>
+	<td class="summary">Add Tiles to Tile Layer</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Map:setTiles">Map:setTiles (index, tileset, gid)</a></td>
+	<td class="summary">Create Tiles</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Map:swapTile">Map:swapTile (instance, tile)</a></td>
+	<td class="summary">Swap a tile in a spritebatch</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Map:update">Map:update (dt)</a></td>
+	<td class="summary">Animate Tiles and update every Layer</td>
+	</tr>
+</table>
+<h2><a href="#Tables">Tables</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#CustomLayer">CustomLayer</a></td>
+	<td class="summary">Custom Layers are used to place userdata such as sprites within the draw order of the map.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#ImageLayer">ImageLayer</a></td>
+	<td class="summary"></td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Map.layers">Map.layers</a></td>
+	<td class="summary">A list of individual layers indexed both by draw order and name</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Map.objects">Map.objects</a></td>
+	<td class="summary">A list of individual objects indexed by Global ID</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Map.tileInstances">Map.tileInstances</a></td>
+	<td class="summary">A list of tile instances indexed by Global ID</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Map.tiles">Map.tiles</a></td>
+	<td class="summary">A list of individual tiles indexed by Global ID</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Object">Object</a></td>
+	<td class="summary"></td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#ObjectLayer">ObjectLayer</a></td>
+	<td class="summary"></td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Tile">Tile</a></td>
+	<td class="summary"></td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#TileInstance">TileInstance</a></td>
+	<td class="summary"></td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#TileLayer">TileLayer</a></td>
+	<td class="summary"></td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2 class="section-header "><a name="Functions"></a>Functions</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "Map:addCustomLayer"></a>
+    <strong>Map:addCustomLayer (name, index)</strong>
+    </dt>
+    <dd>
+    Create a Custom Layer to place userdata in (such as player sprites)
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">name</span>
+         Name of Custom Layer
+        </li>
+        <li><span class="parameter">index</span>
+         Draw order within Layer stack
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        table Custom Layer
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Map:convertScreenToWorld"></a>
+    <strong>Map:convertScreenToWorld (x, y)</strong>
+    </dt>
+    <dd>
+    Convert screen space to tile space
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">x</span>
+         The X axis location of the point (in pixels)
+        </li>
+        <li><span class="parameter">y</span>
+         The Y axis location of the point (in pixels)
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+        <li>
+        number The X axis location of the point (in tiles)</li>
+        <li>
+        number The Y axis location of the point (in tiles)</li>
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Map:convertToCustomLayer"></a>
+    <strong>Map:convertToCustomLayer (index)</strong>
+    </dt>
+    <dd>
+    Convert another Layer into a Custom Layer
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">index</span>
+         Index or name of Layer to convert
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        table Custom Layer
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Map:convertWorldToScreen"></a>
+    <strong>Map:convertWorldToScreen (x, y)</strong>
+    </dt>
+    <dd>
+    Convert tile space to screen space
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">x</span>
+         The X axis location of the point (in tiles)
+        </li>
+        <li><span class="parameter">y</span>
+         The Y axis location of the point (in tiles)
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+        <li>
+        number The X axis location of the point (in pixels)</li>
+        <li>
+        number The Y axis location of the point (in pixels)</li>
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Map:draw"></a>
+    <strong>Map:draw ()</strong>
+    </dt>
+    <dd>
+    Draw every Layer
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+        nil
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Map:drawImageLayer"></a>
+    <strong>Map:drawImageLayer (layer)</strong>
+    </dt>
+    <dd>
+    Default draw function for Image Layers
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">layer</span>
+         The Image Layer to draw
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        nil
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Map:drawLayer"></a>
+    <strong>Map:drawLayer (layer)</strong>
+    </dt>
+    <dd>
+    Draw an individual Layer
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">layer</span>
+         The Layer to draw
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        nil
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Map:drawObjectLayer"></a>
+    <strong>Map:drawObjectLayer (layer)</strong>
+    </dt>
+    <dd>
+    Default draw function for Object Layers
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">layer</span>
+         The Object Layer to draw
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        nil
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Map:drawTileLayer"></a>
+    <strong>Map:drawTileLayer (layer)</strong>
+    </dt>
+    <dd>
+    Default draw function for Tile Layers
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">layer</span>
+         The Tile Layer to draw
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        nil
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Map:getLayerProperties"></a>
+    <strong>Map:getLayerProperties (layer)</strong>
+    </dt>
+    <dd>
+    Get custom properties from Layer
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">layer</span>
+         The Layer
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        table List of properties
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Map:getObjectProperties"></a>
+    <strong>Map:getObjectProperties (layer, object)</strong>
+    </dt>
+    <dd>
+    Get custom properties from Object
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">layer</span>
+         The Layer that the Object belongs to
+        </li>
+        <li><span class="parameter">object</span>
+         The index or name of the Object
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        table List of properties
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Map:getTileProperties"></a>
+    <strong>Map:getTileProperties (layer, x, y)</strong>
+    </dt>
+    <dd>
+    Get custom properties from Tile
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">layer</span>
+         The Layer that the Tile belongs to
+        </li>
+        <li><span class="parameter">x</span>
+         The X axis location of the Tile (in tiles)
+        </li>
+        <li><span class="parameter">y</span>
+         The Y axis location of the Tile (in tiles)
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        table List of properties
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Map:init"></a>
+    <strong>Map:init (path, plugins, ox, oy)</strong>
+    </dt>
+    <dd>
+    Instance a new map
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">path</span>
+         Path to the map file
+        </li>
+        <li><span class="parameter">plugins</span>
+         A list of plugins to load
+        </li>
+        <li><span class="parameter">ox</span>
+         Offset of map on the X axis (in pixels)
+        </li>
+        <li><span class="parameter">oy</span>
+         Offset of map on the Y axis (in pixels)
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        nil
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Map:loadPlugins"></a>
+    <strong>Map:loadPlugins (plugins)</strong>
+    </dt>
+    <dd>
+    Load plugins
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">plugins</span>
+         A list of plugins to load
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        nil
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Map:removeLayer"></a>
+    <strong>Map:removeLayer (index)</strong>
+    </dt>
+    <dd>
+    Remove a Layer from the Layer stack
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">index</span>
+         Index or name of Layer to convert
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        nil
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Map:resize"></a>
+    <strong>Map:resize (w, h)</strong>
+    </dt>
+    <dd>
+    Resize the drawable area of the Map
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">w</span>
+         The new width of the drawable area (in pixels)
+        </li>
+        <li><span class="parameter">h</span>
+         The new Height of the drawable area (in pixels)
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        nil
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Map:setDrawRange"></a>
+    <strong>Map:setDrawRange (tx, ty, w, h)</strong>
+    </dt>
+    <dd>
+    Only draw what is visible on screen for improved draw speed
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">tx</span>
+         Translate X axis (in pixels)
+        </li>
+        <li><span class="parameter">ty</span>
+         Translate Y axis (in pixels)
+        </li>
+        <li><span class="parameter">w</span>
+         Width of screen (in pixels)
+        </li>
+        <li><span class="parameter">h</span>
+         Height of screen (in pixels)
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        nil
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Map:setFlippedGID"></a>
+    <strong>Map:setFlippedGID (gid)</strong>
+    </dt>
+    <dd>
+    Create flipped or rotated Tiles based on bitop flags
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">gid</span>
+         The flagged Global ID
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        table Flipped Tile
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Map:setLayer"></a>
+    <strong>Map:setLayer (layer, path)</strong>
+    </dt>
+    <dd>
+    Create Layers
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">layer</span>
+         Layer data
+        </li>
+        <li><span class="parameter">path</span>
+         (Optional) Path to an Image Layer's image
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        nil
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Map:setObjectCoordinates"></a>
+    <strong>Map:setObjectCoordinates (layer)</strong>
+    </dt>
+    <dd>
+    Correct position and orientation of Objects in an Object Layer
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">layer</span>
+         The Object Layer
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        nil
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Map:setObjectData"></a>
+    <strong>Map:setObjectData (layer)</strong>
+    </dt>
+    <dd>
+    Add Objects to Layer
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">layer</span>
+         The Object Layer
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        nil
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Map:setObjectSpriteBatches"></a>
+    <strong>Map:setObjectSpriteBatches (layer)</strong>
+    </dt>
+    <dd>
+    Batch Tiles in Object Layer for improved draw speed
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">layer</span>
+         The Object Layer
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        nil
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Map:setSpriteBatches"></a>
+    <strong>Map:setSpriteBatches (layer)</strong>
+    </dt>
+    <dd>
+    Batch Tiles in Tile Layer for improved draw speed
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">layer</span>
+         The Tile Layer
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        nil
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Map:setTileData"></a>
+    <strong>Map:setTileData (layer)</strong>
+    </dt>
+    <dd>
+    Add Tiles to Tile Layer
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">layer</span>
+         The Tile Layer
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        nil
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Map:setTiles"></a>
+    <strong>Map:setTiles (index, tileset, gid)</strong>
+    </dt>
+    <dd>
+    Create Tiles
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">index</span>
+         Index of the Tileset
+        </li>
+        <li><span class="parameter">tileset</span>
+         Tileset data
+        </li>
+        <li><span class="parameter">gid</span>
+         First Global ID in Tileset
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        number Next Tileset's first Global ID
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Map:swapTile"></a>
+    <strong>Map:swapTile (instance, tile)</strong>
+    </dt>
+    <dd>
+    Swap a tile in a spritebatch
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">instance</span>
+         The current Instance object we want to replace
+        </li>
+        <li><span class="parameter">tile</span>
+         The Tile object we want to use
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        none
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Map:update"></a>
+    <strong>Map:update (dt)</strong>
+    </dt>
+    <dd>
+    Animate Tiles and update every Layer
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">dt</span>
+         Delta Time
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        nil
+    </ol>
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header "><a name="Tables"></a>Tables</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "CustomLayer"></a>
+    <strong>CustomLayer</strong>
+    </dt>
+    <dd>
+    Custom Layers are used to place userdata such as sprites within the draw order of the map.
+
+
+    <h3>Fields:</h3>
+    <ul>
+        <li><span class="parameter">name</span>
+         The name of the layer
+        </li>
+        <li><span class="parameter">x</span>
+         Position on the X axis (in pixels)
+        </li>
+        <li><span class="parameter">y</span>
+         Position on the Y axis (in pixels)
+        </li>
+        <li><span class="parameter">visible</span>
+         Toggle if layer is visible or hidden
+        </li>
+        <li><span class="parameter">opacity</span>
+         Opacity of layer
+        </li>
+        <li><span class="parameter">properties</span>
+         Custom properties
+        </li>
+        <li><span class="parameter">update</span>
+         Update function
+        </li>
+        <li><span class="parameter">draw</span>
+         Draw function
+        </li>
+    </ul>
+
+
+
+    <h3>See also:</h3>
+    <ul>
+         <a href="../modules/map.html#Map.layers">Map.layers</a>
+    </ul>
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">
+	<span class="comment">-- Create a Custom Layer
+</span>	<span class="keyword">local</span> spriteLayer = map:addCustomLayer(<span class="string">"Sprite Layer"</span>, <span class="number">3</span>)
+
+	<span class="comment">-- Add data to Custom Layer
+</span>	spriteLayer.sprites = {
+		player = {
+			image = love.graphics.newImage(<span class="string">"assets/sprites/player.png"</span>),
+			x = <span class="number">64</span>,
+			y = <span class="number">64</span>,
+			r = <span class="number">0</span>,
+		}
+	}
+
+	<span class="comment">-- Update callback for Custom Layer
+</span>	<span class="keyword">function</span> spriteLayer:update(dt)
+		<span class="keyword">for</span> _, sprite <span class="keyword">in</span> <span class="global">pairs</span>(self.sprites) <span class="keyword">do</span>
+			sprite.r = sprite.r + <span class="global">math</span>.rad(<span class="number">90</span> * dt)
+		<span class="keyword">end</span>
+	<span class="keyword">end</span>
+
+	<span class="comment">-- Draw callback for Custom Layer
+</span>	<span class="keyword">function</span> spriteLayer:draw()
+		<span class="keyword">for</span> _, sprite <span class="keyword">in</span> <span class="global">pairs</span>(self.sprites) <span class="keyword">do</span>
+			<span class="keyword">local</span> x = <span class="global">math</span>.floor(sprite.x)
+			<span class="keyword">local</span> y = <span class="global">math</span>.floor(sprite.y)
+			<span class="keyword">local</span> r = sprite.r
+			love.graphics.draw(sprite.image, x, y, r)
+		<span class="keyword">end</span>
+	<span class="keyword">end</span></pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "ImageLayer"></a>
+    <strong>ImageLayer</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Fields:</h3>
+    <ul>
+        <li><span class="parameter">name</span>
+         The name of the layer
+        </li>
+        <li><span class="parameter">x</span>
+         Position on the X axis (in pixels)
+        </li>
+        <li><span class="parameter">y</span>
+         Position on the Y axis (in pixels)
+        </li>
+        <li><span class="parameter">visible</span>
+         Toggle if layer is visible or hidden
+        </li>
+        <li><span class="parameter">opacity</span>
+         Opacity of layer
+        </li>
+        <li><span class="parameter">properties</span>
+         Custom properties
+        </li>
+        <li><span class="parameter">image</span>
+         Image to be drawn
+        </li>
+        <li><span class="parameter">update</span>
+         Update function
+        </li>
+        <li><span class="parameter">draw</span>
+         Draw function
+        </li>
+    </ul>
+
+
+
+    <h3>See also:</h3>
+    <ul>
+         <a href="../modules/map.html#Map.layers">Map.layers</a>
+    </ul>
+
+
+</dd>
+    <dt>
+    <a name = "Map.layers"></a>
+    <strong>Map.layers</strong>
+    </dt>
+    <dd>
+    A list of individual layers indexed both by draw order and name
+
+
+
+
+
+    <h3>See also:</h3>
+    <ul>
+         <li><a href="../modules/map.html#TileLayer">TileLayer</a></li>
+         <li><a href="../modules/map.html#ObjectLayer">ObjectLayer</a></li>
+         <li><a href="../modules/map.html#ImageLayer">ImageLayer</a></li>
+         <li><a href="../modules/map.html#CustomLayer">CustomLayer</a></li>
+    </ul>
+
+
+</dd>
+    <dt>
+    <a name = "Map.objects"></a>
+    <strong>Map.objects</strong>
+    </dt>
+    <dd>
+    A list of individual objects indexed by Global ID
+
+
+
+
+
+    <h3>See also:</h3>
+    <ul>
+         <a href="../modules/map.html#Object">Object</a>
+    </ul>
+
+
+</dd>
+    <dt>
+    <a name = "Map.tileInstances"></a>
+    <strong>Map.tileInstances</strong>
+    </dt>
+    <dd>
+    A list of tile instances indexed by Global ID
+
+
+
+
+
+    <h3>See also:</h3>
+    <ul>
+         <li><a href="../modules/map.html#TileInstance">TileInstance</a></li>
+         <li><a href="../modules/map.html#Tile">Tile</a></li>
+         <li><a href="../modules/map.html#Map.tiles">Map.tiles</a></li>
+    </ul>
+
+
+</dd>
+    <dt>
+    <a name = "Map.tiles"></a>
+    <strong>Map.tiles</strong>
+    </dt>
+    <dd>
+    A list of individual tiles indexed by Global ID
+
+
+
+
+
+    <h3>See also:</h3>
+    <ul>
+         <li><a href="../modules/map.html#Tile">Tile</a></li>
+         <li><a href="../modules/map.html#Map.tileInstances">Map.tileInstances</a></li>
+    </ul>
+
+
+</dd>
+    <dt>
+    <a name = "Object"></a>
+    <strong>Object</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Fields:</h3>
+    <ul>
+        <li><span class="parameter">id</span>
+         Global ID
+        </li>
+        <li><span class="parameter">name</span>
+         Name of object (non-unique)
+        </li>
+        <li><span class="parameter">shape</span>
+         Shape of object
+        </li>
+        <li><span class="parameter">x</span>
+         Position of object on X axis (in pixels)
+        </li>
+        <li><span class="parameter">y</span>
+         Position of object on Y axis (in pixels)
+        </li>
+        <li><span class="parameter">width</span>
+         Width of object (in pixels)
+        </li>
+        <li><span class="parameter">height</span>
+         Heigh tof object (in pixels)
+        </li>
+        <li><span class="parameter">rotation</span>
+         Rotation of object (in radians)
+        </li>
+        <li><span class="parameter">visible</span>
+         Toggle if object is visible or hidden
+        </li>
+        <li><span class="parameter">properties</span>
+         Custom properties
+        </li>
+        <li><span class="parameter">ellipse</span>
+         List of verticies of specific shape
+        </li>
+        <li><span class="parameter">rectangle</span>
+         List of verticies of specific shape
+        </li>
+        <li><span class="parameter">polygon</span>
+         List of verticies of specific shape
+        </li>
+        <li><span class="parameter">polyline</span>
+         List of verticies of specific shape
+        </li>
+    </ul>
+
+
+
+    <h3>See also:</h3>
+    <ul>
+         <a href="../modules/map.html#Map.objects">Map.objects</a>
+    </ul>
+
+
+</dd>
+    <dt>
+    <a name = "ObjectLayer"></a>
+    <strong>ObjectLayer</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Fields:</h3>
+    <ul>
+        <li><span class="parameter">name</span>
+         The name of the layer
+        </li>
+        <li><span class="parameter">x</span>
+         Position on the X axis (in pixels)
+        </li>
+        <li><span class="parameter">y</span>
+         Position on the Y axis (in pixels)
+        </li>
+        <li><span class="parameter">visible</span>
+         Toggle if layer is visible or hidden
+        </li>
+        <li><span class="parameter">opacity</span>
+         Opacity of layer
+        </li>
+        <li><span class="parameter">properties</span>
+         Custom properties
+        </li>
+        <li><span class="parameter">objects</span>
+         List of objects indexed by draw order
+        </li>
+        <li><span class="parameter">update</span>
+         Update function
+        </li>
+        <li><span class="parameter">draw</span>
+         Draw function
+        </li>
+    </ul>
+
+
+
+    <h3>See also:</h3>
+    <ul>
+         <li><a href="../modules/map.html#Map.layers">Map.layers</a></li>
+         <li><a href="../modules/map.html#Object">Object</a></li>
+    </ul>
+
+
+</dd>
+    <dt>
+    <a name = "Tile"></a>
+    <strong>Tile</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Fields:</h3>
+    <ul>
+        <li><span class="parameter">id</span>
+         Local ID within Tileset
+        </li>
+        <li><span class="parameter">gid</span>
+         Global ID
+        </li>
+        <li><span class="parameter">tileset</span>
+         Tileset ID
+        </li>
+        <li><span class="parameter">quad</span>
+         Quad object
+        </li>
+        <li><span class="parameter">properties</span>
+         Custom properties
+        </li>
+        <li><span class="parameter">terrain</span>
+         Terrain data
+        </li>
+        <li><span class="parameter">animation</span>
+         Animation data
+        </li>
+        <li><span class="parameter">frame</span>
+         Current animation frame
+        </li>
+        <li><span class="parameter">time</span>
+         Time spent on current animation frame
+        </li>
+        <li><span class="parameter">width</span>
+         Width of tile
+        </li>
+        <li><span class="parameter">height</span>
+         Height of tile
+        </li>
+        <li><span class="parameter">sx</span>
+         Scale value on the X axis
+        </li>
+        <li><span class="parameter">sy</span>
+         Scale value on the Y axis
+        </li>
+        <li><span class="parameter">r</span>
+         Rotation of tile (in radians)
+        </li>
+        <li><span class="parameter">offset</span> Offset drawing position
+        <ul>
+        <li><span class="parameter">x</span>
+         Offset value on the X axis
+        </li>
+        <li><span class="parameter">y</span>
+         Offset value on the Y axis
+        </li>
+        </li></ul>
+    </ul>
+
+
+
+    <h3>See also:</h3>
+    <ul>
+         <a href="../modules/map.html#Map.tiles">Map.tiles</a>
+    </ul>
+
+
+</dd>
+    <dt>
+    <a name = "TileInstance"></a>
+    <strong>TileInstance</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Fields:</h3>
+    <ul>
+        <li><span class="parameter">batch</span>
+         Spritebatch the Tile Instance belongs to
+        </li>
+        <li><span class="parameter">id</span>
+         ID within the spritebatch
+        </li>
+        <li><span class="parameter">gid</span>
+         Global ID
+        </li>
+        <li><span class="parameter">x</span>
+         Position on the X axis (in pixels)
+        </li>
+        <li><span class="parameter">y</span>
+         Position on the Y axis (in pixels)
+        </li>
+    </ul>
+
+
+
+    <h3>See also:</h3>
+    <ul>
+         <li><a href="../modules/map.html#Map.tileInstances">Map.tileInstances</a></li>
+         <li><a href="../modules/map.html#Tile">Tile</a></li>
+    </ul>
+
+
+</dd>
+    <dt>
+    <a name = "TileLayer"></a>
+    <strong>TileLayer</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Fields:</h3>
+    <ul>
+        <li><span class="parameter">name</span>
+         The name of the layer
+        </li>
+        <li><span class="parameter">x</span>
+         Position on the X axis (in pixels)
+        </li>
+        <li><span class="parameter">y</span>
+         Position on the Y axis (in pixels)
+        </li>
+        <li><span class="parameter">width</span>
+         Width of layer (in tiles)
+        </li>
+        <li><span class="parameter">height</span>
+         Height of layer (in tiles)
+        </li>
+        <li><span class="parameter">visible</span>
+         Toggle if layer is visible or hidden
+        </li>
+        <li><span class="parameter">opacity</span>
+         Opacity of layer
+        </li>
+        <li><span class="parameter">properties</span>
+         Custom properties
+        </li>
+        <li><span class="parameter">data</span>
+         A two dimensional table filled with individual tiles indexed by [y][x] (in tiles)
+        </li>
+        <li><span class="parameter">update</span>
+         Update function
+        </li>
+        <li><span class="parameter">draw</span>
+         Draw function
+        </li>
+    </ul>
+
+
+
+    <h3>See also:</h3>
+    <ul>
+         <li><a href="../modules/map.html#Map.layers">Map.layers</a></li>
+         <li><a href="../modules/map.html#Tile">Tile</a></li>
+    </ul>
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.3</a></i>
+<i style="float:right;">Last updated 2016-06-09 23:18:58 </i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>
