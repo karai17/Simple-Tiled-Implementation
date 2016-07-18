@@ -23,9 +23,7 @@ return {
 	end,
 
 	-- Compensation for scale/rotation shift
-	compensate = function(tile, x, y, tw, th)
-		local tx    = x + tile.offset.x
-		local ty    = y + tile.offset.y
+	compensate = function(tile, tx, ty, tw, th)
 		local origx = tx
 		local origy = ty
 		local compx = 0
