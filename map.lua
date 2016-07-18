@@ -78,7 +78,6 @@ end
 -- @return number Next Tileset's first Global ID
 function Map:setTiles(index, tileset, gid)
 	local quad = love.graphics.newQuad
-	local mw   = self.tilewidth
 	local iw   = tileset.imagewidth
 	local ih   = tileset.imageheight
 	local tw   = tileset.tilewidth
@@ -127,15 +126,8 @@ function Map:setTiles(index, tileset, gid)
 				sx          = 1,
 				sy          = 1,
 				r           = 0,
-				offset      = {
-					x = -mw + tileset.tileoffset.x,
-					y = -th + tileset.tileoffset.y,
-				},
+				offset      = tileset.tileoffset,
 			}
-
-			if self.orientation == "isometric" then
-				tile.offset.x = -mw / 2
-			end
 
 			self.tiles[gid] = tile
 			gid             = gid + 1
@@ -292,121 +284,110 @@ end
 -- @param layer The Tile Layer
 -- @return nil
 function Map:setSpriteBatches(layer)
-	local newBatch = love.graphics.newSpriteBatch
-	local w        = love.graphics.getWidth()
-	local h        = love.graphics.getHeight()
-	local tw       = self.tilewidth
-	local th       = self.tileheight
-	local bw       = math.ceil(w / tw)
-	local bh       = math.ceil(h / th)
-	local sx       = 1
-	local sy       = 1
-	local ex       = layer.width
-	local ey       = layer.height
-	local ix       = 1
-	local iy       = 1
+	local newBatch      = love.graphics.newSpriteBatch
+	local w             = love.graphics.getWidth()
+	local h             = love.graphics.getHeight()
+	local tileWidth     = self.tilewidth
+	local tileHeight    = self.tileheight
+	local batchWidth    = math.ceil(w / tileWidth)
+	local batchHeight   = math.ceil(h / tileHeight)
+	local startX        = 1
+	local startY        = 1
+	local endX          = layer.width
+	local endY          = layer.height
+	local incrementX    = 1
+	local incrementY    = 1
 
 	-- Determine order to add tiles to sprite batch
 	-- Defaults to right-down
 	if self.renderorder == "right-up" then
-		sx, ex, ix = sx, ex,  1
-		sy, ey, iy = ey, sy, -1
+		startX, endX, incrementX = startX, endX,  1
+		startY, endY, incrementY = endY, startY, -1
 	elseif self.renderorder == "left-down" then
-		sx, ex, ix = ex, sx, -1
-		sy, ey, iy = sy, ey,  1
+		startX, endX, incrementX = endX, startX, -1
+		startY, endY, incrementY = startY, endY,  1
 	elseif self.renderorder == "left-up" then
-		sx, ex, ix = ex, sx, -1
-		sy, ey, iy = ey, sy, -1
+		startX, endX, incrementX = endX, startX, -1
+		startY, endY, incrementY = endY, startY, -1
 	end
 
 	-- Minimum of 400 tiles per batch
-	if bw < 20 then bw = 20 end
-	if bh < 20 then bh = 20 end
+	if batchWidth  < 20 then batchWidth  = 20 end
+	if batchHeight < 20 then batchHeight = 20 end
 
-	local size    = bw * bh
+	local batchSize = batchWidth * batchHeight
 	local batches = {
-		width  = bw,
-		height = bh,
+		width  = batchWidth,
+		height = batchHeight,
 		data   = {},
 	}
 
-	for y=sy, ey, iy do
-		local by = math.ceil(y / bh)
+	for y = startY, endY, incrementY do
+		local batchY = math.ceil(y / batchHeight)
 
-		for x=sx, ex, ix do
+		for x = startX, endX, incrementX do
 			local tile = layer.data[y][x]
-			local bx   = math.ceil(x / bw)
-			local id
+			local batchX = math.ceil(x / batchWidth)
 
 			if tile then
-				local ts    = tile.tileset
+				local tileset = tile.tileset
 				local image = self.tilesets[tile.tileset].image
 
-				batches.data[ts]         = batches.data[ts] or {}
-				batches.data[ts][by]     = batches.data[ts][by] or {}
-				batches.data[ts][by][bx] = batches.data[ts][by][bx] or newBatch(image, size)
+				batches.data[tileset]                 = batches.data[tileset] or {}
+				batches.data[tileset][batchY]         = batches.data[tileset][batchY] or {}
+				batches.data[tileset][batchY][batchX] = batches.data[tileset][batchY][batchX] or newBatch(image, batchSize)
 
-				local batch = batches.data[ts][by][bx]
+				local batch = batches.data[tileset][batchY][batchX]
 				local tx, ty
 
 				if self.orientation == "orthogonal" then
-					tx, ty = utils.compensate(tile, x*tw, y*th, tw, th)
+					tx = (x-1) * tileWidth + tile.offset.x
+					ty = (y-1) * tileHeight + tile.offset.y
+					tx, ty = utils.compensate(tile, tx, ty, tileWidth, tileHeight)
 				elseif self.orientation == "isometric" then
-					tx = (x - y) * (tw / 2) + tile.offset.x + layer.width * tw / 2
-					ty = (x + y) * (th / 2) + tile.offset.y
+					tx = (x - y) * (tileWidth / 2) + tile.offset.x + layer.width * tileWidth / 2 - self.tilewidth / 2
+					ty = (x + y - 2) * (tileHeight / 2) + tile.offset.y
 				elseif self.orientation == "staggered" or self.orientation == "hexagonal" then
-					local hl = self.hexsidelength or 0
+					local sideLength = self.hexsidelength or 0
 
 					if self.staggeraxis == "y" then
 						if self.staggerindex == "odd" then
 							if y % 2 == 0 then
-								tx = x * tw + tw / 2 + hl + tile.offset.x
+								tx = (x-1) * tileWidth + tileWidth / 2 + tile.offset.x
 							else
-								tx = x * tw + hl + tile.offset.x
+								tx = (x-1) * tileWidth + tile.offset.x
 							end
 						else
 							if y % 2 == 0 then
-								tx = x * tw + hl + tile.offset.x
+								tx = (x-1) * tileWidth + tile.offset.x
 							else
-								tx = x * tw + tw / 2 + hl + tile.offset.x
+								tx = (x-1) * tileWidth + tileWidth / 2 + tile.offset.x
 							end
 						end
 
-						if self.orientation == "hexagonal" then
-							ty = y * (th - (th - hl) / 2) + tile.offset.y + (th - (th - hl) / 2)
-						else
-							ty = y * th / 2 + tile.offset.y + th / 2
-						end
+						local rowHeight = tileHeight - (tileHeight - sideLength) / 2
+						ty = (y-1) * rowHeight + tile.offset.y
 					else
 						if self.staggerindex == "odd" then
 							if x % 2 == 0 then
-								ty = y * th + th / 2 + hl + tile.offset.y
+								ty = (y-1) * tileHeight + tileHeight / 2 + tile.offset.y
 							else
-								ty = y * th + hl + tile.offset.y
+								ty = (y-1) * tileHeight + tile.offset.y
 							end
 						else
 							if x % 2 == 0 then
-								ty = y * th + hl + tile.offset.y
+								ty = (y-1) * tileHeight + tile.offset.y
 							else
-								ty = y * th + th / 2 + hl + tile.offset.y
+								ty = (y-1) * tileHeight + tileHeight / 2 + tile.offset.y
 							end
 						end
 
-						if self.orientation == "hexagonal" then
-							tx = x * (tw - (tw - hl) / 2) + tile.offset.x + (tw - (tw - hl) / 2)
-						else
-							tx = x * tw / 2 + tile.offset.x + tw / 2
-						end
-					end
-
-					-- I FEEL LIKE THIS IS WRONG
-					if self.orientation == "hexagonal" then
-						tx = tx - tw / 2 - 2
-						ty = ty - th / 2 - 2
+						local columnWidth = tileWidth - (tileWidth - sideLength) / 2
+						tx = (x-1) * columnWidth + tile.offset.x
 					end
 				end
 
-				id = batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
+				local id = batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
 				self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
 				table.insert(self.tileInstances[tile.gid], {
 					layer = layer,
@@ -443,8 +424,8 @@ function Map:setObjectSpriteBatches(layer)
 			batches[ts] = batches[ts] or newBatch(image, 100)
 
 			local batch = batches[ts]
-			local tx    = object.x + tw + tile.offset.x
-			local ty    = object.y + tile.offset.y
+			local tx    = object.x + tile.offset.x
+			local ty    = object.y - tile.height + tile.offset.y
 			local tr    = math.rad(object.rotation)
 			local oy    = 0
 
