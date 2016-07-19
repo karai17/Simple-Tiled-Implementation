@@ -78,7 +78,7 @@ return {
 		local collidables = map.bump_collidables
 
 		-- Remove collision objects
-		for i=#collidables, 1, -1 do
+		for i = #collidables, 1, -1 do
 			local obj = collidables[i]
 
 			if obj.layer == layer

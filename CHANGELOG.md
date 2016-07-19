@@ -1,8 +1,18 @@
 # Change Log
 
+## 2016-07-18: v0.16.0.2
+
+* Added: busted tests!
+* Changed: structure of git repo is now more user friendly
+* Changed: converved map.lua into init.lua and changed isolation code
+* Changed: STI.new() -> STI()
+* Changed: Map:convertWorldToScreen -> Map:convertTileToPixel
+* Changed: Map:convertScreenToWorld -> Map:convertPixelToTile
+* Fixed: hexagonal maps now display in correct location (thanks @bjorn)
+
 ## 2016-06-09: v0.16.0.1
 
-* Changed: Moved local functions to an internal utils file to tidy things up
+* Changed: moved local functions to an internal utils file to tidy things up
 * Changed: Box2D plugin now uses utils file instead of duplicate functions
 
 ## 2016-06-09: v0.16.0.0
@@ -11,25 +21,25 @@
 
 ## 2016-06-09: v0.14.2.0
 
-* Added: Proper support for Layer offsets (thanks @Drauthius!)
+* Added: proper support for Layer offsets (thanks @Drauthius!)
 
 ## 2016-05-19: v0.14.1.13
 
-* Added: Test maps for visual varification between Tiled and STI
+* Added: test maps for visual varification between Tiled and STI
 * Added: Map:swapTile so you can cleanly swap tiles in Tile Layers
-* Changed: All conversion functions consolidated into two functions (thanks @entrancejew)
+* Changed: all conversion functions consolidated into two functions (thanks @entrancejew)
 * Fixed: shapes were off in noman's land in some cases (thanks @loribranford)
 
 ## 2016-01-12: v0.14.1.12
 
-* Added: Basic support for object layers in Bump plugin (thanks @premek)
-* Changed: New line token from CRLF to LF
-* Fixed: Sprite batches should now respect the map draw order
+* Added: basic support for object layers in Bump plugin (thanks @premek)
+* Changed: new line token from CRLF to LF
+* Fixed: sprite batches should now respect the map draw order
 
 ## 2016-01-01: v0.14.1.11
 
-* Fixed: Various bugs in the Box2D plugin (thanks @ChrisWeisiger)
-* Fixed: Various bugs in the Bump plugin (thanks @bobbyjoness)
+* Fixed: various bugs in the Box2D plugin (thanks @ChrisWeisiger)
+* Fixed: various bugs in the Bump plugin (thanks @bobbyjoness)
 
 ## 2015-12-31: v0.14.1.10
 

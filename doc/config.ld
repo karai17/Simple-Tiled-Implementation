@@ -4,9 +4,9 @@ description = "A simple and fast Tiled map loader and renderer"
 sort        = true
 dir         = "."
 file        = {
-	"../init.lua",
-	"../map.lua",
-	"../plugins/box2d.lua",
-	"../plugins/bump.lua"
+	"../sti/init.lua",
+	"../sti/map.lua",
+	"../sti/plugins/box2d.lua",
+	"../sti/plugins/bump.lua"
 }
 

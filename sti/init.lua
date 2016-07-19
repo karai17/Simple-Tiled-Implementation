@@ -1,10 +1,65 @@
---- Map object
--- @module map
+--- Simple and fast Tiled map loader and renderer.
+-- @module sti
+-- @author Landon Manning
+-- @copyright 2016
+-- @license MIT/X11
 
-local path       = (...):gsub('%.[^%.]+$', '') .. "."
+local STI = {
+	_LICENSE     = "MIT/X11",
+	_URL         = "https://github.com/karai17/Simple-Tiled-Implementation",
+	_VERSION     = "0.16.0.2",
+	_DESCRIPTION = "Simple Tiled Implementation is a Tiled Map Editor library designed for the *awesome* LÖVE framework.",
+	cache        = {}
+}
+STI.__index = STI
+
+local path       = (...):gsub('%.init$', '') .. "."
 local pluginPath = string.gsub(path, "[.]", "/") .. "plugins/"
 local utils      = require(path .. "utils")
+local ceil       = math.ceil
+local floor      = math.floor
+local lg         = love.graphics
 local Map        = {}
+Map.__index      = Map
+
+local function new(map, plugins, ox, oy)
+	-- Check for valid map type
+	local ext = map:sub(-4, -1)
+	assert(ext == ".lua", string.format(
+		"Invalid file type: %s. File must be of type: lua.",
+		ext
+	))
+
+	-- Get path to map
+	local path = map:reverse():find("[/\\]") or ""
+	if path ~= "" then
+		path = map:sub(1, 1 + (#map - path))
+	end
+
+	-- Load map
+	map = setmetatable(love.filesystem.load(map)(), Map)
+	map:init(path, plugins, ox, oy)
+
+	return map
+end
+
+--- Instance a new map.
+-- @param path Path to the map file
+-- @param plugins A list of plugins to load
+-- @param ox Offset of map on the X axis (in pixels)
+-- @param oy Offset of map on the Y axis (in pixels)
+-- @return table The loaded Map
+function STI.__call(self, path, plugins, ox, oy)
+	return new(path, plugins, ox, oy)
+end
+
+--- Flush image cache.
+function STI:flush()
+	self.cache = {}
+end
+
+--- Map object
+-- @module map
 
 --- Instance a new map
 -- @param path Path to the map file
@@ -12,7 +67,7 @@ local Map        = {}
 -- @param ox Offset of map on the X axis (in pixels)
 -- @param oy Offset of map on the Y axis (in pixels)
 -- @return nil
-function Map:init(STI, path, plugins, ox, oy)
+function Map:init(path, plugins, ox, oy)
 	if type(plugins) == "table" then
 		self:loadPlugins(plugins)
 	end
@@ -29,7 +84,6 @@ function Map:init(STI, path, plugins, ox, oy)
 	}
 	self.offsetx = ox or 0
 	self.offsety = oy or 0
-	self.sti     = STI
 
 	-- Set tiles, images
 	local gid = 1
@@ -38,12 +92,12 @@ function Map:init(STI, path, plugins, ox, oy)
 
 		-- Cache images
 		local formatted_path = utils.format_path(path .. tileset.image)
-		if not self.sti.cache[formatted_path] then
-			utils.cache_image(self.sti, formatted_path)
+		if not STI.cache[formatted_path] then
+			utils.cache_image(STI, formatted_path)
 		end
 
 		-- Pull images from cache
-		tileset.image = self.sti.cache[formatted_path]
+		tileset.image = STI.cache[formatted_path]
 
 		gid = self:setTiles(i, tileset, gid)
 	end
@@ -77,21 +131,21 @@ end
 -- @param gid First Global ID in Tileset
 -- @return number Next Tileset's first Global ID
 function Map:setTiles(index, tileset, gid)
-	local quad = love.graphics.newQuad
-	local iw   = tileset.imagewidth
-	local ih   = tileset.imageheight
-	local tw   = tileset.tilewidth
-	local th   = tileset.tileheight
-	local s    = tileset.spacing
-	local m    = tileset.margin
-	local w    = utils.get_tiles(iw, tw, m, s)
-	local h    = utils.get_tiles(ih, th, m, s)
+	local quad    = lg.newQuad
+	local imageW  = tileset.imagewidth
+	local imageH  = tileset.imageheight
+	local tileW   = tileset.tilewidth
+	local tileH   = tileset.tileheight
+	local margin  = tileset.margin
+	local spacing = tileset.spacing
+	local w       = utils.get_tiles(imageW, tileW, margin, spacing)
+	local h       = utils.get_tiles(imageH, tileH, margin, spacing)
 
 	for y = 1, h do
 		for x = 1, w do
-			local id = gid - tileset.firstgid
-			local qx = (x - 1) * tw + m + (x - 1) * s
-			local qy = (y - 1) * th + m + (y - 1) * s
+			local id    = gid - tileset.firstgid
+			local quadX = (x - 1) * tileW + margin + (x - 1) * spacing
+			local quadY = (y - 1) * tileH + margin + (y - 1) * spacing
 			local properties, terrain, animation, objectGroup
 
 			for _, tile in pairs(tileset.tiles) do
@@ -103,7 +157,7 @@ function Map:setTiles(index, tileset, gid)
 					if tile.terrain then
 						terrain = {}
 
-						for i=1, #tile.terrain do
+						for i = 1, #tile.terrain do
 							terrain[i] = tileset.terrains[tile.terrain[i] + 1]
 						end
 					end
@@ -114,15 +168,19 @@ function Map:setTiles(index, tileset, gid)
 				id          = id,
 				gid         = gid,
 				tileset     = index,
-				quad        = quad(qx, qy, tw, th, iw, ih),
+				quad        = quad(
+					quadX,  quadY,
+					tileW,  tileH,
+					imageW, imageH
+				),
 				properties  = properties or {},
 				terrain     = terrain,
 				animation   = animation,
 				objectGroup = objectGroup,
 				frame       = 1,
 				time        = 0,
-				width       = tw,
-				height      = th,
+				width       = tileW,
+				height      = tileH,
 				sx          = 1,
 				sy          = 1,
 				r           = 0,
@@ -183,11 +241,11 @@ function Map:setLayer(layer, path)
 
 		if layer.image ~= "" then
 			local formatted_path = utils.format_path(path .. layer.image)
-			if not self.sti.cache[formatted_path] then
-				utils.cache_image(self.sti, formatted_path)
+			if not STI.cache[formatted_path] then
+				utils.cache_image(STI, formatted_path)
 			end
 
-			layer.image  = self.sti.cache[formatted_path]
+			layer.image  = STI.cache[formatted_path]
 			layer.width  = layer.image:getWidth()
 			layer.height = layer.image:getHeight()
 		end
@@ -253,7 +311,7 @@ function Map:setObjectCoordinates(layer)
 			}
 
 			for _, vertex in ipairs(vertices) do
-				vertex.x, vertex.y = utils:rotate_vertex(self, vertex, x, y, cos, sin)
+				vertex.x, vertex.y = utils.rotate_vertex(self, vertex, x, y, cos, sin)
 				table.insert(object.rectangle, { x = vertex.x, y = vertex.y })
 			end
 		elseif object.shape == "ellipse" then
@@ -261,20 +319,20 @@ function Map:setObjectCoordinates(layer)
 			local vertices = utils.convert_ellipse_to_polygon(x, y, w, h)
 
 			for _, vertex in ipairs(vertices) do
-				vertex.x, vertex.y = utils:rotate_vertex(self, vertex, x, y, cos, sin)
+				vertex.x, vertex.y = utils.rotate_vertex(self, vertex, x, y, cos, sin)
 				table.insert(object.ellipse, { x = vertex.x, y = vertex.y })
 			end
 		elseif object.shape == "polygon" then
 			for _, vertex in ipairs(object.polygon) do
 				vertex.x           = vertex.x + x
 				vertex.y           = vertex.y + y
-				vertex.x, vertex.y = utils:rotate_vertex(self, vertex, x, y, cos, sin)
+				vertex.x, vertex.y = utils.rotate_vertex(self, vertex, x, y, cos, sin)
 			end
 		elseif object.shape == "polyline" then
 			for _, vertex in ipairs(object.polyline) do
 				vertex.x           = vertex.x + x
 				vertex.y           = vertex.y + y
-				vertex.x, vertex.y = utils:rotate_vertex(self, vertex, x, y, cos, sin)
+				vertex.x, vertex.y = utils.rotate_vertex(self, vertex, x, y, cos, sin)
 			end
 		end
 	end
@@ -284,19 +342,19 @@ end
 -- @param layer The Tile Layer
 -- @return nil
 function Map:setSpriteBatches(layer)
-	local newBatch      = love.graphics.newSpriteBatch
-	local w             = love.graphics.getWidth()
-	local h             = love.graphics.getHeight()
-	local tileWidth     = self.tilewidth
-	local tileHeight    = self.tileheight
-	local batchWidth    = math.ceil(w / tileWidth)
-	local batchHeight   = math.ceil(h / tileHeight)
-	local startX        = 1
-	local startY        = 1
-	local endX          = layer.width
-	local endY          = layer.height
-	local incrementX    = 1
-	local incrementY    = 1
+	local newBatch   = lg.newSpriteBatch
+	local w          = lg.getWidth()
+	local h          = lg.getHeight()
+	local tileW      = self.tilewidth
+	local tileH      = self.tileheight
+	local batchW     = ceil(w / tileW)
+	local batchH     = ceil(h / tileH)
+	local startX     = 1
+	local startY     = 1
+	local endX       = layer.width
+	local endY       = layer.height
+	local incrementX = 1
+	local incrementY = 1
 
 	-- Determine order to add tiles to sprite batch
 	-- Defaults to right-down
@@ -312,90 +370,90 @@ function Map:setSpriteBatches(layer)
 	end
 
 	-- Minimum of 400 tiles per batch
-	if batchWidth  < 20 then batchWidth  = 20 end
-	if batchHeight < 20 then batchHeight = 20 end
+	if batchW < 20 then batchW = 20 end
+	if batchH < 20 then batchH = 20 end
 
-	local batchSize = batchWidth * batchHeight
-	local batches = {
-		width  = batchWidth,
-		height = batchHeight,
+	local batchSize = batchW * batchH
+	local batches   = {
+		width  = batchW,
+		height = batchH,
 		data   = {},
 	}
 
 	for y = startY, endY, incrementY do
-		local batchY = math.ceil(y / batchHeight)
+		local batchY = ceil(y / batchH)
 
 		for x = startX, endX, incrementX do
-			local tile = layer.data[y][x]
-			local batchX = math.ceil(x / batchWidth)
+			local tile   = layer.data[y][x]
+			local batchX = ceil(x / batchW)
 
 			if tile then
 				local tileset = tile.tileset
-				local image = self.tilesets[tile.tileset].image
+				local image   = self.tilesets[tile.tileset].image
 
 				batches.data[tileset]                 = batches.data[tileset] or {}
 				batches.data[tileset][batchY]         = batches.data[tileset][batchY] or {}
 				batches.data[tileset][batchY][batchX] = batches.data[tileset][batchY][batchX] or newBatch(image, batchSize)
 
 				local batch = batches.data[tileset][batchY][batchX]
-				local tx, ty
+				local tileX, tileY
 
 				if self.orientation == "orthogonal" then
-					tx = (x-1) * tileWidth + tile.offset.x
-					ty = (y-1) * tileHeight + tile.offset.y
-					tx, ty = utils.compensate(tile, tx, ty, tileWidth, tileHeight)
+					tileX = (x - 1) * tileW + tile.offset.x
+					tileY = (y - 1) * tileH + tile.offset.y
+					tileX, tileY = utils.compensate(tile, tileX, tileY, tileW, tileH)
 				elseif self.orientation == "isometric" then
-					tx = (x - y) * (tileWidth / 2) + tile.offset.x + layer.width * tileWidth / 2 - self.tilewidth / 2
-					ty = (x + y - 2) * (tileHeight / 2) + tile.offset.y
+					tileX = (x - y) * (tileW / 2) + tile.offset.x + layer.width * tileW / 2 - self.tilewidth / 2
+					tileY = (x + y - 2) * (tileH / 2) + tile.offset.y
 				elseif self.orientation == "staggered" or self.orientation == "hexagonal" then
-					local sideLength = self.hexsidelength or 0
+					local sideLen = self.hexsidelength or 0
 
 					if self.staggeraxis == "y" then
 						if self.staggerindex == "odd" then
 							if y % 2 == 0 then
-								tx = (x-1) * tileWidth + tileWidth / 2 + tile.offset.x
+								tileX = (x - 1) * tileW + tileW / 2 + tile.offset.x
 							else
-								tx = (x-1) * tileWidth + tile.offset.x
+								tileX = (x - 1) * tileW + tile.offset.x
 							end
 						else
 							if y % 2 == 0 then
-								tx = (x-1) * tileWidth + tile.offset.x
+								tileX = (x - 1) * tileW + tile.offset.x
 							else
-								tx = (x-1) * tileWidth + tileWidth / 2 + tile.offset.x
+								tileX = (x - 1) * tileW + tileW / 2 + tile.offset.x
 							end
 						end
 
-						local rowHeight = tileHeight - (tileHeight - sideLength) / 2
-						ty = (y-1) * rowHeight + tile.offset.y
+						local rowH = tileH - (tileH - sideLen) / 2
+						tileY = (y - 1) * rowH + tile.offset.y
 					else
 						if self.staggerindex == "odd" then
 							if x % 2 == 0 then
-								ty = (y-1) * tileHeight + tileHeight / 2 + tile.offset.y
+								tileY = (y - 1) * tileH + tileH / 2 + tile.offset.y
 							else
-								ty = (y-1) * tileHeight + tile.offset.y
+								tileY = (y - 1) * tileH + tile.offset.y
 							end
 						else
 							if x % 2 == 0 then
-								ty = (y-1) * tileHeight + tile.offset.y
+								tileY = (y - 1) * tileH + tile.offset.y
 							else
-								ty = (y-1) * tileHeight + tileHeight / 2 + tile.offset.y
+								tileY = (y - 1) * tileH + tileH / 2 + tile.offset.y
 							end
 						end
 
-						local columnWidth = tileWidth - (tileWidth - sideLength) / 2
-						tx = (x-1) * columnWidth + tile.offset.x
+						local colW = tileW - (tileW - sideLen) / 2
+						tileX = (x - 1) * colW + tile.offset.x
 					end
 				end
 
-				local id = batch:add(tile.quad, tx, ty, tile.r, tile.sx, tile.sy)
+				local id = batch:add(tile.quad, tileX, tileY, tile.r, tile.sx, tile.sy)
 				self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
 				table.insert(self.tileInstances[tile.gid], {
 					layer = layer,
 					batch = batch,
 					id    = id,
 					gid   = tile.gid,
-					x     = tx,
-					y     = ty,
+					x     = tileX,
+					y     = tileY,
 					r     = tile.r,
 					oy    = 0
 				})
@@ -410,48 +468,48 @@ end
 -- @param layer The Object Layer
 -- @return nil
 function Map:setObjectSpriteBatches(layer)
-	local newBatch = love.graphics.newSpriteBatch
-	local tw       = self.tilewidth
-	local th       = self.tileheight
+	local newBatch = lg.newSpriteBatch
+	local tileW    = self.tilewidth
+	local tileH    = self.tileheight
 	local batches  = {}
 
 	for _, object in ipairs(layer.objects) do
 		if object.gid then
-			local tile  = self.tiles[object.gid] or self:setFlippedGID(object.gid)
-			local ts    = tile.tileset
-			local image = self.tilesets[tile.tileset].image
+			local tile    = self.tiles[object.gid] or self:setFlippedGID(object.gid)
+			local tileset = tile.tileset
+			local image   = self.tilesets[tile.tileset].image
 
-			batches[ts] = batches[ts] or newBatch(image, 100)
+			batches[tileset] = batches[tileset] or newBatch(image, 100)
 
-			local batch = batches[ts]
-			local tx    = object.x + tile.offset.x
-			local ty    = object.y - tile.height + tile.offset.y
-			local tr    = math.rad(object.rotation)
+			local batch = batches[tileset]
+			local tileX = object.x + tile.offset.x
+			local tileY = object.y + tile.offset.y - tile.height
+			local tileR = math.rad(object.rotation)
 			local oy    = 0
 
 			-- Compensation for scale/rotation shift
 			if tile.sx == 1 and tile.sy == 1 then
-				if tr ~= 0 then
-					ty = ty + th
-					oy = th
+				if tileR ~= 0 then
+					tileY = tileY + tileH
+					oy    = tileH
 				end
 			else
-				if tile.sx < 0 then tx = tx + tw end
-				if tile.sy < 0 then ty = ty + th end
-				if tr      > 0 then tx = tx + tw end
-				if tr      < 0 then ty = ty + th end
+				if tile.sx < 0 then tileX = tileX + tileW end
+				if tile.sy < 0 then tileY = tileY + tileH end
+				if tileR   > 0 then tileX = tileX + tileW end
+				if tileR   < 0 then tileY = tileY + tileH end
 			end
 
-			id = batch:add(tile.quad, tx, ty, tr, tile.sx, tile.sy, 0, oy)
+			id = batch:add(tile.quad, tileX, tileY, tileR, tile.sx, tile.sy, 0, oy)
 			self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
 			table.insert(self.tileInstances[tile.gid], {
 				layer = layer,
 				batch = batch,
 				id    = id,
 				gid   = tile.gid,
-				x     = tx,
-				y     = ty,
-				r     = tr,
+				x     = tileX,
+				y     = tileY,
+				r     = tileR,
 				oy    = oy
 			})
 		end
@@ -461,36 +519,37 @@ function Map:setObjectSpriteBatches(layer)
 end
 
 --- Only draw what is visible on screen for improved draw speed
--- @param tx Translate X axis (in pixels)
--- @param ty Translate Y axis (in pixels)
+-- @param transX Translate X axis (in pixels)
+-- @param transY Translate Y axis (in pixels)
 -- @param w Width of screen (in pixels)
 -- @param h Height of screen (in pixels)
 -- @return nil
-function Map:setDrawRange(tx, ty, w, h)
-	local tw, th = self.tilewidth, self.tileheight
-	local sx, sy, ex, ey
+function Map:setDrawRange(transX, transY, w, h)
+	local tileW = self.tilewidth
+	local tileH = self.tileheight
+	local startX, startY, endX, endY
 
 	if self.orientation == "orthogonal" then
-		sx = math.ceil(tx / tw)
-		sy = math.ceil(ty / th)
-		ex = math.ceil(sx + w / tw)
-		ey = math.ceil(sy + h / th)
+		startX = ceil(transX / tileW)
+		startY = ceil(transY / tileH)
+		endX   = ceil(startX + w / tileW)
+		endY   = ceil(startY + h / tileH)
 	elseif self.orientation == "isometric" then
-		sx = math.ceil(((ty / (th / 2)) + (tx / (tw / 2))) / 2)
-		sy = math.ceil(((ty / (th / 2)) - (tx / (tw / 2))) / 2 - h / th)
-		ex = math.ceil(sx + (h / th) + (w / tw))
-		ey = math.ceil(sy + (h / th) * 2 + (w / tw))
+		startX = ceil(((transY / (tileH / 2)) + (transX / (tileW / 2))) / 2)
+		startY = ceil(((transY / (tileH / 2)) - (transX / (tileW / 2))) / 2 - h / tileH)
+		endX   = ceil(startX + (h / tileH) + (w / tileW))
+		endY   = ceil(startY + (h / tileH) * 2 + (w / tileW))
 	elseif self.orientation == "staggered" or self.orientation == "hexagonal" then
-		sx = math.ceil(tx / tw - 1)
-		sy = math.ceil(ty / th)
-		ex = math.ceil(sx + w / tw + 1)
-		ey = math.ceil(sy + h / th * 2)
+		startX = ceil(transX / tileW - 1)
+		startY = ceil(transY / tileH)
+		endX   = ceil(startX + w / tileW + 1)
+		endY   = ceil(startY + h / tileH * 2)
 	end
 
-	self.drawRange.sx = sx
-	self.drawRange.sy = sy
-	self.drawRange.ex = ex
-	self.drawRange.ey = ey
+	self.drawRange.sx = startX
+	self.drawRange.sy = startY
+	self.drawRange.ex = endX
+	self.drawRange.ey = endY
 end
 
 --- Create a Custom Layer to place userdata in (such as player sprites)
@@ -561,7 +620,7 @@ function Map:removeLayer(index)
 	-- Remove tile instances
 	if layer.batches then
 		for gid, tiles in pairs(self.tileInstances) do
-			for i=#tiles, 1, -1 do
+			for i = #tiles, 1, -1 do
 				local tile = tiles[i]
 				if tile.layer == layer then
 					table.remove(tiles, i)
@@ -616,14 +675,10 @@ end
 --- Draw every Layer
 -- @return nil
 function Map:draw()
-	local current_canvas = love.graphics.getCanvas()
-	love.graphics.setCanvas(self.canvas)
-	if self.canvas.clear then
-		self.canvas:clear()
-	else
-		local r,g,b,a = love.graphics.getBackgroundColor()
-		love.graphics.clear(r,g,b,a,self.canvas)
-	end
+	local current_canvas = lg.getCanvas()
+	lg.setCanvas(self.canvas)
+	local r, g, b, a = lg.getBackgroundColor()
+	lg.clear(r, g, b, a, self.canvas)
 
 	for _, layer in ipairs(self.layers) do
 		if layer.visible and layer.opacity > 0 then
@@ -631,20 +686,20 @@ function Map:draw()
 		end
 	end
 
-	love.graphics.setCanvas(current_canvas)
-	love.graphics.push()
-	love.graphics.origin()
-	love.graphics.draw(self.canvas)
-	love.graphics.pop()
+	lg.setCanvas(current_canvas)
+	lg.push()
+	lg.origin()
+	lg.draw(self.canvas)
+	lg.pop()
 end
 
 --- Draw an individual Layer
 -- @param layer The Layer to draw
 -- @return nil
 function Map:drawLayer(layer)
-	love.graphics.setColor(255, 255, 255, 255 * layer.opacity)
+	lg.setColor(255, 255, 255, 255 * layer.opacity)
 	layer:draw()
-	love.graphics.setColor(255, 255, 255, 255)
+	lg.setColor(255, 255, 255, 255)
 end
 
 --- Default draw function for Tile Layers
@@ -657,38 +712,39 @@ function Map:drawTileLayer(layer)
 
 	assert(layer.type == "tilelayer", "Invalid layer type: " .. layer.type .. ". Layer must be of type: tilelayer")
 
-	local bw = layer.batches.width
-	local bh = layer.batches.height
-	local sx = math.ceil((self.drawRange.sx - layer.x / self.tilewidth	- 1) / bw)
-	local sy = math.ceil((self.drawRange.sy - layer.y / self.tileheight	- 1) / bh)
-	local ex = math.ceil((self.drawRange.ex - layer.x / self.tilewidth	+ 1) / bw)
-	local ey = math.ceil((self.drawRange.ey - layer.y / self.tileheight	+ 1) / bh)
-	local ix = 1
-	local iy = 1
-	local mx = math.ceil(self.width / bw)
-	local my = math.ceil(self.height / bh)
+	local batchW     = layer.batches.width
+	local batchH     = layer.batches.height
+	local tileW      = self.tilewidth
+	local tileH      = self.tileheight
+	local startX     = ceil((self.drawRange.sx - layer.x / tileW - 1) / batchW)
+	local startY     = ceil((self.drawRange.sy - layer.y / tileH - 1) / batchH)
+	local endX       = ceil((self.drawRange.ex - layer.x / tileW + 1) / batchW)
+	local endY       = ceil((self.drawRange.ey - layer.y / tileH + 1) / batchH)
+	local incrementX = 1
+	local incrementY = 1
+	local maxX       = ceil(self.width  / batchW)
+	local maxY       = ceil(self.height / batchH)
 
 	-- Determine order to draw batches
 	-- Defaults to right-down
 	if self.renderorder == "right-up" then
-		sx, ex, ix = sx, ex,  1
-		sy, ey, iy = ey, sy, -1
+		startX, endX, incrementX = startX, endX,  1
+		startY, endY, incrementY = endY, startY, -1
 	elseif self.renderorder == "left-down" then
-		sx, ex, ix = ex, sx, -1
-		sy, ey, iy = sy, ey,  1
+		startX, endX, incrementX = endX, startX, -1
+		startY, endY, incrementY = startY, endY,  1
 	elseif self.renderorder == "left-up" then
-		sx, ex, ix = ex, sx, -1
-		sy, ey, iy = ey, sy, -1
+		startX, endX, incrementX = endX, startX, -1
+		startY, endY, incrementY = endY, startY, -1
 	end
 
-	for by=sy, ey, iy do
-		for bx=sx, ex, ix do
-			if bx >= 1 and bx <= mx and by >= 1 and by <= my then
+	for batchY = startY, endY, incrementY do
+		for batchX = startX, endX, incrementX do
+			if batchX >= 1 and batchX <= maxX and batchY >= 1 and batchY <= maxY then
 				for _, batches in pairs(layer.batches.data) do
-					local batch = batches[by] and batches[by][bx]
-
+					local batch = batches[batchY] and batches[batchY][batchX]
 					if batch then
-						love.graphics.draw(batch, math.floor(layer.x), math.floor(layer.y))
+						lg.draw(batch, floor(layer.x), floor(layer.y))
 					end
 				end
 			end
@@ -706,53 +762,45 @@ function Map:drawObjectLayer(layer)
 
 	assert(layer.type == "objectgroup", "Invalid layer type: " .. layer.type .. ". Layer must be of type: objectgroup")
 
-	local line   = { 160, 160, 160, 255 * layer.opacity       }
-	local fill   = { 160, 160, 160, 255 * layer.opacity * 0.2 }
-	local shadow = {   0,   0,   0, 255 * layer.opacity       }
-	local reset  = { 255, 255, 255, 255 * layer.opacity       }
+	local line  = { 160, 160, 160, 255 * layer.opacity       }
+	local fill  = { 160, 160, 160, 255 * layer.opacity * 0.5 }
+	local reset = { 255, 255, 255, 255 * layer.opacity       }
 
 	local function sortVertices(obj)
-		local vertices = {{},{}}
+		local vertex = {}
 
-		for _, vertex in ipairs(obj) do
-			table.insert(vertices[1], vertex.x)
-			table.insert(vertices[1], vertex.y)
-			table.insert(vertices[2], vertex.x+1)
-			table.insert(vertices[2], vertex.y+1)
+		for _, v in ipairs(obj) do
+			table.insert(vertex, v.x)
+			table.insert(vertex, v.y)
 		end
 
-		return vertices
+		return vertex
 	end
 
 	local function drawShape(obj, shape)
-		local vertices = sortVertices(obj)
+		local vertex = sortVertices(obj)
 
 		if shape == "polyline" then
-			love.graphics.setColor(shadow)
-			love.graphics.line(vertices[2])
-			love.graphics.setColor(line)
-			love.graphics.line(vertices[1])
-
+			lg.setColor(line)
+			lg.line(vertex)
 			return
 		elseif shape == "polygon" then
-			love.graphics.setColor(fill)
-			if not love.math.isConvex(vertices[1]) then
-				local triangles = love.math.triangulate(vertices[1])
+			lg.setColor(fill)
+			if not love.math.isConvex(vertex) then
+				local triangles = love.math.triangulate(vertex)
 				for _, triangle in ipairs(triangles) do
-					love.graphics.polygon("fill", triangle)
+					lg.polygon("fill", triangle)
 				end
 			else
-				love.graphics.polygon("fill", vertices[1])
+				lg.polygon("fill", vertex)
 			end
 		else
-			love.graphics.setColor(fill)
-			love.graphics.polygon("fill", vertices[1])
+			lg.setColor(fill)
+			lg.polygon("fill", vertex)
 		end
 
-		love.graphics.setColor(shadow)
-		love.graphics.polygon("line", vertices[2])
-		love.graphics.setColor(line)
-		love.graphics.polygon("line", vertices[1])
+		lg.setColor(line)
+		lg.polygon("line", vertex)
 	end
 
 	for _, object in ipairs(layer.objects) do
@@ -767,9 +815,9 @@ function Map:drawObjectLayer(layer)
 		end
 	end
 
-	love.graphics.setColor(reset)
+	lg.setColor(reset)
 	for _, batch in pairs(layer.batches) do
-		love.graphics.draw(batch, 0, 0)
+		lg.draw(batch, 0, 0)
 	end
 end
 
@@ -784,7 +832,7 @@ function Map:drawImageLayer(layer)
 	assert(layer.type == "imagelayer", "Invalid layer type: " .. layer.type .. ". Layer must be of type: imagelayer")
 
 	if layer.image ~= "" then
-		love.graphics.draw(layer.image, layer.x, layer.y)
+		lg.draw(layer.image, layer.x, layer.y)
 	end
 end
 
@@ -793,10 +841,10 @@ end
 -- @param h The new Height of the drawable area (in pixels)
 -- @return nil
 function Map:resize(w, h)
-	w = w or love.graphics.getWidth()
-	h = h or love.graphics.getHeight()
+	w = w or lg.getWidth()
+	h = h or lg.getHeight()
 
-	self.canvas = love.graphics.newCanvas(w, h)
+	self.canvas = lg.newCanvas(w, h)
 	self.canvas:setFilter("nearest", "nearest")
 end
 
@@ -880,7 +928,9 @@ end
 function Map:getLayerProperties(layer)
 	local l = self.layers[layer]
 
-	if not l then return {} end
+	if not l then
+		return {}
+	end
 
 	return l.properties
 end
@@ -893,7 +943,9 @@ end
 function Map:getTileProperties(layer, x, y)
 	local tile = self.layers[layer].data[y][x]
 
-	if not tile then return {} end
+	if not tile then
+		return {}
+	end
 
 	return tile.properties
 end
@@ -916,7 +968,9 @@ function Map:getObjectProperties(layer, object)
 		end
 	end
 
-	if not o then return {} end
+	if not o then
+		return {}
+	end
 
 	return o.properties
 end
@@ -958,116 +1012,244 @@ function Map:swapTile(instance, tile)
 	end
 end
 
---- Convert tile space to screen space
+--- Convert tile location to pixel location
 -- @param x The X axis location of the point (in tiles)
 -- @param y The Y axis location of the point (in tiles)
 -- @return number The X axis location of the point (in pixels)
 -- @return number The Y axis location of the point (in pixels)
-function Map:convertWorldToScreen(x,y)
+function Map:convertTileToPixel(x,y)
 	if self.orientation == "orthogonal" then
-		local tw = self.tilewidth
-		local th = self.tileheight
+		local tileW = self.tilewidth
+		local tileH = self.tileheight
 		return
-			x * tw,
-			y * th
+			x * tileW,
+			y * tileH
 	elseif self.orientation == "isometric" then
-		local mh = self.height
-		local tw = self.tilewidth
-		local th = self.tileheight
-		local ox = mh * tw / 2
+		local mapH    = self.height
+		local tileW   = self.tilewidth
+		local tileH   = self.tileheight
+		local offsetX = mapH * tileW / 2
 		return
-			(x - y) * tw / 2 + ox,
-			(x + y) * th / 2
-	elseif self.orientation == "staggered" then
-		local abs, ceil = math.abs, math.ceil
-		local tw = self.tilewidth
-		local th = self.tileheight
-		return
-			x * tw + abs(ceil(y) % 2) * (tw / 2) - (ceil(y) % 2 * tw / 2),
-			y * (th / 2) + th / 2
+			(x - y) * tileW / 2 + offsetX,
+			(x + y) * tileH / 2
+	elseif self.orientation == "staggered" or
+		self.orientation     == "hexagonal" then
+		local tileW   = self.tilewidth
+		local tileH   = self.tileheight
+		local sideLen = self.hexsidelength or 0
+
+		if self.staggeraxis == "x" then
+			return
+				x * tileW,
+				ceil(y) * (tileH + sideLen) + (ceil(y) % 2 == 0 and tileH or 0)
+		else
+			return
+				ceil(x) * (tileW + sideLen) + (ceil(x) % 2 == 0 and tileW or 0),
+				y * tileH
+		end
 	end
 end
 
---- Convert screen space to tile space
+--- Convert pixel location to tile location
 -- @param x The X axis location of the point (in pixels)
 -- @param y The Y axis location of the point (in pixels)
 -- @return number The X axis location of the point (in tiles)
 -- @return number The Y axis location of the point (in tiles)
-function Map:convertScreenToWorld(x,y)
+function Map:convertPixelToTile(x, y)
 	if self.orientation == "orthogonal" then
-		local tw = self.tilewidth
-		local th = self.tileheight
+		local tileW = self.tilewidth
+		local tileH = self.tileheight
 		return
-			x / tw,
-			y / th
+			x / tileW,
+			y / tileH
 	elseif self.orientation == "isometric" then
-		local mh = self.height
-		local tw = self.tilewidth
-		local th = self.tileheight
-		local ox = mh * tw / 2
+		local mapH    = self.height
+		local tileW   = self.tilewidth
+		local tileH   = self.tileheight
+		local offsetX = mapH * tileW / 2
 		return
-			y / th + (x - ox) / tw,
-			y / th - (x - ox) / tw
+			y / tileH + (x - offsetX) / tileW,
+			y / tileH - (x - offsetX) / tileW
 	elseif self.orientation == "staggered" then
-		local ceil = math.ceil
+		local staggerX = self.staggeraxis  == "x"
+		local even     = self.staggerindex == "even"
+
 		local function topLeft(x, y)
-			if (ceil(y) % 2) then
-				return x, y - 1
+			if staggerX then
+				if ceil(x) % 2 == 1 and even then
+					return x - 1, y
+				else
+					return x - 1, y - 1
+				end
 			else
-				return x - 1, y - 1
+				if ceil(y) % 2 == 1 and even then
+					return x, y - 1
+				else
+					return x - 1, y - 1
+				end
 			end
 		end
 
 		local function topRight(x, y)
-			if (ceil(y) % 2) then
-				return x + 1, y - 1
+			if staggerX then
+				if ceil(x) % 2 == 1 and even then
+					return x + 1, y
+				else
+					return x + 1, y - 1
+				end
 			else
-				return x, y - 1
+				if ceil(y) % 2 == 1 and even then
+					return x + 1, y - 1
+				else
+					return x, y - 1
+				end
 			end
 		end
 
 		local function bottomLeft(x, y)
-			if (ceil(y) % 2) then
-				return x, y + 1
+			if staggerX then
+				if ceil(x) % 2 == 1 and even then
+					return x - 1, y + 1
+				else
+					return x - 1, y
+				end
 			else
-				return x - 1, y + 1
+				if ceil(y) % 2 == 1 and even then
+					return x, y + 1
+				else
+					return x - 1, y + 1
+				end
 			end
 		end
 
 		local function bottomRight(x, y)
-			if (ceil(y) % 2) then
-				return x + 1, y + 1
+			if staggerX then
+				if ceil(x) % 2 == 1 and even then
+					return x + 1, y + 1
+				else
+					return x + 1, y
+				end
 			else
-				return x, y + 1
+				if ceil(y) % 2 == 1 and even then
+					return x + 1, y + 1
+				else
+					return x, y + 1
+				end
 			end
 		end
 
-		local tw    = self.tilewidth
-		local th    = self.tileheight
-		local hh    = th / 2
-		local ratio = th / tw
-		local tx    = x / tw
-		local ty    = y / th * 2
-		local ctx   = ceil(x / tw)
-		local cty   = ceil(y / th) * 2
-		local rx    = x - ctx * tw
-		local ry    = y - (cty / 2) * th
+		local tileW = self.tilewidth
+		local tileH = self.tileheight
 
-		if (hh - rx * ratio > ry) then
-			return topLeft(tx, ty)
-		elseif (-hh + rx * ratio > ry) then
-			return topRight(tx, ty)
-		elseif (hh + rx * ratio < ry) then
-			return bottomLeft(tx, ty)
-		elseif (hh * 3 - rx * ratio < ry) then
-			return bottomRight(tx, ty)
+		if staggerX then
+			x = x - (even and tileW / 2 or 0)
+		else
+			y = y - (even and tileH / 2 or 0)
 		end
 
-		return tx, ty
+		local halfH      = tileH / 2
+		local ratio      = tileH / tileW
+		local referenceX = ceil(x / tileW)
+		local referenceY = ceil(y / tileH)
+		local relativeX  = x - referenceX * tileW
+		local relativeY  = y - referenceY * tileH
+
+		if (halfH - relativeX * ratio > relativeY) then
+			return topLeft(referenceX, referenceY)
+		elseif (-halfH + relativeX * ratio > relativeY) then
+			return topRight(referenceX, referenceY)
+		elseif (halfH + relativeX * ratio < relativeY) then
+			return bottomLeft(referenceX, referenceY)
+		elseif (halfH * 3 - relativeX * ratio < relativeY) then
+			return bottomRight(referenceX, referenceY)
+		end
+
+		return referenceX, referenceY
+	elseif self.orientation == "hexagonal" then
+		local staggerX  = self.staggeraxis  == "x"
+		local even      = self.staggerindex == "even"
+		local tileW     = self.tilewidth
+		local tileH     = self.tileheight
+		local sideLenX  = 0
+		local sideLenY  = 0
+
+		if staggerX then
+			sideLenX = self.hexsidelength
+			x = x - (even and tileW or (tileW - sideLenX) / 2)
+		else
+			sideLenY = self.hexsidelength
+			y = y - (even and tileH or (tileH - sideLenY) / 2)
+		end
+
+		local colW       = ((tileW - sideLenX) / 2) + sideLenX
+		local rowH       = ((tileH - sideLenY) / 2) + sideLenY
+		local referenceX = ceil(x) / (colW * 2)
+		local referenceY = ceil(y) / (rowH * 2)
+		local relativeX  = x - referenceX * colW * 2
+		local relativeY  = y - referenceY * rowH * 2
+		local centers
+
+		if staggerX then
+			local left    = sideLenX / 2
+			local centerX = left + colW
+			local centerY = tileH / 2
+
+			centers = {
+				{ x = left,           y = centerY        },
+				{ x = centerX,        y = centerY - rowH },
+				{ x = centerX,        y = centerY + rowH },
+				{ x = centerX + colW, y = centerY        },
+			}
+		else
+			local top     = sideLenY / 2
+			local centerX = tileW / 2
+			local centerY = top + rowH
+
+			centers = {
+				{ x = centerX,        y = top },
+				{ x = centerX - colW, y = centerY },
+				{ x = centerX + colW, y = centerY },
+				{ x = centerX,        y = centerY + rowH }
+			}
+		end
+
+		local nearest = 0
+		local minDist = math.huge
+
+		local function len2(ax, ay)
+			return ax * ax + ay * ay
+		end
+
+		for i = 1, 4 do
+			local dc = len2(centers[i].x - relativeX, centers[i].y - relativeY)
+
+			if dc < minDist then
+				minDist = dc
+				nearest = i
+			end
+		end
+
+		local offsetsStaggerX = {
+			{ x = 0, y =  0 },
+			{ x = 1, y = -1 },
+			{ x = 1, y =  0 },
+			{ x = 2, y =  0 },
+		}
+
+		local offsetsStaggerY = {
+			{ x =  0, y = 0 },
+			{ x = -1, y = 1 },
+			{ x =  0, y = 1 },
+			{ x =  0, y = 2 },
+		}
+
+		local offsets = staggerX and offsetsStaggerX or offsetsStaggerY
+
+		return
+			referenceX + offsets[nearest].x,
+			referenceY + offsets[nearest].y
 	end
 end
-
-return Map
 
 --- A list of individual layers indexed both by draw order and name
 -- @table Map.layers
@@ -1100,7 +1282,7 @@ return Map
 -- @field visible Toggle if layer is visible or hidden
 -- @field opacity Opacity of layer
 -- @field properties Custom properties
--- @field data A two dimensional table filled with individual tiles indexed by [y][x] (in tiles)
+-- @field data A tileWo dimensional table filled with individual tiles indexed by [y][x] (in tiles)
 -- @field update Update function
 -- @field draw Draw function
 -- @see Map.layers
@@ -1149,7 +1331,7 @@ return Map
 --	-- Add data to Custom Layer
 --	spriteLayer.sprites = {
 --		player = {
---			image = love.graphics.newImage("assets/sprites/player.png"),
+--			image = lg.newImage("assets/sprites/player.png"),
 --			x = 64,
 --			y = 64,
 --			r = 0,
@@ -1169,7 +1351,7 @@ return Map
 --			local x = math.floor(sprite.x)
 --			local y = math.floor(sprite.y)
 --			local r = sprite.r
---			love.graphics.draw(sprite.image, x, y, r)
+--			lg.draw(sprite.image, x, y, r)
 --		end
 --	end
 
@@ -1218,3 +1400,5 @@ return Map
 -- @field polygon List of verticies of specific shape
 -- @field polyline List of verticies of specific shape
 -- @see Map.objects
+
+return setmetatable({}, STI)

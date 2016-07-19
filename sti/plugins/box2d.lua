@@ -114,11 +114,11 @@ return {
 					{ x=o.x+0,   y=o.y+0   },
 					{ x=o.x+o.w, y=o.y+0   },
 					{ x=o.x+o.w, y=o.y+o.h },
-					{ x=o.x+0,   y=o.y+o.h },
+					{ x=o.x+0,   y=o.y+o.h }
 				}
 
 				for _, vertex in ipairs(o.polygon) do
-					vertex.x, vertex.y = utils:rotate_vertex(map, vertex, o.x, o.y, cos, sin, oy)
+					vertex.x, vertex.y = utils.rotate_vertex(map, vertex, o.x, o.y, cos, sin, oy)
 				end
 
 				local vertices = getPolygonVertices(o)
@@ -240,7 +240,7 @@ return {
 		local collision = map.box2d_collision
 
 		-- Remove collision objects
-		for i=#collision, 1, -1 do
+		for i = #collision, 1, -1 do
 			local obj = collision[i]
 
 			if obj.object.layer == layer then
