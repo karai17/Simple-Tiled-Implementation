@@ -4,7 +4,7 @@
 
 * Added: busted tests!
 * Changed: structure of git repo is now more user friendly
-* Changed: converved map.lua into init.lua and changed isolation code
+* Changed: converted map.lua into init.lua and changed isolation code
 * Changed: STI.new() -> STI()
 * Changed: Map:convertWorldToScreen -> Map:convertTileToPixel
 * Changed: Map:convertScreenToWorld -> Map:convertPixelToTile
