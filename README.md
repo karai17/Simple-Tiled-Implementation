@@ -20,7 +20,7 @@ function love.load()
 	love.physics.setMeter(32)
 
 	-- Load a map exported to Lua from Tiled
-	map = sti.new("assets/maps/map01.lua", { "box2d" })
+	map = sti("assets/maps/map01.lua", { "box2d" })
 
 	-- Prepare physics world with horizontal and vertical gravity
 	world = love.physics.newWorld(0, 0)
