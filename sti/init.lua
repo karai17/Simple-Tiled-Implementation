@@ -59,7 +59,6 @@ function STI:flush()
 end
 
 --- Map object
--- @module map
 
 --- Instance a new map
 -- @param path Path to the map file

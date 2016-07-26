@@ -5,7 +5,6 @@ sort        = true
 dir         = "."
 file        = {
 	"../sti/init.lua",
-	"../sti/map.lua",
 	"../sti/plugins/box2d.lua",
 	"../sti/plugins/bump.lua"
 }

@@ -70,8 +70,8 @@ return {
 	end,
 
 	--- Remove layer
-	-- @params index to layer to be removed
-	-- @params world bump world the holds the tiles
+	-- @param index to layer to be removed
+	-- @param world bump world the holds the tiles
 	-- @return nil
 	bump_removeLayer = function(map, index, world)
 		local layer = assert(map.layers[index], "Layer not found: " .. index)
@@ -93,7 +93,7 @@ return {
 	end,
 
 	--- Draw bump collisions world.
-	-- @params world bump world holding the tiles geometry
+	-- @param world bump world holding the tiles geometry
 	-- @return nil
 	bump_draw = function(map, world)
 		for k,collidable in pairs(map.bump_collidables) do
