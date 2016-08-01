@@ -28,7 +28,11 @@ return {
 			local shape
 
 			if objshape == "polyline" then
-				shape = love.physics.newChainShape(false, unpack(vertices))
+				if #vertices == 4 then
+					shape = love.physics.newEdgeShape(unpack(vertices))
+				else
+					shape = love.physics.newChainShape(false, unpack(vertices))
+				end
 			else
 				shape = love.physics.newPolygonShape(unpack(vertices))
 			end
@@ -257,11 +261,14 @@ return {
 
 		for _, obj in ipairs(collision) do
 			local points = {collision.body:getWorldPoints(obj.shape:getPoints())}
+			local shape_type = obj.shape:getType()
 
-			if #points == 4 then
+			if shape_type == "edge" or shape_type == "chain" then
 				love.graphics.line(points)
-			else
+			elseif shape_type == "polygon" then
 				love.graphics.polygon("line", points)
+			else
+				error("sti box2d plugin does not support "..shape_type.." shapes")
 			end
 		end
 	end,
