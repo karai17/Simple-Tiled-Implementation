@@ -4,9 +4,9 @@ local sti = require "sti"
 function love.load()
 	-- Load map
 	map = sti("tests/ortho.lua", { "box2d" })
-	-- map = sti("tests/iso.lua",   { "box2d" })
-	-- map = sti("tests/stag.lua",  { "box2d" })
-	-- map = sti("tests/hex.lua",   { "box2d" })
+	--map = sti("tests/iso.lua",   { "box2d" })
+	--map = sti("tests/stag.lua",  { "box2d" })
+	--map = sti("tests/hex.lua",   { "box2d" })
 
 	-- Print versions
 	print("STI: " .. sti._VERSION)
@@ -75,7 +75,7 @@ function love.draw()
 
 	love.graphics.setColor(255, 255, 0)
 	for _, point in ipairs(points.pixel) do
-		love.graphics.circle('line', point.x, point.y, 3)
+		love.graphics.points(point.x, point.y)
 	end
 end
 
