@@ -70,7 +70,7 @@ function love.draw()
 	local translateY = 0
 
 	-- Draw Range culls unnecessary tiles
-	map:setDrawRange(-translateX, -translateY, windowWidth, windowHeight)
+	map:setDrawRange(translateX, translateY, windowWidth, windowHeight)
 
 	-- Draw the map and all objects within
 	map:draw()
