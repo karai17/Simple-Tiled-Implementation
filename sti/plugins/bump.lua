@@ -39,7 +39,7 @@ return {
 				if layer.type == "tilelayer" then
 					for y, tiles in ipairs(layer.data) do
 						for x, tile in pairs(tiles) do
-							local t = {properties = tile.properties, x = x * map.tilewidth + tile.offset.x + map.offsetx, y = y * map.tileheight + tile.offset.y + map.offsety, width = tile.width, height = tile.height, layer = layer }
+							local t = {properties = tile.properties, x = (x - 1) * map.tilewidth + tile.offset.x + map.offsetx, y = (y - 1) * map.tileheight + tile.offset.y + map.offsety, width = tile.width, height = tile.height, layer = layer }
 							world:add(t, t.x,t.y, t.width,t.height )
 							table.insert(collidables,t)
 						end
@@ -63,7 +63,7 @@ return {
 							end -- TODO implement other object shapes?
 					end
 				end
-  		end
+			end
 
 		end
 		map.bump_collidables = collidables
