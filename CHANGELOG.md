@@ -1,5 +1,11 @@
 # Change Log
 
+## 2016-08-22: v0.16.0.3
+
+* Changed: box2d_draw plugin now uses correct shape (thanks @buckle2000)
+* Fixed: a collision offset issue in bump_draw (thanks @rosshadden)
+* Fixed: a bug where drawing multiple maps didn't always work properly
+
 ## 2016-07-18: v0.16.0.2
 
 * Added: busted tests!

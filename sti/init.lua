@@ -7,7 +7,7 @@
 local STI = {
 	_LICENSE     = "MIT/X11",
 	_URL         = "https://github.com/karai17/Simple-Tiled-Implementation",
-	_VERSION     = "0.16.0.2",
+	_VERSION     = "0.16.0.3",
 	_DESCRIPTION = "Simple Tiled Implementation is a Tiled Map Editor library designed for the *awesome* LÖVE framework.",
 	cache        = {}
 }
@@ -676,8 +676,7 @@ end
 function Map:draw()
 	local current_canvas = lg.getCanvas()
 	lg.setCanvas(self.canvas)
-	local r, g, b, a = lg.getBackgroundColor()
-	lg.clear(r, g, b, a, self.canvas)
+	lg.clear()
 
 	for _, layer in ipairs(self.layers) do
 		if layer.visible and layer.opacity > 0 then
