@@ -7,14 +7,14 @@
 local STI = {
 	_LICENSE     = "MIT/X11",
 	_URL         = "https://github.com/karai17/Simple-Tiled-Implementation",
-	_VERSION     = "0.16.0.3",
+	_VERSION     = "0.16.0.2",
 	_DESCRIPTION = "Simple Tiled Implementation is a Tiled Map Editor library designed for the *awesome* LÖVE framework.",
 	cache        = {}
 }
 STI.__index = STI
 
-local path       = (...):gsub('%.init$', '') .. "."
-local pluginPath = string.gsub(path, "[.]", "/") .. "plugins/"
+local path       = (...):gsub('%.', '/'):gsub('/init$', '') .. "/"
+local pluginPath = path .. "plugins/"
 local utils      = require(path .. "utils")
 local ceil       = math.ceil
 local floor      = math.floor
@@ -676,7 +676,8 @@ end
 function Map:draw()
 	local current_canvas = lg.getCanvas()
 	lg.setCanvas(self.canvas)
-	lg.clear()
+	local r, g, b, a = lg.getBackgroundColor()
+	lg.clear(r, g, b, a, self.canvas)
 
 	for _, layer in ipairs(self.layers) do
 		if layer.visible and layer.opacity > 0 then
