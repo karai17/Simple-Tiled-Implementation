@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="staggered" renderorder="right-down" width="5" height="10" tilewidth="184" tileheight="184" staggeraxis="y" staggerindex="odd" nextobjectid="3">
+ <tileset firstgid="1" name="iso" tilewidth="184" tileheight="184" tilecount="1" columns="1">
+  <image source="iso.png" width="184" height="184"/>
+ </tileset>
+ <layer name="Grid" width="5" height="10">
+  <data encoding="csv">
+1,1,1,1,1,
+1,1,1,1,1,
+1,1,1,1,1,
+1,1,1,1,1,
+1,1,1,1,1,
+1,1,1,1,1,
+1,1,1,1,1,
+1,1,1,1,1,
+1,1,1,1,1,
+1,1,1,1,1
+</data>
+ </layer>
+ <objectgroup name="Objects">
+  <properties>
+   <property name="collidable" type="bool" value="true"/>
+  </properties>
+  <object id="1" x="184" y="184" width="184" height="92"/>
+  <object id="2" x="460" y="0" width="130" height="130" rotation="45"/>
+ </objectgroup>
+</map>

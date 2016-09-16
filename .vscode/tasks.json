@@ -1,0 +1,16 @@
+{
+	"version": "1.0.0",
+	"command": "love",
+	"isShellCommand": true,
+	"args": [
+		"."
+	],
+	"tasks": [
+		{
+			"taskName": "build",
+			"args": [
+				"."
+			]
+		}
+	]
+}
