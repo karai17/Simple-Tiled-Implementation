@@ -499,7 +499,7 @@ function Map:setObjectSpriteBatches(layer)
 				if tileR   < 0 then tileY = tileY + tileH end
 			end
 
-			id = batch:add(tile.quad, tileX, tileY, tileR, tile.sx, tile.sy, 0, oy)
+			local id = batch:add(tile.quad, tileX, tileY, tileR, tile.sx, tile.sy, 0, oy)
 			self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
 			table.insert(self.tileInstances[tile.gid], {
 				layer = layer,
