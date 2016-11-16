@@ -695,9 +695,10 @@ end
 -- @param layer The Layer to draw
 -- @return nil
 function Map:drawLayer(layer)
-	lg.setColor(255, 255, 255, 255 * layer.opacity)
+	local r,g,b,a = lg.getColor()
+	lg.setColor(r, g, b, a * layer.opacity)
 	layer:draw()
-	lg.setColor(255, 255, 255, 255)
+	lg.setColor(r,g,b,a)
 end
 
 --- Default draw function for Tile Layers
@@ -762,7 +763,8 @@ function Map:drawObjectLayer(layer)
 
 	local line  = { 160, 160, 160, 255 * layer.opacity       }
 	local fill  = { 160, 160, 160, 255 * layer.opacity * 0.5 }
-	local reset = { 255, 255, 255, 255 * layer.opacity       }
+	local r,g,b,a = lg.getColor()
+	local reset = {   r,   g,   b,   a * layer.opacity       }
 
 	local function sortVertices(obj)
 		local vertex = {}
@@ -817,6 +819,7 @@ function Map:drawObjectLayer(layer)
 	for _, batch in pairs(layer.batches) do
 		lg.draw(batch, 0, 0)
 	end
+	lg.setColor(r,g,b,a)
 end
 
 --- Default draw function for Image Layers
