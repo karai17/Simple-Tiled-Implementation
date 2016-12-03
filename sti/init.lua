@@ -478,7 +478,7 @@ function Map:setObjectSpriteBatches(layer)
 			local tileset = tile.tileset
 			local image   = self.tilesets[tile.tileset].image
 
-			batches[tileset] = batches[tileset] or newBatch(image, 100)
+			batches[tileset] = batches[tileset] or newBatch(image)
 
 			local batch = batches[tileset]
 			local tileX = object.x + tile.offset.x
