@@ -54,7 +54,7 @@ return {
 
 		for _, layer in ipairs(map.layers) do
 			-- Entire layer
-			if layer.properties.collidable == "true" then
+			if layer.properties.collidable == true then
 				if layer.type == "tilelayer" then
 					for y, tiles in ipairs(layer.data) do
 						for x, tile in pairs(tiles) do
