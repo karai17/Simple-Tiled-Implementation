@@ -97,6 +97,8 @@ function Map:init(path, plugins, ox, oy)
 
 		-- Pull images from cache
 		tileset.image = STI.cache[formatted_path]
+		
+		utils.fixTransparentColor(tileset)
 
 		gid = self:setTiles(i, tileset, gid)
 	end
