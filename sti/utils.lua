@@ -220,27 +220,31 @@ function utils.hexToColor(hex)
 end
 
 function utils.fixTransparentColor(tileset)
-	
-	local color = utils.hexToColor(tileset.transparentcolor)
-	local ImageData = tileset.image:getData()
-	
-	for x = 0, ImageData:getWidth() - 1 do
+
+	if tileset.transparentcolor then
 		
-		for y = 0, ImageData:getHeight() - 1 do
-			
-			local r, g, b, a = ImageData:getPixel(x, y)
-			
-			if r == color[1] and g == color[2] and b == color[3] then
-				
-				ImageData:setPixel(x, y, r, g, b, 0)
-				
+		local color = utils.hexToColor(tileset.transparentcolor)
+		local ImageData = tileset.image:getData()
+
+		for x = 0, ImageData:getWidth() - 1 do
+
+			for y = 0, ImageData:getHeight() - 1 do
+
+				local r, g, b, a = ImageData:getPixel(x, y)
+
+				if r == color[1] and g == color[2] and b == color[3] then
+
+					ImageData:setPixel(x, y, r, g, b, 0)
+
+				end
+
 			end
-			
+
 		end
+
+		tileset.image = love.graphics.newImage(ImageData)
 		
 	end
-	
-	tileset.image = love.graphics.newImage(ImageData)
 	
 end
 
