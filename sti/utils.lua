@@ -178,40 +178,11 @@ function utils.hexToColor(hex)
 		
 	end
 	
-	hex = hex:lower()
-	
 	local Color = {}
 	
-	for i = 1, 6, 2 do
+	for i = 1, #hex, 2 do
 		
-		local HexColor = hex:sub(i, i + 1)
-		
-		local b1 = HexColor:byte(1)
-		local b2 = HexColor:byte(2)
-		
-		local vb1
-		
-		if b1 >= 97 and b1 <= 102 then
-			
-			b1 = b1 - 87
-			
-		else
-			
-			b1 = tonumber( HexColor:sub(1, 1) )
-			
-		end
-		
-		if b2 >= 97 and b2 <= 102 then
-			
-			b2 = b2 - 87
-			
-		else
-			
-			b2 = tonumber( HexColor:sub(2, 2) )
-			
-		end
-		
-		table.insert(Color, b1 + b2 * 16)
+		table.insert( Color, tonumber( hex:sub(i, i + 1), 16 ) )
 		
 	end
 	
