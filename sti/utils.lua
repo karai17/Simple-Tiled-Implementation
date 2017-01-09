@@ -170,49 +170,41 @@ function utils.convert_isometric_to_screen(map, x, y)
 		(tileX + tileY) * tileH / 2
 end
 
-function utils.hexToColor(hex)
+function utils.hexToColor(Hex)
 	
-	if hex:sub(1, 1) == "#" then
+	if Hex:sub(1, 1) == "#" then
 		
-		hex = hex:sub(2)
-		
-	end
-	
-	local Color = {}
-	
-	for i = 1, #hex, 2 do
-		
-		table.insert( Color, tonumber( hex:sub(i, i + 1), 16 ) )
+		Hex = Hex:sub(2)
 		
 	end
 	
-	return Color
+	return tonumber( Hex:sub(1, 2), 16 ), tonumber( Hex:sub(3, 4), 16 ), tonumber( Hex:sub(5, 6), 16 )
 	
 end
 
 function utils.fixTransparentColor(tileset)
-
+	
 	if tileset.transparentcolor then
-		
-		local color = utils.hexToColor(tileset.transparentcolor)
+	
+		local r, g, b = utils.hexToColor(tileset.transparentcolor)
 		local ImageData = tileset.image:getData()
-
+		
 		for x = 0, ImageData:getWidth() - 1 do
-
+			
 			for y = 0, ImageData:getHeight() - 1 do
-
-				local r, g, b, a = ImageData:getPixel(x, y)
-
-				if r == color[1] and g == color[2] and b == color[3] then
-
+				
+				local pr, pg, pb = ImageData:getPixel(x, y)
+				
+				if r == pr and g == pg and b == pb then
+					
 					ImageData:setPixel(x, y, r, g, b, 0)
-
+					
 				end
-
+				
 			end
-
+			
 		end
-
+		
 		tileset.image = love.graphics.newImage(ImageData)
 		
 	end
