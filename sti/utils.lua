@@ -178,33 +178,33 @@ function utils.hexToColor(Hex)
 		
 	end
 	
-	return tonumber( Hex:sub(1, 2), 16 ), tonumber( Hex:sub(3, 4), 16 ), tonumber( Hex:sub(5, 6), 16 )
+	return { tonumber( Hex:sub(1, 2), 16 ), tonumber( Hex:sub(3, 4), 16 ), tonumber( Hex:sub(5, 6), 16 ) }
+	
+end
+
+function utils.pixelFunction(x, y, r, g, b, a)
+	
+	local maskedColor = utils.transparentColor
+	
+	if r == maskedColor[1] and g == maskedColor[2] and b == maskedColor[3] then
+		
+		return r, g, b, 0
+		
+	end
+	
+	return r, g, b, a
 	
 end
 
 function utils.fixTransparentColor(tileset)
 	
 	if tileset.transparentcolor then
-	
-		local r, g, b = utils.hexToColor(tileset.transparentcolor)
+		
+		utils.transparentColor = utils.hexToColor(tileset.transparentcolor)
+		
 		local ImageData = tileset.image:getData()
 		
-		for x = 0, ImageData:getWidth() - 1 do
-			
-			for y = 0, ImageData:getHeight() - 1 do
-				
-				local pr, pg, pb = ImageData:getPixel(x, y)
-				
-				if r == pr and g == pg and b == pb then
-					
-					ImageData:setPixel(x, y, r, g, b, 0)
-					
-				end
-				
-			end
-			
-		end
-		
+		ImageData:mapPixel(utils.pixelFunction)
 		tileset.image = love.graphics.newImage(ImageData)
 		
 	end
