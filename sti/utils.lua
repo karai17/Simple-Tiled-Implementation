@@ -170,4 +170,45 @@ function utils.convert_isometric_to_screen(map, x, y)
 		(tileX + tileY) * tileH / 2
 end
 
+function utils.hexToColor(Hex)
+	
+	if Hex:sub(1, 1) == "#" then
+		
+		Hex = Hex:sub(2)
+		
+	end
+	
+	return { tonumber( Hex:sub(1, 2), 16 ), tonumber( Hex:sub(3, 4), 16 ), tonumber( Hex:sub(5, 6), 16 ) }
+	
+end
+
+function utils.pixelFunction(x, y, r, g, b, a)
+	
+	local maskedColor = utils.transparentColor
+	
+	if r == maskedColor[1] and g == maskedColor[2] and b == maskedColor[3] then
+		
+		return r, g, b, 0
+		
+	end
+	
+	return r, g, b, a
+	
+end
+
+function utils.fixTransparentColor(tileset)
+	
+	if tileset.transparentcolor then
+		
+		utils.transparentColor = utils.hexToColor(tileset.transparentcolor)
+		
+		local ImageData = tileset.image:getData()
+		
+		ImageData:mapPixel(utils.pixelFunction)
+		tileset.image = love.graphics.newImage(ImageData)
+		
+	end
+	
+end
+
 return utils
