@@ -13,8 +13,8 @@ local STI = {
 }
 STI.__index = STI
 
-local path       = (...):gsub('%.init$', '') .. "."
-local pluginPath = string.gsub(path, "[.]", "/") .. "plugins/"
+local path       = (...):gsub('%.', '/'):gsub('/init$', '') .. "/"
+local pluginPath = path .. "plugins/"
 local utils      = require(path .. "utils")
 local ceil       = math.ceil
 local floor      = math.floor
