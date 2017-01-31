@@ -49,13 +49,13 @@ local function new(map, plugins, ox, oy)
 end
 
 --- Instance a new map.
--- @param path Path to the map file
+-- @param map Path to the map file or the map table itself 
 -- @param plugins A list of plugins to load
 -- @param ox Offset of map on the X axis (in pixels)
 -- @param oy Offset of map on the Y axis (in pixels)
 -- @return table The loaded Map
-function STI.__call(self, path, plugins, ox, oy)
-	return new(path, plugins, ox, oy)
+function STI.__call(self, map, plugins, ox, oy)
+	return new(map, plugins, ox, oy)
 end
 
 --- Flush image cache.
