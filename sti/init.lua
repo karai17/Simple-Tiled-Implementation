@@ -23,21 +23,26 @@ local Map        = {}
 Map.__index      = Map
 
 local function new(map, plugins, ox, oy)
-	-- Check for valid map type
-	local ext = map:sub(-4, -1)
-	assert(ext == ".lua", string.format(
-		"Invalid file type: %s. File must be of type: lua.",
-		ext
-	))
+	if type(map) == "table" then
+		map = setmetatable(map, Map)
+	else
+		-- Check for valid map type
+		local ext = map:sub(-4, -1)
+		assert(ext == ".lua", string.format(
+			"Invalid file type: %s. File must be of type: lua.",
+			ext
+		))
 
-	-- Get path to map
-	local path = map:reverse():find("[/\\]") or ""
-	if path ~= "" then
-		path = map:sub(1, 1 + (#map - path))
+		-- Get path to map
+		local path = map:reverse():find("[/\\]") or ""
+		if path ~= "" then
+			path = map:sub(1, 1 + (#map - path))
+		end
+
+		-- Load map
+		map = setmetatable(love.filesystem.load(map)(), Map)
 	end
-
-	-- Load map
-	map = setmetatable(love.filesystem.load(map)(), Map)
+	
 	map:init(path, plugins, ox, oy)
 
 	return map
