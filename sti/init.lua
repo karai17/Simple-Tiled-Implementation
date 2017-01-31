@@ -13,9 +13,9 @@ local STI = {
 }
 STI.__index = STI
 
-local path       = (...):gsub('%.init$', '') .. "."
-local pluginPath = string.gsub(path, "[.]", "/") .. "plugins/"
-local utils      = require(path .. "utils")
+local path       = debug.getinfo(1, "S").source:sub(2):match("(.*/)")
+local pluginPath = path .. "plugins/"
+local utils      = require("sti.utils")
 local ceil       = math.ceil
 local floor      = math.floor
 local lg         = love.graphics
@@ -114,14 +114,24 @@ function Map:init(path, plugins, ox, oy)
 	end
 end
 
+local function isFile(file )
+  local f = io.open(file, "r")
+  if f ~= nil then
+    io.close(f)
+    return true
+  else
+    return false
+  end
+end
+
 --- Load plugins
 -- @param plugins A list of plugins to load
 -- @return nil
 function Map:loadPlugins(plugins)
 	for _, plugin in ipairs(plugins) do
 		local p = pluginPath .. plugin .. ".lua"
-		if love.filesystem.isFile(p) then
-			local file = love.filesystem.load(p)(path)
+		if isFile(p) then
+			local file = loadfile(p)(path)
 			for k, func in pairs(file) do
 				if not self[k] then
 					self[k] = func
