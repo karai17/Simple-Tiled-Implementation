@@ -7,15 +7,15 @@
 local STI = {
 	_LICENSE     = "MIT/X11",
 	_URL         = "https://github.com/karai17/Simple-Tiled-Implementation",
-	_VERSION     = "0.16.0.3",
+	_VERSION     = "0.16.0.4",
 	_DESCRIPTION = "Simple Tiled Implementation is a Tiled Map Editor library designed for the *awesome* LÖVE framework.",
 	cache        = {}
 }
 STI.__index = STI
 
-local path       = (...):gsub('%.init$', '') .. "."
-local pluginPath = string.gsub(path, "[.]", "/") .. "plugins/"
-local utils      = require(path .. "utils")
+local cwd       = (...):gsub('%.init$', '') .. "."
+local pluginDir = string.gsub(cwd, "[.]", "/") .. "plugins/"
+local utils      = require(cwd .. "utils")
 local ceil       = math.ceil
 local floor      = math.floor
 local lg         = love.graphics
@@ -23,6 +23,8 @@ local Map        = {}
 Map.__index      = Map
 
 local function new(map, plugins, ox, oy)
+	local dir = ""
+
 	if type(map) == "table" then
 		map = setmetatable(map, Map)
 	else
@@ -33,28 +35,28 @@ local function new(map, plugins, ox, oy)
 			ext
 		))
 
-		-- Get path to map
-		local path = map:reverse():find("[/\\]") or ""
-		if path ~= "" then
-			path = map:sub(1, 1 + (#map - path))
+		-- Get directory of map
+		dir = map:reverse():find("[/\\]") or ""
+		if dir ~= "" then
+			dir = map:sub(1, 1 + (#map - dir))
 		end
 
 		-- Load map
 		map = setmetatable(love.filesystem.load(map)(), Map)
 	end
-	
-	map:init(path, plugins, ox, oy)
+
+	map:init(dir, plugins, ox, oy)
 
 	return map
 end
 
 --- Instance a new map.
--- @param map Path to the map file or the map table itself 
+-- @param map Path to the map file or the map table itself
 -- @param plugins A list of plugins to load
 -- @param ox Offset of map on the X axis (in pixels)
 -- @param oy Offset of map on the Y axis (in pixels)
 -- @return table The loaded Map
-function STI.__call(self, map, plugins, ox, oy)
+function STI:__call(map, plugins, ox, oy)
 	return new(map, plugins, ox, oy)
 end
 
@@ -102,14 +104,14 @@ function Map:init(path, plugins, ox, oy)
 
 		-- Pull images from cache
 		tileset.image = STI.cache[formatted_path]
-		
+
 		utils.fixTransparentColor(tileset)
 
 		gid = self:setTiles(i, tileset, gid)
 	end
 
 	-- Set layers
-	for i, layer in ipairs(self.layers) do
+	for _, layer in ipairs(self.layers) do
 		self:setLayer(layer, path)
 	end
 end
@@ -119,9 +121,9 @@ end
 -- @return nil
 function Map:loadPlugins(plugins)
 	for _, plugin in ipairs(plugins) do
-		local p = pluginPath .. plugin .. ".lua"
+		local p = pluginDir .. plugin .. ".lua"
 		if love.filesystem.isFile(p) then
-			local file = love.filesystem.load(p)(path)
+			local file = love.filesystem.load(p)(cwd)
 			for k, func in pairs(file) do
 				if not self[k] then
 					self[k] = func
@@ -208,7 +210,7 @@ end
 function Map:setLayer(layer, path)
 	if layer.encoding then
 		if layer.encoding == "base64" then
-			local ffi = assert(require "ffi", "Compressed maps require LuaJIT FFI.\nPlease Switch your interperator to LuaJIT or your Tile Layer Format to \"CSV\".")
+			assert(require "ffi", "Compressed maps require LuaJIT FFI.\nPlease Switch your interperator to LuaJIT or your Tile Layer Format to \"CSV\".")
 			local fd  = love.filesystem.newFileData(layer.data, "data", "base64"):getString()
 
 			if not layer.compression then
@@ -231,7 +233,7 @@ function Map:setLayer(layer, path)
 
 	layer.x      = (layer.x or 0) + layer.offsetx + self.offsetx
 	layer.y      = (layer.y or 0) + layer.offsety + self.offsety
-	layer.update = function(dt) return end
+	layer.update = function() end
 
 	if layer.type == "tilelayer" then
 		self:setTileData(layer)
@@ -563,7 +565,7 @@ end
 -- @param index Draw order within Layer stack
 -- @return table Custom Layer
 function Map:addCustomLayer(name, index)
-	local index = index or #self.layers + 1
+	index = index or #self.layers + 1
 	local layer = {
       type       = "customlayer",
       name       = name,
@@ -572,8 +574,8 @@ function Map:addCustomLayer(name, index)
       properties = {},
     }
 
-	function layer:draw() return end
-	function layer:update(dt) return end
+	function layer.draw() end
+	function layer.update() end
 
 	table.insert(self.layers, index, layer)
 	self.layers[name] = self.layers[index]
@@ -597,8 +599,8 @@ function Map:convertToCustomLayer(index)
 	layer.objects  = nil
 	layer.image    = nil
 
-	function layer:draw() return end
-	function layer:update(dt) return end
+	function layer.draw() end
+	function layer.update() end
 
 	return layer
 end
@@ -610,8 +612,8 @@ function Map:removeLayer(index)
 	local layer = assert(self.layers[index], "Layer not found: " .. index)
 
 	if type(index) == "string" then
-		for i, layer in ipairs(self.layers) do
-			if layer.name == index then
+		for i, l in ipairs(self.layers) do
+			if l.name == index then
 				table.remove(self.layers, i)
 				self.layers[index] = nil
 				break
@@ -625,7 +627,7 @@ function Map:removeLayer(index)
 
 	-- Remove tile instances
 	if layer.batches then
-		for gid, tiles in pairs(self.tileInstances) do
+		for _, tiles in pairs(self.tileInstances) do
 			for i = #tiles, 1, -1 do
 				local tile = tiles[i]
 				if tile.layer == layer then
@@ -649,7 +651,7 @@ end
 -- @param dt Delta Time
 -- @return nil
 function Map:update(dt)
-	for gid, tile in pairs(self.tiles) do
+	for _, tile in pairs(self.tiles) do
 		local update = false
 
 		if tile.animation then
