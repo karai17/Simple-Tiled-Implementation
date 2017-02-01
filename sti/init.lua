@@ -543,6 +543,12 @@ function Map:setObjectSpriteBatches(layer)
 	local tileH    = self.tileheight
 	local batches  = {}
 
+	if layer.draworder == "topdown" then
+		table.sort(layer.objects, function(a, b)
+			return a.y + a.height < b.y + b.height
+		end)
+	end
+
 	for _, object in ipairs(layer.objects) do
 		if object.gid then
 			local tile    = self.tiles[object.gid] or self:setFlippedGID(object.gid)
