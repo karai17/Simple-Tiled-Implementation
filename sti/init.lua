@@ -351,18 +351,15 @@ end
 -- @return nil
 function Map:setSpriteBatches(layer)
 	local newBatch   = lg.newSpriteBatch
-	local w          = lg.getWidth()
-	local h          = lg.getHeight()
 	local tileW      = self.tilewidth
 	local tileH      = self.tileheight
-	local batchW     = ceil(w / tileW)
-	local batchH     = ceil(h / tileH)
 	local startX     = 1
 	local startY     = 1
 	local endX       = layer.width
 	local endY       = layer.height
 	local incrementX = 1
 	local incrementY = 1
+	local batches    = {}
 
 	-- Determine order to add tiles to sprite batch
 	-- Defaults to right-down
@@ -377,33 +374,17 @@ function Map:setSpriteBatches(layer)
 		startY, endY, incrementY = endY, startY, -1
 	end
 
-	-- Minimum of 400 tiles per batch
-	if batchW < 20 then batchW = 20 end
-	if batchH < 20 then batchH = 20 end
-
-	local batchSize = batchW * batchH
-	local batches   = {
-		width  = batchW,
-		height = batchH,
-		data   = {},
-	}
-
 	for y = startY, endY, incrementY do
-		local batchY = ceil(y / batchH)
-
 		for x = startX, endX, incrementX do
-			local tile   = layer.data[y][x]
-			local batchX = ceil(x / batchW)
+			local tile = layer.data[y][x]
 
 			if tile then
 				local tileset = tile.tileset
 				local image   = self.tilesets[tile.tileset].image
 
-				batches.data[tileset]                 = batches.data[tileset] or {}
-				batches.data[tileset][batchY]         = batches.data[tileset][batchY] or {}
-				batches.data[tileset][batchY][batchX] = batches.data[tileset][batchY][batchX] or newBatch(image, batchSize)
+				batches[tileset] = batches[tileset] or newBatch(image, layer.width * layer.height)
 
-				local batch = batches.data[tileset][batchY][batchX]
+				local batch = batches[tileset]
 				local tileX, tileY
 
 				if self.orientation == "orthogonal" then
@@ -526,40 +507,6 @@ function Map:setObjectSpriteBatches(layer)
 	layer.batches = batches
 end
 
---- Only draw what is visible on screen for improved draw speed
--- @param transX Translate X axis (in pixels)
--- @param transY Translate Y axis (in pixels)
--- @param w Width of screen (in pixels)
--- @param h Height of screen (in pixels)
--- @return nil
-function Map:setDrawRange(transX, transY, w, h)
-	local tileW = self.tilewidth
-	local tileH = self.tileheight
-	local startX, startY, endX, endY
-
-	if self.orientation == "orthogonal" then
-		startX = ceil(transX / tileW)
-		startY = ceil(transY / tileH)
-		endX   = ceil(startX + w / tileW)
-		endY   = ceil(startY + h / tileH)
-	elseif self.orientation == "isometric" then
-		startX = ceil(((transY / (tileH / 2)) + (transX / (tileW / 2))) / 2)
-		startY = ceil(((transY / (tileH / 2)) - (transX / (tileW / 2))) / 2 - h / tileH)
-		endX   = ceil(startX + (h / tileH) + (w / tileW))
-		endY   = ceil(startY + (h / tileH) * 2 + (w / tileW))
-	elseif self.orientation == "staggered" or self.orientation == "hexagonal" then
-		startX = ceil(transX / tileW - 1)
-		startY = ceil(transY / tileH)
-		endX   = ceil(startX + w / tileW + 1)
-		endY   = ceil(startY + h / tileH * 2)
-	end
-
-	self.drawRange.sx = startX
-	self.drawRange.sy = startY
-	self.drawRange.ex = endX
-	self.drawRange.ey = endY
-end
-
 --- Create a Custom Layer to place userdata in (such as player sprites)
 -- @param name Name of Custom Layer
 -- @param index Draw order within Layer stack
@@ -674,7 +621,6 @@ function Map:update(dt)
 		end
 	end
 
-
 	for _, layer in ipairs(self.layers) do
 		layer:update(dt)
 	end
@@ -720,43 +666,8 @@ function Map:drawTileLayer(layer)
 
 	assert(layer.type == "tilelayer", "Invalid layer type: " .. layer.type .. ". Layer must be of type: tilelayer")
 
-	local batchW     = layer.batches.width
-	local batchH     = layer.batches.height
-	local tileW      = self.tilewidth
-	local tileH      = self.tileheight
-	local startX     = ceil((self.drawRange.sx - layer.x / tileW - 1) / batchW)
-	local startY     = ceil((self.drawRange.sy - layer.y / tileH - 1) / batchH)
-	local endX       = ceil((self.drawRange.ex - layer.x / tileW + 1) / batchW)
-	local endY       = ceil((self.drawRange.ey - layer.y / tileH + 1) / batchH)
-	local incrementX = 1
-	local incrementY = 1
-	local maxX       = ceil(self.width  / batchW)
-	local maxY       = ceil(self.height / batchH)
-
-	-- Determine order to draw batches
-	-- Defaults to right-down
-	if self.renderorder == "right-up" then
-		startX, endX, incrementX = startX, endX,  1
-		startY, endY, incrementY = endY, startY, -1
-	elseif self.renderorder == "left-down" then
-		startX, endX, incrementX = endX, startX, -1
-		startY, endY, incrementY = startY, endY,  1
-	elseif self.renderorder == "left-up" then
-		startX, endX, incrementX = endX, startX, -1
-		startY, endY, incrementY = endY, startY, -1
-	end
-
-	for batchY = startY, endY, incrementY do
-		for batchX = startX, endX, incrementX do
-			if batchX >= 1 and batchX <= maxX and batchY >= 1 and batchY <= maxY then
-				for _, batches in pairs(layer.batches.data) do
-					local batch = batches[batchY] and batches[batchY][batchX]
-					if batch then
-						lg.draw(batch, floor(layer.x), floor(layer.y))
-					end
-				end
-			end
-		end
+	for _, batch in pairs(layer.batches) do
+		lg.draw(batch, floor(layer.x), floor(layer.y))
 	end
 end
 
