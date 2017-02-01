@@ -23,7 +23,7 @@ local Map        = {}
 Map.__index      = Map
 
 local function new(map, plugins, ox, oy)
-	local path
+	local path = ""
 	if type(map) == "table" then
 		map = setmetatable(map, Map)
 	else
