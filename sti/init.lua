@@ -350,54 +350,86 @@ end
 -- @param layer The Tile Layer
 -- @return nil
 function Map:setSpriteBatches(layer)
-	local newBatch   = lg.newSpriteBatch
-	local tileW      = self.tilewidth
-	local tileH      = self.tileheight
-	local startX     = 1
-	local startY     = 1
-	local endX       = layer.width
-	local endY       = layer.height
-	local incrementX = 1
-	local incrementY = 1
-	local batches    = {}
+	local newBatch = lg.newSpriteBatch
+	local tileW    = self.tilewidth
+	local tileH    = self.tileheight
+	local batches  = {}
 
-	-- Determine order to add tiles to sprite batch
-	-- Defaults to right-down
-	if self.renderorder == "right-up" then
-		startX, endX, incrementX = startX, endX,  1
-		startY, endY, incrementY = endY, startY, -1
-	elseif self.renderorder == "left-down" then
-		startX, endX, incrementX = endX, startX, -1
-		startY, endY, incrementY = startY, endY,  1
-	elseif self.renderorder == "left-up" then
-		startX, endX, incrementX = endX, startX, -1
-		startY, endY, incrementY = endY, startY, -1
-	end
+	if self.orientation == "orthogonal" or self.orientation == "isometric" then
+		local startX     = 1
+		local startY     = 1
+		local endX       = layer.width
+		local endY       = layer.height
+		local incrementX = 1
+		local incrementY = 1
 
-	for y = startY, endY, incrementY do
-		for x = startX, endX, incrementX do
-			local tile = layer.data[y][x]
+		-- Determine order to add tiles to sprite batch
+		-- Defaults to right-down
+		if self.renderorder == "right-up" then
+			startX, endX, incrementX = startX, endX,  1
+			startY, endY, incrementY = endY, startY, -1
+		elseif self.renderorder == "left-down" then
+			startX, endX, incrementX = endX, startX, -1
+			startY, endY, incrementY = startY, endY,  1
+		elseif self.renderorder == "left-up" then
+			startX, endX, incrementX = endX, startX, -1
+			startY, endY, incrementY = endY, startY, -1
+		end
 
-			if tile then
-				local tileset = tile.tileset
-				local image   = self.tilesets[tile.tileset].image
+		for y = startY, endY, incrementY do
+			for x = startX, endX, incrementX do
+				local tile = layer.data[y][x]
 
-				batches[tileset] = batches[tileset] or newBatch(image, layer.width * layer.height)
+				if tile then
+					local tileset = tile.tileset
+					local image   = self.tilesets[tile.tileset].image
 
-				local batch = batches[tileset]
-				local tileX, tileY
+					batches[tileset] = batches[tileset] or newBatch(image, layer.width * layer.height)
 
-				if self.orientation == "orthogonal" then
-					tileX = (x - 1) * tileW + tile.offset.x
-					tileY = (y - 1) * tileH + tile.offset.y
-					tileX, tileY = utils.compensate(tile, tileX, tileY, tileW, tileH)
-				elseif self.orientation == "isometric" then
-					tileX = (x - y) * (tileW / 2) + tile.offset.x + layer.width * tileW / 2 - self.tilewidth / 2
-					tileY = (x + y - 2) * (tileH / 2) + tile.offset.y
-				elseif self.orientation == "staggered" or self.orientation == "hexagonal" then
-					local sideLen = self.hexsidelength or 0
+					local batch = batches[tileset]
+					local tileX, tileY
 
-					if self.staggeraxis == "y" then
+					if self.orientation == "orthogonal" then
+						tileX = (x - 1) * tileW + tile.offset.x
+						tileY = (y - 1) * tileH + tile.offset.y
+						tileX, tileY = utils.compensate(tile, tileX, tileY, tileW, tileH)
+					else
+						tileX = (x - y) * (tileW / 2) + tile.offset.x + layer.width * tileW / 2 - self.tilewidth / 2
+						tileY = (x + y - 2) * (tileH / 2) + tile.offset.y
+					end
+
+					local id = batch:add(tile.quad, tileX, tileY, tile.r, tile.sx, tile.sy)
+					self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
+					table.insert(self.tileInstances[tile.gid], {
+						layer = layer,
+						batch = batch,
+						id    = id,
+						gid   = tile.gid,
+						x     = tileX,
+						y     = tileY,
+						r     = tile.r,
+						oy    = 0
+					})
+				end
+			end
+		end
+	else
+		local sideLen = self.hexsidelength or 0
+
+		if self.staggeraxis == "y" then
+			for y = 1, layer.height do
+				for x = 1, layer.width do
+					local tile = layer.data[y][x]
+
+					if tile then
+						local tileset = tile.tileset
+						local image   = self.tilesets[tile.tileset].image
+
+						batches[tileset] = batches[tileset] or newBatch(image, layer.width * layer.height)
+
+						local batch = batches[tileset]
+						local tileX, tileY
+
 						if self.staggerindex == "odd" then
 							if y % 2 == 0 then
 								tileX = (x - 1) * tileW + tileW / 2 + tile.offset.x
@@ -414,38 +446,87 @@ function Map:setSpriteBatches(layer)
 
 						local rowH = tileH - (tileH - sideLen) / 2
 						tileY = (y - 1) * rowH + tile.offset.y
-					else
-						if self.staggerindex == "odd" then
-							if x % 2 == 0 then
-								tileY = (y - 1) * tileH + tileH / 2 + tile.offset.y
-							else
-								tileY = (y - 1) * tileH + tile.offset.y
-							end
-						else
-							if x % 2 == 0 then
-								tileY = (y - 1) * tileH + tile.offset.y
-							else
-								tileY = (y - 1) * tileH + tileH / 2 + tile.offset.y
-							end
-						end
 
-						local colW = tileW - (tileW - sideLen) / 2
-						tileX = (x - 1) * colW + tile.offset.x
+						local id = batch:add(tile.quad, tileX, tileY, tile.r, tile.sx, tile.sy)
+						self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
+						table.insert(self.tileInstances[tile.gid], {
+							layer = layer,
+							batch = batch,
+							id    = id,
+							gid   = tile.gid,
+							x     = tileX,
+							y     = tileY,
+							r     = tile.r,
+							oy    = 0
+						})
 					end
 				end
+			end
+		else
+			local i = 0
+			local _x
 
-				local id = batch:add(tile.quad, tileX, tileY, tile.r, tile.sx, tile.sy)
-				self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
-				table.insert(self.tileInstances[tile.gid], {
-					layer = layer,
-					batch = batch,
-					id    = id,
-					gid   = tile.gid,
-					x     = tileX,
-					y     = tileY,
-					r     = tile.r,
-					oy    = 0
-				})
+			if self.staggerindex == "odd" then
+				_x = 1
+			else
+				_x = 2
+			end
+
+			while i < layer.width * layer.height do
+				for _y = 1, layer.height + 0.5, 0.5 do
+					local y = floor(_y)
+
+					for x = _x, layer.width, 2 do
+						i = i + 1
+						local tile = layer.data[y][x]
+
+						if tile then
+							local tileset = tile.tileset
+							local image   = self.tilesets[tile.tileset].image
+
+							batches[tileset] = batches[tileset] or newBatch(image, layer.width * layer.height)
+
+							local batch = batches[tileset]
+							local tileX, tileY
+
+							if self.staggerindex == "odd" then
+								if x % 2 == 0 then
+									tileY = (y - 1) * tileH + tileH / 2 + tile.offset.y
+								else
+									tileY = (y - 1) * tileH + tile.offset.y
+								end
+							else
+								if x % 2 == 0 then
+									tileY = (y - 1) * tileH + tile.offset.y
+								else
+									tileY = (y - 1) * tileH + tileH / 2 + tile.offset.y
+								end
+							end
+
+							local colW = tileW - (tileW - sideLen) / 2
+							tileX = (x - 1) * colW + tile.offset.x
+
+							local id = batch:add(tile.quad, tileX, tileY, tile.r, tile.sx, tile.sy)
+							self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
+							table.insert(self.tileInstances[tile.gid], {
+								layer = layer,
+								batch = batch,
+								id    = id,
+								gid   = tile.gid,
+								x     = tileX,
+								y     = tileY,
+								r     = tile.r,
+								oy    = 0
+							})
+						end
+					end
+
+					if _x == 1 then
+						_x = 2
+					else
+						_x = 1
+					end
+				end
 			end
 		end
 	end

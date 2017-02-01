@@ -1,13 +1,17 @@
 io.stdout:setvbuf("no")
 local sti = require "sti"
+local map
+local world
+local tx, ty
+local points
 
 function love.load()
 	-- Load map
-	--map = sti("tests/ortho.lua", { "box2d" })
+	map = sti("tests/ortho.lua", { "box2d" })
 	--map = sti("tests/iso.lua",   { "box2d" })
 	--map = sti("tests/stag.lua",  { "box2d" })
 	--map = sti("tests/hex.lua",   { "box2d" })
-	map = sti("tests/bench.lua", { "box2d" }) -- this might crash your system!
+	--map = sti("tests/bench.lua", { "box2d" }) -- this might crash your system!
 
 	-- Print versions
 	print("STI: " .. sti._VERSION)
@@ -61,11 +65,9 @@ function love.update(dt)
 end
 
 function love.draw()
+	love.graphics.setColor(255, 255, 255, 255)
 	love.graphics.translate(-tx, -ty)
-	local t = love.timer.getTime()
 	map:draw()
-	t = (love.timer.getTime() - t) * 1000
-	love.graphics.print(string.format("%0.6fms/f", t), 10, 10)
 
 	-- Draw physics objects
 	love.graphics.setColor(255, 0, 255, 255)
