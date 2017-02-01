@@ -1,5 +1,14 @@
 # Change Log
 
+## 2017-02-01: v0.16.0.4
+
+* Added: support for passing map table in directly (thanks @prust)
+* Added: support for collision object groups in bump.lua plugin (thanks @DanielPower)
+* Added: support for transparent colour mask (thanks @matiasah)
+* Changed: batch size limit from 100 to default(1000)
+* Changed: Drawing layers now inherits colour settings (thanks @josefnpat)
+* Fixed: a leaking global
+
 ## 2016-08-22: v0.16.0.3
 
 * Changed: box2d_draw plugin now uses correct shape (thanks @buckle2000)
