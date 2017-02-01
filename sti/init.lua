@@ -23,6 +23,7 @@ local Map        = {}
 Map.__index      = Map
 
 local function new(map, plugins, ox, oy)
+	local path = ""
 	if type(map) == "table" then
 		map = setmetatable(map, Map)
 	else
@@ -34,7 +35,7 @@ local function new(map, plugins, ox, oy)
 		))
 
 		-- Get path to map
-		local path = map:reverse():find("[/\\]") or ""
+		path = map:reverse():find("[/\\]") or ""
 		if path ~= "" then
 			path = map:sub(1, 1 + (#map - path))
 		end
