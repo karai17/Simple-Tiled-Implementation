@@ -1,12 +1,19 @@
 # Change Log
 
+## 2017-02-01: v0.18.1.0
+
+* Added: support for sorting objects
+* Changed: box2d and bump plugins to be explicit when dealing with object groups within tiles
+* Fixed: rendering staggered and hexogonal maps
+* Removed: Map.drawRange was made obselete
+
 ## 2017-02-01: v0.16.0.4
 
 * Added: support for passing map table in directly (thanks @prust)
 * Added: support for collision object groups in bump.lua plugin (thanks @DanielPower)
 * Added: support for transparent colour mask (thanks @matiasah)
 * Changed: batch size limit from 100 to default(1000)
-* Changed: Drawing layers now inherits colour settings (thanks @josefnpat)
+* Changed: drawing layers now inherits colour settings (thanks @josefnpat)
 * Fixed: a leaking global
 
 ## 2016-08-22: v0.16.0.3

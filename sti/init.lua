@@ -7,7 +7,7 @@
 local STI = {
 	_LICENSE     = "MIT/X11",
 	_URL         = "https://github.com/karai17/Simple-Tiled-Implementation",
-	_VERSION     = "0.16.0.4",
+	_VERSION     = "0.18.1.0",
 	_DESCRIPTION = "Simple Tiled Implementation is a Tiled Map Editor library designed for the *awesome* LÖVE framework.",
 	cache        = {}
 }

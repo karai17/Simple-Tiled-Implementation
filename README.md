@@ -9,7 +9,7 @@ Simple Tiled Implementation is a [**Tiled**][Tiled] map loader and renderer desi
 ## Quick Example
 
 ```lua
--- This example uses the default Box2D (love.physics) plugin!!
+-- This example uses the included Box2D (love.physics) plugin!!
 
 local sti = require "sti"
 
@@ -67,13 +67,6 @@ function love.update(dt)
 end
 
 function love.draw()
-	-- Translation would normally be based on a player's x/y
-	local translateX = 0
-	local translateY = 0
-
-	-- Draw Range culls unnecessary tiles
-	map:setDrawRange(translateX, translateY, windowWidth, windowHeight)
-
 	-- Draw the map and all objects within
 	map:draw()
 
@@ -88,7 +81,7 @@ end
 
 ## Requirements
 
-This library recommends LÖVE 0.10.2 and Tiled 0.16.0. If you are updating from an older version of Tiled, please re-export your Lua map files.
+This library recommends LÖVE 0.10 and Tiled 0.18. If you are updating from an older version of Tiled, please re-export your Lua map files.
 
 ## License
 
