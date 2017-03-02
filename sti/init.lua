@@ -865,17 +865,13 @@ end
 -- @param h The new Height of the drawable area (in pixels)
 -- @return nil
 function Map:resize(w, h)
-	
 	if lg.isCreated() then
-		
 		w = w or lg.getWidth()
 		h = h or lg.getHeight()
 
 		self.canvas = lg.newCanvas(w, h)
 		self.canvas:setFilter("nearest", "nearest")
-		
 	end
-	
 end
 
 --- Create flipped or rotated Tiles based on bitop flags
