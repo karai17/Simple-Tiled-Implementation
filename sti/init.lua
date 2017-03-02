@@ -397,7 +397,6 @@ function Map:setSpriteBatches(layer)
 						tileX = (x - y) * (tileW / 2) + tile.offset.x + layer.width * tileW / 2 - self.tilewidth / 2
 						tileY = (x + y - 2) * (tileH / 2) + tile.offset.y
 					end
-
 					
 					local tab = {
 						layer = layer,
@@ -409,15 +408,12 @@ function Map:setSpriteBatches(layer)
 					}
 					
 					if batch then
-						
 						tab.batch = batch
 						tab.id = batch:add(tile.quad, tileX, tileY, tile.r, tile.sx, tile.sy)
-						
 					end
 					
 					self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
 					table.insert(self.tileInstances[tile.gid], tab)
-					
 				end
 			end
 		end

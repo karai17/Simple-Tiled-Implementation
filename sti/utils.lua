@@ -48,15 +48,11 @@ end
 
 -- Cache images in main STI module
 function utils.cache_image(sti, path)
-	
 	if love.graphics.isCreated() then
-		
 		local image = love.graphics.newImage(path)
 		image:setFilter("nearest", "nearest")
 		sti.cache[path] = image
-		
 	end
-	
 end
 
 -- We just don't know.
