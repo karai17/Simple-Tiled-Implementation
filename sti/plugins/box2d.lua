@@ -5,7 +5,7 @@
 -- @license MIT/X11
 
 local path  = ...
-local utils = require(path .. "utils")
+local utils = require(path:gsub('plugins.box2d', 'utils'))
 
 return {
 	box2d_LICENSE     = "MIT/X11",

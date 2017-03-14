@@ -14,7 +14,6 @@ local STI = {
 STI.__index = STI
 
 local cwd       = (...):gsub('%.init$', '') .. "."
-local pluginDir = string.gsub(cwd, "[.]", "/") .. "plugins/"
 local utils      = require(cwd .. "utils")
 local ceil       = math.ceil
 local floor      = math.floor
@@ -121,10 +120,10 @@ end
 -- @return nil
 function Map:loadPlugins(plugins)
 	for _, plugin in ipairs(plugins) do
-		local p = pluginDir .. plugin .. ".lua"
-		if love.filesystem.isFile(p) then
-			local file = love.filesystem.load(p)(cwd)
-			for k, func in pairs(file) do
+		local pluginModulePath = cwd .. 'plugins.' .. plugin
+		local ok, pluginModule = pcall(require, pluginModulePath)
+		if ok then
+			for k, func in pairs(pluginModule) do
 				if not self[k] then
 					self[k] = func
 				end
