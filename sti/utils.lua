@@ -48,9 +48,11 @@ end
 
 -- Cache images in main STI module
 function utils.cache_image(sti, path)
-	local image = love.graphics.newImage(path)
-	image:setFilter("nearest", "nearest")
-	sti.cache[path] = image
+	if love.graphics.isCreated() then
+		local image = love.graphics.newImage(path)
+		image:setFilter("nearest", "nearest")
+		sti.cache[path] = image
+	end
 end
 
 -- We just don't know.
@@ -198,14 +200,18 @@ end
 
 function utils.fixTransparentColor(tileset)
 	
-	if tileset.transparentcolor then
+	if love.graphics.isCreated() then
 		
-		utils.transparentColor = utils.hexToColor(tileset.transparentcolor)
-		
-		local ImageData = tileset.image:getData()
-		
-		ImageData:mapPixel(utils.pixelFunction)
-		tileset.image = love.graphics.newImage(ImageData)
+		if tileset.transparentcolor then
+			
+			utils.transparentColor = utils.hexToColor(tileset.transparentcolor)
+			
+			local ImageData = tileset.image:getData()
+			
+			ImageData:mapPixel(utils.pixelFunction)
+			tileset.image = love.graphics.newImage(ImageData)
+			
+		end
 		
 	end
 	

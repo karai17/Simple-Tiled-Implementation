@@ -17,7 +17,7 @@ local cwd       = (...):gsub('%.init$', '') .. "."
 local utils      = require(cwd .. "utils")
 local ceil       = math.ceil
 local floor      = math.floor
-local lg         = love.graphics
+local lg         = require(cwd .. "graphics")
 local Map        = {}
 Map.__index      = Map
 
@@ -396,19 +396,23 @@ function Map:setSpriteBatches(layer)
 						tileX = (x - y) * (tileW / 2) + tile.offset.x + layer.width * tileW / 2 - self.tilewidth / 2
 						tileY = (x + y - 2) * (tileH / 2) + tile.offset.y
 					end
-
-					local id = batch:add(tile.quad, tileX, tileY, tile.r, tile.sx, tile.sy)
-					self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
-					table.insert(self.tileInstances[tile.gid], {
+					
+					local tab = {
 						layer = layer,
-						batch = batch,
-						id    = id,
 						gid   = tile.gid,
 						x     = tileX,
 						y     = tileY,
 						r     = tile.r,
 						oy    = 0
-					})
+					}
+					
+					if batch then
+						tab.batch = batch
+						tab.id = batch:add(tile.quad, tileX, tileY, tile.r, tile.sx, tile.sy)
+					end
+					
+					self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
+					table.insert(self.tileInstances[tile.gid], tab)
 				end
 			end
 		end
@@ -445,19 +449,23 @@ function Map:setSpriteBatches(layer)
 
 						local rowH = tileH - (tileH - sideLen) / 2
 						tileY = (y - 1) * rowH + tile.offset.y
-
-						local id = batch:add(tile.quad, tileX, tileY, tile.r, tile.sx, tile.sy)
-						self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
-						table.insert(self.tileInstances[tile.gid], {
+						
+						local tab = {
 							layer = layer,
-							batch = batch,
-							id    = id,
 							gid   = tile.gid,
 							x     = tileX,
 							y     = tileY,
 							r     = tile.r,
 							oy    = 0
-						})
+						}
+						
+						if batch then
+							tab.batch = batch
+							tab.id = batch:add(tile.quad, tileX, tileY, tile.r, tile.sx, tile.sy)
+						end
+						
+						self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
+						table.insert(self.tileInstances[tile.gid], tab)
 					end
 				end
 			end
@@ -504,19 +512,23 @@ function Map:setSpriteBatches(layer)
 
 							local colW = tileW - (tileW - sideLen) / 2
 							tileX = (x - 1) * colW + tile.offset.x
-
-							local id = batch:add(tile.quad, tileX, tileY, tile.r, tile.sx, tile.sy)
-							self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
-							table.insert(self.tileInstances[tile.gid], {
+							
+							local tab = {
 								layer = layer,
-								batch = batch,
-								id    = id,
 								gid   = tile.gid,
 								x     = tileX,
 								y     = tileY,
 								r     = tile.r,
 								oy    = 0
-							})
+							}
+							
+							if batch then
+								tab.batch = batch
+								bat.id = batch:add(tile.quad, tileX, tileY, tile.r, tile.sx, tile.sy)
+							end
+							
+							self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
+							table.insert(self.tileInstances[tile.gid], tab)
 						end
 					end
 
@@ -574,19 +586,23 @@ function Map:setObjectSpriteBatches(layer)
 				if tileR   > 0 then tileX = tileX + tileW end
 				if tileR   < 0 then tileY = tileY + tileH end
 			end
-
-			local id = batch:add(tile.quad, tileX, tileY, tileR, tile.sx, tile.sy, 0, oy)
-			self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
-			table.insert(self.tileInstances[tile.gid], {
+			
+			local tab = {
 				layer = layer,
-				batch = batch,
-				id    = id,
 				gid   = tile.gid,
 				x     = tileX,
 				y     = tileY,
 				r     = tileR,
 				oy    = oy
-			})
+			}
+			
+			if batch then
+				tab.batch = batch
+				tab.id = batch:add(tile.quad, tileX, tileY, tileR, tile.sx, tile.sy, 0, oy)
+			end
+			
+			self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
+			table.insert(self.tileInstances[tile.gid], tab)
 		end
 	end
 
@@ -848,11 +864,13 @@ end
 -- @param h The new Height of the drawable area (in pixels)
 -- @return nil
 function Map:resize(w, h)
-	w = w or lg.getWidth()
-	h = h or lg.getHeight()
+	if lg.isCreated() then
+		w = w or lg.getWidth()
+		h = h or lg.getHeight()
 
-	self.canvas = lg.newCanvas(w, h)
-	self.canvas:setFilter("nearest", "nearest")
+		self.canvas = lg.newCanvas(w, h)
+		self.canvas:setFilter("nearest", "nearest")
+	end
 end
 
 --- Create flipped or rotated Tiles based on bitop flags
@@ -988,15 +1006,18 @@ end
 -- @return none
 function Map:swapTile(instance, tile)
 	-- Update sprite batch
-	instance.batch:set(
-		instance.id,
-		tile.quad,
-		instance.x,
-		instance.y,
-		tile.r,
-		tile.sx,
-		tile.sy
-	)
+	
+	if instance.batch then
+		instance.batch:set(
+			instance.id,
+			tile.quad,
+			instance.x,
+			instance.y,
+			tile.r,
+			tile.sx,
+			tile.sy
+		)
+	end
 
 	-- Add new tile instance
 	table.insert(self.tileInstances[tile.gid], {
