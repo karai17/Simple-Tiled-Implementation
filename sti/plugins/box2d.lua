@@ -1,16 +1,15 @@
 --- Box2D plugin for STI
 -- @module box2d
 -- @author Landon Manning
--- @copyright 2016
+-- @copyright 2017
 -- @license MIT/X11
 
-local path  = ...
-local utils = require(path:gsub('plugins.box2d', 'utils'))
+local utils = require((...):gsub('plugins.box2d', 'utils'))
 
 return {
 	box2d_LICENSE     = "MIT/X11",
 	box2d_URL         = "https://github.com/karai17/Simple-Tiled-Implementation",
-	box2d_VERSION     = "2.3.2.4",
+	box2d_VERSION     = "2.3.2.5",
 	box2d_DESCRIPTION = "Box2D hooks for STI.",
 
 	--- Initialize Box2D physics world.
