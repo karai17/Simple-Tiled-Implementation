@@ -744,6 +744,14 @@ function Map:draw()
 	lg.setCanvas(current_canvas)
 	lg.push()
 	lg.origin()
+	
+	if self.backgroundcolor then
+		
+		lg.setColor(self.backgroundcolor)
+		lg.rectangle("fill", 0, 0, lg.getWidth(), lg.getHeight())
+		
+	end
+	
 	lg.draw(self.canvas)
 	lg.pop()
 end
