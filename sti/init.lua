@@ -524,7 +524,7 @@ function Map:setSpriteBatches(layer)
 							
 							if batch then
 								tab.batch = batch
-								bat.id = batch:add(tile.quad, tileX, tileY, tile.r, tile.sx, tile.sy)
+								tab.id = batch:add(tile.quad, tileX, tileY, tile.r, tile.sx, tile.sy)
 							end
 							
 							self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
