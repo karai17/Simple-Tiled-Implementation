@@ -4,7 +4,7 @@
 
 If you like STI, consider tossing me a few monies via [**PayPal**][paypal].
 
-Simple Tiled Implementation is a [**Tiled**][Tiled] map loader and renderer designed for the *awesome* [**LÖVE**][LOVE] framework. Please read the [**documentation**][dox] to learn how it works!
+Simple Tiled Implementation is a [**Tiled**][Tiled] map loader and renderer designed for the *awesome* [**LÖVE**][LOVE] framework. Please read the [**documentation**][dox] to learn how it works, or check out this handy [**tutorial**][tut] I wrote!
 
 ## Quick Example
 
@@ -90,5 +90,6 @@ This code is licensed under the [**MIT/X11 Open Source License**][MIT]. Check ou
 [Tiled]: http://www.mapeditor.org/
 [LOVE]: https://www.love2d.org/
 [dox]: http://karai17.github.io/Simple-Tiled-Implementation/
+[tut]: http://lua.space/gamedev/using-tiled-maps-in-love
 [MIT]: http://www.opensource.org/licenses/mit-license.html
 [paypal]: https://www.paypal.me/LandonManning
