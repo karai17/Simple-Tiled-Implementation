@@ -4,7 +4,7 @@
 
 If you like STI, consider tossing me a few monies via [**PayPal**][paypal].
 
-Simple Tiled Implementation is a [**Tiled**][Tiled] map loader and renderer designed for the *awesome* [**LÖVE**][LOVE] framework. Please read the [**documentation**][dox] to learn how it works, or check out this handy [**tutorial**][tut] I wrote!
+Simple Tiled Implementation is a [**Tiled**][Tiled] map loader and renderer designed for the *awesome* [**LÖVE**][LOVE] framework. Please read the [**documentation**][dox] to learn how it works, or check out this handy [**tutorial**][tut] I wrote! The tutorial might be a bit out of date so be sure to check the documentation if there are any issues.
 
 ## Quick Example
 
@@ -68,14 +68,16 @@ end
 
 function love.draw()
 	-- Draw the map and all objects within
+	love.graphics.setColor(255, 255, 255)
 	map:draw()
 
 	-- Draw Collision Map (useful for debugging)
-	love.graphics.setColor(255, 0, 0, 255)
+	love.graphics.setColor(255, 0, 0)
 	map:box2d_draw()
 
-	-- Reset color
-	love.graphics.setColor(255, 255, 255, 255)
+	-- Please note that map:draw, map:box2d_draw, and map:bump_draw take
+	-- translate and scale arguments (tx, ty, sx, sy) for when you want to
+	-- grow, shrink, or reposition your map on screen.
 end
 ```
 

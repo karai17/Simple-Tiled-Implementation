@@ -65,15 +65,17 @@ function love.update(dt)
 end
 
 function love.draw()
-	love.graphics.setColor(255, 255, 255, 255)
-	love.graphics.translate(-tx, -ty)
-	map:draw()
+	-- Draw map
+	love.graphics.setColor(255, 255, 255)
+	map:draw(-tx, -ty)
 
 	-- Draw physics objects
-	love.graphics.setColor(255, 0, 255, 255)
-	map:box2d_draw()
+	love.graphics.setColor(255, 0, 255)
+	map:box2d_draw(-tx, -ty)
 
 	-- Draw points
+	love.graphics.translate(-tx, -ty)
+
 	love.graphics.setColor(255, 0, 255)
 	for _, point in ipairs(points.mouse) do
 		love.graphics.points(point.x, point.y)

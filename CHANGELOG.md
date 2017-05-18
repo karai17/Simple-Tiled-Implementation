@@ -1,5 +1,10 @@
 # Change Log
 
+## 2017-05-18: v0.18.2.1
+
+* Changed: map.draw, map.box2d_draw, and map.bump_draw now take transform arguments. This (finally!) allows both scaling and translating to work together.
+* Fixed: A bug where cached textures were not able to be loaded more than once (thanks @IoriBranford)
+
 ## 2017-05-07: v0.18.2.0
 
 * Added: dummy graphics shim for headless mode (thanks @matiasah)

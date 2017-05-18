@@ -5,16 +5,16 @@
 -- @license MIT/X11
 
 local utils = require((...):gsub('plugins.box2d', 'utils'))
+local lg    = require((...):gsub('plugins.box2d', 'graphics'))
 
 return {
 	box2d_LICENSE     = "MIT/X11",
 	box2d_URL         = "https://github.com/karai17/Simple-Tiled-Implementation",
-	box2d_VERSION     = "2.3.2.5",
+	box2d_VERSION     = "2.3.2.6",
 	box2d_DESCRIPTION = "Box2D hooks for STI.",
 
 	--- Initialize Box2D physics world.
 	-- @param world The Box2D world to add objects to.
-	-- @return nil
 	box2d_init = function(map, world)
 		assert(love.physics, "To use the Box2D plugin, please enable the love.physics module.")
 
@@ -236,7 +236,6 @@ return {
 
 	--- Remove Box2D fixtures and shapes from world.
 	-- @param index The index or name of the layer being removed
-	-- @return nil
 	box2d_removeLayer = function(map, index)
 		local layer = assert(map.layers[index], "Layer not found: " .. index)
 		local collision = map.box2d_collision
@@ -253,9 +252,16 @@ return {
 	end,
 
 	--- Draw Box2D physics world.
-	-- @return nil
-	box2d_draw = function(map)
+	-- @param tx Translate on X
+	-- @param ty Translate on Y
+	-- @param sx Scale on X
+	-- @param sy Scale on Y
+	box2d_draw = function(map, tx, ty, sx, sy)
 		local collision = map.box2d_collision
+
+		lg.push()
+		lg.scale(sx or 1, sy or sx or 1)
+		lg.translate(math.floor(tx) or 0, math.floor(ty) or 0)
 
 		for _, obj in ipairs(collision) do
 			local points = {collision.body:getWorldPoints(obj.shape:getPoints())}
@@ -269,6 +275,8 @@ return {
 				error("sti box2d plugin does not support "..shape_type.." shapes")
 			end
 		end
+
+		lg.pop()
 	end,
 }
 

@@ -55,6 +55,18 @@ function graphics.origin(...)
 	end
 end
 
+function graphics.scale(...)
+	if graphics.isCreated then
+		return lg.scale(...)
+	end
+end
+
+function graphics.translate(...)
+	if graphics.isCreated then
+		return lg.translate(...)
+	end
+end
+
 function graphics.pop(...)
 	if graphics.isCreated then
 		return lg.pop(...)
@@ -64,6 +76,12 @@ end
 function graphics.draw(...)
 	if graphics.isCreated then
 		return lg.draw(...)
+	end
+end
+
+function graphics.rectangle(...)
+	if graphics.isCreated then
+		return lg.rectangle(...)
 	end
 end
 

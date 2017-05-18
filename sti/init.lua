@@ -7,7 +7,7 @@
 local STI = {
 	_LICENSE     = "MIT/X11",
 	_URL         = "https://github.com/karai17/Simple-Tiled-Implementation",
-	_VERSION     = "0.18.2.0",
+	_VERSION     = "0.18.2.1",
 	_DESCRIPTION = "Simple Tiled Implementation is a Tiled Map Editor library designed for the *awesome* LÖVE framework.",
 	cache        = {}
 }
@@ -71,7 +71,6 @@ end
 -- @param plugins A list of plugins to load
 -- @param ox Offset of map on the X axis (in pixels)
 -- @param oy Offset of map on the Y axis (in pixels)
--- @return nil
 function Map:init(path, plugins, ox, oy)
 	if type(plugins) == "table" then
 		self:loadPlugins(plugins)
@@ -118,7 +117,6 @@ end
 
 --- Load plugins
 -- @param plugins A list of plugins to load
--- @return nil
 function Map:loadPlugins(plugins)
 	for _, plugin in ipairs(plugins) do
 		local pluginModulePath = cwd .. 'plugins.' .. plugin
@@ -206,7 +204,6 @@ end
 --- Create Layers
 -- @param layer Layer data
 -- @param path (Optional) Path to an Image Layer's image
--- @return nil
 function Map:setLayer(layer, path)
 	if layer.encoding then
 		if layer.encoding == "base64" then
@@ -264,7 +261,6 @@ end
 
 --- Add Tiles to Tile Layer
 -- @param layer The Tile Layer
--- @return nil
 function Map:setTileData(layer)
 	local i   = 1
 	local map = {}
@@ -287,7 +283,6 @@ end
 
 --- Add Objects to Layer
 -- @param layer The Object Layer
--- @return nil
 function Map:setObjectData(layer)
 	for _, object in ipairs(layer.objects) do
 		object.layer            = layer
@@ -297,7 +292,6 @@ end
 
 --- Correct position and orientation of Objects in an Object Layer
 -- @param layer The Object Layer
--- @return nil
 function Map:setObjectCoordinates(layer)
 	for _, object in ipairs(layer.objects) do
 		local x   = layer.x + object.x
@@ -348,7 +342,6 @@ end
 
 --- Batch Tiles in Tile Layer for improved draw speed
 -- @param layer The Tile Layer
--- @return nil
 function Map:setSpriteBatches(layer)
 	local newBatch = lg.newSpriteBatch
 	local tileW    = self.tilewidth
@@ -548,7 +541,6 @@ end
 
 --- Batch Tiles in Object Layer for improved draw speed
 -- @param layer The Object Layer
--- @return nil
 function Map:setObjectSpriteBatches(layer)
 	local newBatch = lg.newSpriteBatch
 	local tileW    = self.tilewidth
@@ -657,7 +649,6 @@ end
 
 --- Remove a Layer from the Layer stack
 -- @param index Index or name of Layer to convert
--- @return nil
 function Map:removeLayer(index)
 	local layer = assert(self.layers[index], "Layer not found: " .. index)
 
@@ -699,7 +690,6 @@ end
 
 --- Animate Tiles and update every Layer
 -- @param dt Delta Time
--- @return nil
 function Map:update(dt)
 	for _, tile in pairs(self.tiles) do
 		local update = false
@@ -730,13 +720,20 @@ function Map:update(dt)
 end
 
 --- Draw every Layer
--- @return nil
-function Map:draw()
+-- @param tx Translate on X
+-- @param ty Translate on Y
+-- @param sx Scale on X
+-- @param sy Scale on Y
+function Map:draw(tx, ty, sx, sy)
 	local current_canvas = lg.getCanvas()
 	lg.setCanvas(self.canvas)
 	lg.clear()
+
+	-- Scale map to 1.0 to draw onto canvas, this fixes tearing issues
+	-- Map is translated to correct position so the right section is drawn
 	lg.push()
 	lg.origin()
+	lg.translate(math.floor(tx) or 0, math.floor(ty) or 0)
 
 	for _, layer in ipairs(self.layers) do
 		if layer.visible and layer.opacity > 0 then
@@ -746,13 +743,20 @@ function Map:draw()
 
 	lg.pop()
 
+	-- Draw canvas at 0,0; this fixes scissoring issues
+	-- Map is scaled to correct scale so the right section is shown
+	lg.push()
+	lg.origin()
+	lg.scale(sx or 1, sy or sx or 1)
+
 	lg.setCanvas(current_canvas)
 	lg.draw(self.canvas)
+
+	lg.pop()
 end
 
 --- Draw an individual Layer
 -- @param layer The Layer to draw
--- @return nil
 function Map.drawLayer(_, layer)
 	local r,g,b,a = lg.getColor()
 	lg.setColor(r, g, b, a * layer.opacity)
@@ -762,7 +766,6 @@ end
 
 --- Default draw function for Tile Layers
 -- @param layer The Tile Layer to draw
--- @return nil
 function Map:drawTileLayer(layer)
 	if type(layer) == "string" or type(layer) == "number" then
 		layer = self.layers[layer]
@@ -777,7 +780,6 @@ end
 
 --- Default draw function for Object Layers
 -- @param layer The Object Layer to draw
--- @return nil
 function Map:drawObjectLayer(layer)
 	if type(layer) == "string" or type(layer) == "number" then
 		layer = self.layers[layer]
@@ -848,7 +850,6 @@ end
 
 --- Default draw function for Image Layers
 -- @param layer The Image Layer to draw
--- @return nil
 function Map:drawImageLayer(layer)
 	if type(layer) == "string" or type(layer) == "number" then
 		layer = self.layers[layer]
@@ -864,7 +865,6 @@ end
 --- Resize the drawable area of the Map
 -- @param w The new width of the drawable area (in pixels)
 -- @param h The new Height of the drawable area (in pixels)
--- @return nil
 function Map:resize(w, h)
 	if lg.isCreated then
 		w = w or lg.getWidth()
