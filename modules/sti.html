@@ -38,7 +38,7 @@
 
 
 <h2>Modules</h2>
-<ul class="$(kind=='Topics' and '' or 'nowrap'">
+<ul class="nowrap">
   <li><a href="../modules/box2d.html">box2d</a></li>
   <li><a href="../modules/bump.lua.html">bump.lua</a></li>
   <li><strong>sti</strong></li>
@@ -62,6 +62,10 @@
 <h2><a href="#Functions">Functions</a></h2>
 <table class="function_list">
 	<tr>
+	<td class="name" nowrap><a href="#Map.drawLayer">Map.drawLayer (layer)</a></td>
+	<td class="summary">Draw an individual Layer</td>
+	</tr>
+	<tr>
 	<td class="name" nowrap><a href="#Map:addCustomLayer">Map:addCustomLayer (name, index)</a></td>
 	<td class="summary">Create a Custom Layer to place userdata in (such as player sprites)</td>
 	</tr>
@@ -78,16 +82,12 @@
 	<td class="summary">Convert another Layer into a Custom Layer</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#Map:draw">Map:draw ()</a></td>
+	<td class="name" nowrap><a href="#Map:draw">Map:draw (tx, ty, sx, sy)</a></td>
 	<td class="summary">Draw every Layer</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Map:drawImageLayer">Map:drawImageLayer (layer)</a></td>
 	<td class="summary">Default draw function for Image Layers</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#Map:drawLayer">Map:drawLayer (layer)</a></td>
-	<td class="summary">Draw an individual Layer</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Map:drawObjectLayer">Map:drawObjectLayer (layer)</a></td>
@@ -124,10 +124,6 @@
 	<tr>
 	<td class="name" nowrap><a href="#Map:resize">Map:resize (w, h)</a></td>
 	<td class="summary">Resize the drawable area of the Map</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#Map:setDrawRange">Map:setDrawRange (transX, transY, w, h)</a></td>
-	<td class="summary">Only draw what is visible on screen for improved draw speed</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Map:setFlippedGID">Map:setFlippedGID (gid)</a></td>
@@ -170,7 +166,7 @@
 	<td class="summary">Animate Tiles and update every Layer</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#STI.__call">STI.__call (path, plugins, ox, oy)</a></td>
+	<td class="name" nowrap><a href="#STI.__call">STI.__call (map, plugins, ox, oy)</a></td>
 	<td class="summary">Instance a new map.</td>
 	</tr>
 	<tr>
@@ -233,6 +229,26 @@
     <h2 class="section-header "><a name="Functions"></a>Functions</h2>
 
     <dl class="function">
+    <dt>
+    <a name = "Map.drawLayer"></a>
+    <strong>Map.drawLayer (layer)</strong>
+    </dt>
+    <dd>
+    Draw an individual Layer
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">layer</span>
+         The Layer to draw
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
     <dt>
     <a name = "Map:addCustomLayer"></a>
     <strong>Map:addCustomLayer (name, index)</strong>
@@ -348,18 +364,28 @@
 </dd>
     <dt>
     <a name = "Map:draw"></a>
-    <strong>Map:draw ()</strong>
+    <strong>Map:draw (tx, ty, sx, sy)</strong>
     </dt>
     <dd>
     Draw every Layer
 
 
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">tx</span>
+         Translate on X
+        </li>
+        <li><span class="parameter">ty</span>
+         Translate on Y
+        </li>
+        <li><span class="parameter">sx</span>
+         Scale on X
+        </li>
+        <li><span class="parameter">sy</span>
+         Scale on Y
+        </li>
+    </ul>
 
-    <h3>Returns:</h3>
-    <ol>
-
-        nil
-    </ol>
 
 
 
@@ -380,36 +406,6 @@
         </li>
     </ul>
 
-    <h3>Returns:</h3>
-    <ol>
-
-        nil
-    </ol>
-
-
-
-
-</dd>
-    <dt>
-    <a name = "Map:drawLayer"></a>
-    <strong>Map:drawLayer (layer)</strong>
-    </dt>
-    <dd>
-    Draw an individual Layer
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">layer</span>
-         The Layer to draw
-        </li>
-    </ul>
-
-    <h3>Returns:</h3>
-    <ol>
-
-        nil
-    </ol>
 
 
 
@@ -430,11 +426,6 @@
         </li>
     </ul>
 
-    <h3>Returns:</h3>
-    <ol>
-
-        nil
-    </ol>
 
 
 
@@ -455,11 +446,6 @@
         </li>
     </ul>
 
-    <h3>Returns:</h3>
-    <ol>
-
-        nil
-    </ol>
 
 
 
@@ -573,11 +559,6 @@
         </li>
     </ul>
 
-    <h3>Returns:</h3>
-    <ol>
-
-        nil
-    </ol>
 
 
 
@@ -598,11 +579,6 @@
         </li>
     </ul>
 
-    <h3>Returns:</h3>
-    <ol>
-
-        nil
-    </ol>
 
 
 
@@ -623,11 +599,6 @@
         </li>
     </ul>
 
-    <h3>Returns:</h3>
-    <ol>
-
-        nil
-    </ol>
 
 
 
@@ -651,45 +622,6 @@
         </li>
     </ul>
 
-    <h3>Returns:</h3>
-    <ol>
-
-        nil
-    </ol>
-
-
-
-
-</dd>
-    <dt>
-    <a name = "Map:setDrawRange"></a>
-    <strong>Map:setDrawRange (transX, transY, w, h)</strong>
-    </dt>
-    <dd>
-    Only draw what is visible on screen for improved draw speed
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">transX</span>
-         Translate X axis (in pixels)
-        </li>
-        <li><span class="parameter">transY</span>
-         Translate Y axis (in pixels)
-        </li>
-        <li><span class="parameter">w</span>
-         Width of screen (in pixels)
-        </li>
-        <li><span class="parameter">h</span>
-         Height of screen (in pixels)
-        </li>
-    </ul>
-
-    <h3>Returns:</h3>
-    <ol>
-
-        nil
-    </ol>
 
 
 
@@ -738,11 +670,6 @@
         </li>
     </ul>
 
-    <h3>Returns:</h3>
-    <ol>
-
-        nil
-    </ol>
 
 
 
@@ -763,11 +690,6 @@
         </li>
     </ul>
 
-    <h3>Returns:</h3>
-    <ol>
-
-        nil
-    </ol>
 
 
 
@@ -788,11 +710,6 @@
         </li>
     </ul>
 
-    <h3>Returns:</h3>
-    <ol>
-
-        nil
-    </ol>
 
 
 
@@ -813,11 +730,6 @@
         </li>
     </ul>
 
-    <h3>Returns:</h3>
-    <ol>
-
-        nil
-    </ol>
 
 
 
@@ -838,11 +750,6 @@
         </li>
     </ul>
 
-    <h3>Returns:</h3>
-    <ol>
-
-        nil
-    </ol>
 
 
 
@@ -863,11 +770,6 @@
         </li>
     </ul>
 
-    <h3>Returns:</h3>
-    <ol>
-
-        nil
-    </ol>
 
 
 
@@ -947,11 +849,6 @@
         </li>
     </ul>
 
-    <h3>Returns:</h3>
-    <ol>
-
-        nil
-    </ol>
 
 
 
@@ -959,7 +856,7 @@
 </dd>
     <dt>
     <a name = "STI.__call"></a>
-    <strong>STI.__call (path, plugins, ox, oy)</strong>
+    <strong>STI.__call (map, plugins, ox, oy)</strong>
     </dt>
     <dd>
     Instance a new map.
@@ -967,8 +864,8 @@
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">path</span>
-         Path to the map file
+        <li><span class="parameter">map</span>
+         Path to the map file or the map table itself
         </li>
         <li><span class="parameter">plugins</span>
          A list of plugins to load
@@ -1054,36 +951,35 @@
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example">
-	<span class="comment">-- Create a Custom Layer
-</span>	<span class="keyword">local</span> spriteLayer = map:addCustomLayer(<span class="string">"Sprite Layer"</span>, <span class="number">3</span>)
+        <pre class="example"><span class="comment">-- Create a Custom Layer
+</span><span class="keyword">local</span> spriteLayer = map:addCustomLayer(<span class="string">"Sprite Layer"</span>, <span class="number">3</span>)
 
-	<span class="comment">-- Add data to Custom Layer
-</span>	spriteLayer.sprites = {
-		player = {
-			image = lg.newImage(<span class="string">"assets/sprites/player.png"</span>),
-			x = <span class="number">64</span>,
-			y = <span class="number">64</span>,
-			r = <span class="number">0</span>,
-		}
+<span class="comment">-- Add data to Custom Layer
+</span>spriteLayer.sprites = {
+	player = {
+		image = lg.newImage(<span class="string">"assets/sprites/player.png"</span>),
+		x = <span class="number">64</span>,
+		y = <span class="number">64</span>,
+		r = <span class="number">0</span>,
 	}
+}
 
-	<span class="comment">-- Update callback for Custom Layer
-</span>	<span class="keyword">function</span> spriteLayer:update(dt)
-		<span class="keyword">for</span> _, sprite <span class="keyword">in</span> <span class="global">pairs</span>(self.sprites) <span class="keyword">do</span>
-			sprite.r = sprite.r + <span class="global">math</span>.rad(<span class="number">90</span> * dt)
-		<span class="keyword">end</span>
+<span class="comment">-- Update callback for Custom Layer
+</span><span class="keyword">function</span> spriteLayer:update(dt)
+	<span class="keyword">for</span> _, sprite <span class="keyword">in</span> <span class="global">pairs</span>(self.sprites) <span class="keyword">do</span>
+		sprite.r = sprite.r + <span class="global">math</span>.rad(<span class="number">90</span> * dt)
 	<span class="keyword">end</span>
+<span class="keyword">end</span>
 
-	<span class="comment">-- Draw callback for Custom Layer
-</span>	<span class="keyword">function</span> spriteLayer:draw()
-		<span class="keyword">for</span> _, sprite <span class="keyword">in</span> <span class="global">pairs</span>(self.sprites) <span class="keyword">do</span>
-			<span class="keyword">local</span> x = <span class="global">math</span>.floor(sprite.x)
-			<span class="keyword">local</span> y = <span class="global">math</span>.floor(sprite.y)
-			<span class="keyword">local</span> r = sprite.r
-			lg.draw(sprite.image, x, y, r)
-		<span class="keyword">end</span>
-	<span class="keyword">end</span></pre>
+<span class="comment">-- Draw callback for Custom Layer
+</span><span class="keyword">function</span> spriteLayer:draw()
+	<span class="keyword">for</span> _, sprite <span class="keyword">in</span> <span class="global">pairs</span>(self.sprites) <span class="keyword">do</span>
+		<span class="keyword">local</span> x = <span class="global">math</span>.floor(sprite.x)
+		<span class="keyword">local</span> y = <span class="global">math</span>.floor(sprite.y)
+		<span class="keyword">local</span> r = sprite.r
+		lg.draw(sprite.image, x, y, r)
+	<span class="keyword">end</span>
+<span class="keyword">end</span></pre>
     </ul>
 
 </dd>
@@ -1495,8 +1391,8 @@
 </div> <!-- id="content" -->
 </div> <!-- id="main" -->
 <div id="about">
-<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.3</a></i>
-<i style="float:right;">Last updated 2016-07-26 17:34:25 </i>
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
+<i style="float:right;">Last updated 2017-05-18 17:36:07 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>
