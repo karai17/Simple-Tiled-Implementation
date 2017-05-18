@@ -102,6 +102,8 @@ function Map:init(path, plugins, ox, oy)
 			if not STI.cache[formatted_path] then
 				utils.fix_transparent_color(tileset, formatted_path)
 				utils.cache_image(STI, formatted_path, tileset.image)
+			else
+				tileset.image = STI.cache[formatted_path]
 			end
 		end
 
