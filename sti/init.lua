@@ -1021,6 +1021,7 @@ function Map:swapTile(instance, tile)
 	end
 
 	-- Add new tile instance
+	self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
 	table.insert(self.tileInstances[tile.gid], {
 		layer = instance.layer,
 		batch = instance.batch,
