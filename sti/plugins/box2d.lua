@@ -261,7 +261,7 @@ return {
 
 		lg.push()
 		lg.scale(sx or 1, sy or sx or 1)
-		lg.translate(math.floor(tx) or 0, math.floor(ty) or 0)
+		lg.translate(math.floor(tx or 0), math.floor(ty or 0))
 
 		for _, obj in ipairs(collision) do
 			local points = {collision.body:getWorldPoints(obj.shape:getPoints())}
