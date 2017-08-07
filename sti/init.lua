@@ -356,8 +356,9 @@ function Map:getLayerTilePosition(layer, tile, x, y)
 	local tileX, tileY
 
 	if self.orientation == "orthogonal" then
+		local tileset = self.tilesets[tile.tileset]
 		tileX = (x - 1) * tileW + tile.offset.x
-		tileY = (y - 1) * tileH + tile.offset.y
+		tileY = (y - 0) * tileH + tile.offset.y - tileset.tileheight
 		tileX, tileY = utils.compensate(tile, tileX, tileY, tileW, tileH)
 	elseif self.orientation == "isometric" then
 		tileX = (x - y) * (tileW / 2) + tile.offset.x + layer.width * tileW / 2 - self.tilewidth / 2
