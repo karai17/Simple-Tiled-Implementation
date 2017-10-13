@@ -41,7 +41,7 @@ local function new(map, plugins, ox, oy)
 		end
 
 		-- Load map
-		map = setmetatable(love.filesystem.load(map)(), Map)
+		map = setmetatable(assert(love.filesystem.load(map))(), Map)
 	end
 
 	map:init(dir, plugins, ox, oy)
