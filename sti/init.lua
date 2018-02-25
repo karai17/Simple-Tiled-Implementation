@@ -542,9 +542,12 @@ function Map:setObjectSpriteBatches(layer)
 
 			batches[tileset] = batches[tileset] or newBatch(image)
 
+			local sx =  object.width / tile.width 
+			local sy =  object.height / tile.height
+
 			local batch = batches[tileset]
 			local tileX = object.x + tile.offset.x
-			local tileY = object.y + tile.offset.y - tile.height
+			local tileY = object.y + tile.offset.y - tile.height * sy
 			local tileR = math.rad(object.rotation)
 			local oy    = 0
 
@@ -572,7 +575,7 @@ function Map:setObjectSpriteBatches(layer)
 
 			if batch then
 				tab.batch = batch
-				tab.id = batch:add(tile.quad, tileX, tileY, tileR, tile.sx, tile.sy, 0, oy)
+				tab.id = batch:add(tile.quad, tileX, tileY, tileR, tile.sx * sx, tile.sy * sy, 0, oy)
 			end
 
 			self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
