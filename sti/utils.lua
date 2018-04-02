@@ -175,9 +175,9 @@ function utils.hex_to_color(hex)
 	end
 
 	return {
-		r = tonumber(hex:sub(1, 2), 16),
-		g = tonumber(hex:sub(3, 4), 16),
-		b = tonumber(hex:sub(5, 6), 16)
+		r = tonumber(hex:sub(1, 2), 16) / 255,
+		g = tonumber(hex:sub(3, 4), 16) / 255,
+		b = tonumber(hex:sub(5, 6), 16) / 255
 	}
 end
 
@@ -194,12 +194,12 @@ function utils.pixel_function(_, _, r, g, b, a)
 end
 
 function utils.fix_transparent_color(tileset, path)
-	tileset.image = love.graphics.newImage(path)
+	local image_data = love.image.newImageData(path)
+	tileset.image = love.graphics.newImage(image_data)
 
 	if tileset.transparentcolor then
 		utils._TC = utils.hex_to_color(tileset.transparentcolor)
 
-		local image_data = tileset.image:getData()
 		image_data:mapPixel(utils.pixel_function)
 		tileset.image = love.graphics.newImage(image_data)
 	end
