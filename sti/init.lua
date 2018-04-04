@@ -211,20 +211,20 @@ function Map:setLayer(layer, path)
 	if layer.encoding then
 		if layer.encoding == "base64" then
 			assert(require "ffi", "Compressed maps require LuaJIT FFI.\nPlease Switch your interperator to LuaJIT or your Tile Layer Format to \"CSV\".")
-			local fd  = love.filesystem.newFileData(layer.data, "data", "base64"):getString()
+			local fd = love.data.decode("string", "base64", layer.data)
 
 			if not layer.compression then
 				layer.data = utils.get_decompressed_data(fd)
 			else
-				assert(love.math.decompress, "zlib and gzip compression require LOVE 0.10.0+.\nPlease set your Tile Layer Format to \"Base64 (uncompressed)\" or \"CSV\".")
+				assert(love.data.decompress, "zlib and gzip compression require LOVE 11.0+.\nPlease set your Tile Layer Format to \"Base64 (uncompressed)\" or \"CSV\".")
 
 				if layer.compression == "zlib" then
-					local data = love.math.decompress(fd, "zlib")
+					local data = love.data.decompress("string", "zlib", fd)
 					layer.data = utils.get_decompressed_data(data)
 				end
 
 				if layer.compression == "gzip" then
-					local data = love.math.decompress(fd, "gzip")
+					local data = love.data.decompress("string", "gzip", fd)
 					layer.data = utils.get_decompressed_data(data)
 				end
 			end
