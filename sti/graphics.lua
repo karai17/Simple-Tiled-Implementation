@@ -67,6 +67,12 @@ function graphics.translate(...)
 	end
 end
 
+function graphics.rotate(...)
+    if graphics.isCreated then
+        return lg.rotate(...)
+    end
+end
+
 function graphics.pop(...)
 	if graphics.isCreated then
 		return lg.pop(...)
