@@ -36,7 +36,13 @@ return {
 				shape = love.physics.newPolygonShape(unpack(vertices))
 			end
 
-			local fixture = love.physics.newFixture(body, shape)
+			local currentBody = body
+
+			if userdata.properties.dynamic == true then
+				currentBody = love.physics.newBody(world, map.offsetx, map.offsety, 'dynamic')
+			end
+
+			local fixture = love.physics.newFixture(currentBody, shape)
 
 			fixture:setUserData(userdata)
 
@@ -46,6 +52,7 @@ return {
 
 			local obj = {
 				object  = object,
+				body = currentBody,
 				shape   = shape,
 				fixture = fixture,
 			}
@@ -264,7 +271,7 @@ return {
 		lg.translate(math.floor(tx or 0), math.floor(ty or 0))
 
 		for _, obj in ipairs(collision) do
-			local points = {collision.body:getWorldPoints(obj.shape:getPoints())}
+			local points = {obj.body:getWorldPoints(obj.shape:getPoints())}
 			local shape_type = obj.shape:getType()
 
 			if shape_type == "edge" or shape_type == "chain" then
@@ -284,3 +291,4 @@ return {
 -- @table Properties
 -- @field collidable set to true, can be used on any Layer, Tile, or Object
 -- @field sensor set to true, can be used on any Tile or Object that is also collidable
+-- @field dynamic set to true, can be used on any Tile or Object
