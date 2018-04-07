@@ -6,6 +6,11 @@
 
 local lg = require((...):gsub('plugins.bump', 'graphics'))
 
+-- Determines if the given value is either true or 'true'
+local function isTruthy(value)
+	return value == true or value == 'true'
+end
+
 return {
 	bump_LICENSE        = "MIT/X11",
 	bump_URL            = "https://github.com/karai17/Simple-Tiled-Implementation",
@@ -27,17 +32,15 @@ return {
 						-- Every object in every instance of a tile
 						if tile.objectGroup then
 							for _, object in ipairs(tile.objectGroup.objects) do
-								if object.properties.collidable == true then
+								if isTruthy(object.properties.collidable) then
 									local t = {
-										name       = object.name,
-										type       = object.type,
 										x          = instance.x + map.offsetx + object.x,
 										y          = instance.y + map.offsety + object.y,
 										width      = object.width,
 										height     = object.height,
 										layer      = instance.layer,
-										properties = object.properties
-
+										properties = object.properties,
+										object     = object
 									}
 
 									world:add(t, t.x, t.y, t.width, t.height)
@@ -47,14 +50,15 @@ return {
 						end
 
 						-- Every instance of a tile
-						if tile.properties and tile.properties.collidable == true then
+						if tile.properties and isTruthy(tile.properties.collidable) then
 							local t = {
 								x          = instance.x + map.offsetx,
 								y          = instance.y + map.offsety,
 								width      = map.tilewidth,
 								height     = map.tileheight,
 								layer      = instance.layer,
-								properties = tile.properties
+								properties = tile.properties,
+								tile       = tile
 							}
 
 							world:add(t, t.x, t.y, t.width, t.height)
@@ -67,23 +71,22 @@ return {
 
 		for _, layer in ipairs(map.layers) do
 			-- Entire layer
-			if layer.properties.collidable == true then
+			if isTruthy(layer.properties.collidable) then
 				if layer.type == "tilelayer" then
 					for y, tiles in ipairs(layer.data) do
 						for x, tile in pairs(tiles) do
 
 							if tile.objectGroup then
 								for _, object in ipairs(tile.objectGroup.objects) do
-									if object.properties.collidable == true then
+									if isTruthy(object.properties.collidable) then
 										local t = {
-											name       = object.name,
-											type       = object.type,
 											x          = ((x-1) * map.tilewidth  + tile.offset.x + map.offsetx) + object.x,
 											y          = ((y-1) * map.tileheight + tile.offset.y + map.offsety) + object.y,
 											width      = object.width,
 											height     = object.height,
 											layer      = layer,
-											properties = object.properties
+											properties = object.properties,
+											object     = object
 										}
 
 										world:add(t, t.x, t.y, t.width, t.height)
@@ -99,7 +102,8 @@ return {
 								width      = tile.width,
 								height     = tile.height,
 								layer      = layer,
-								properties = tile.properties
+								properties = tile.properties,
+								tile       = tile
 							}
 
 							world:add(t, t.x, t.y, t.width, t.height)
@@ -116,17 +120,16 @@ return {
 			-- or whole collidable objects layer
 		  if layer.type == "objectgroup" then
 				for _, obj in ipairs(layer.objects) do
-					if layer.properties.collidable == true or obj.properties.collidable == true then
+					if isTruthy(layer.properties.collidable) or isTruthy(obj.properties.collidable) then
 						if obj.shape == "rectangle" then
 							local t = {
-								name       = obj.name,
-								type       = obj.type,
 								x          = obj.x + map.offsetx,
 								y          = obj.y + map.offsety,
 								width      = obj.width,
 								height     = obj.height,
 								layer      = layer,
-								properties = obj.properties
+								properties = obj.properties,
+								object     = obj
 							}
 
 							if obj.gid then
@@ -148,9 +151,9 @@ return {
 	-- @param index to layer to be removed
 	-- @param world bump world the holds the tiles
 	-- @param tx Translate on X
--- @param ty Translate on Y
--- @param sx Scale on X
--- @param sy Scale on Y
+	-- @param ty Translate on Y
+	-- @param sx Scale on X
+	-- @param sy Scale on Y
 	bump_removeLayer = function(map, index, world)
 		local layer = assert(map.layers[index], "Layer not found: " .. index)
 		local collidables = map.bump_collidables
@@ -159,10 +162,9 @@ return {
 		for i = #collidables, 1, -1 do
 			local obj = collidables[i]
 
-			if obj.layer == layer
-			and (
-				layer.properties.collidable == true
-				or obj.properties.collidable == true
+			if obj.layer == layer and (
+				isTruthy(layer.properties.collidable)
+				or isTruthy(obj.properties.collidable)
 			) then
 				world:remove(obj)
 				table.remove(collidables, i)
