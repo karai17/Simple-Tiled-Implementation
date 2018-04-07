@@ -134,6 +134,13 @@ function Map:loadPlugins(plugins)
 	end
 end
 
+-- Set camera (used for parallax)
+-- @param camera The camera instance (needs to have an centerX and centerY field)
+function Map:setCamera(camera)
+	assert(camera.getCenter, "Camera needs to have a getCenter function!")
+	self.camera = camera
+end
+
 --- Create Tiles
 -- @param index Index of the Tileset
 -- @param tileset Tileset data
@@ -712,7 +719,8 @@ end
 -- @param ty Translate on Y
 -- @param sx Scale on X
 -- @param sy Scale on Y
-function Map:draw(tx, ty, sx, sy)
+-- @param r Rotation in rad
+function Map:draw(tx, ty, sx, sy, r)
 	local current_canvas = lg.getCanvas()
 	lg.setCanvas(self.canvas)
 	lg.clear()
@@ -735,6 +743,8 @@ function Map:draw(tx, ty, sx, sy)
 	-- Map is scaled to correct scale so the right section is shown
 	lg.push()
 	lg.origin()
+	lg.rotate(r)
+	lg.translate(tx, ty)
 	lg.scale(sx or 1, sy or sx or 1)
 
 	lg.setCanvas(current_canvas)
@@ -761,8 +771,26 @@ function Map:drawTileLayer(layer)
 
 	assert(layer.type == "tilelayer", "Invalid layer type: " .. layer.type .. ". Layer must be of type: tilelayer")
 
+	-- apply parallax effect to this layer if it has a parallaxFactor field
+	local posX, posY = layer.x, layer.y
+	local parallaxFactor = layer.properties.parallaxFactor
+	if type(parallaxFactor) == "string" then
+		parallaxFactor = tonumber(parallaxFactor)
+	end
+	parallaxFactor = parallaxFactor or 0
+
+	if parallaxFactor > 0 then
+		assert(self.camera, "Map:setCamera needs to be called in order to use parallax layers!")
+		local parallaxOffsetX = layer.properties.parallaxOffsetX or 0
+		local parallaxOffsetY = layer.properties.parallaxOffsetY or 0
+		local cameraX, cameraY = self.camera:getCenter()
+
+		posX = (posX - cameraX) * parallaxFactor + parallaxOffsetX
+		posY = (posY - cameraY) * parallaxFactor + parallaxOffsetY
+	end
+
 	for _, batch in pairs(layer.batches) do
-		lg.draw(batch, floor(layer.x), floor(layer.y))
+		lg.draw(batch, floor(posX), floor(posY))
 	end
 end
 
