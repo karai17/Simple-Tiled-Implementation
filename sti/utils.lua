@@ -194,6 +194,7 @@ function utils.pixel_function(_, _, r, g, b, a)
 end
 
 function utils.fix_transparent_color(tileset, path)
+	assert(love.image, "Image module must be enabled.")
 	local image_data = love.image.newImageData(path)
 	tileset.image = love.graphics.newImage(image_data)
 
