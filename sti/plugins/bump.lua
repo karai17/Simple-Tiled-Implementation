@@ -186,6 +186,26 @@ return {
 		end
 
 		lg.pop()
+	end,
+	
+	-- Move the *entire* world to its new position without checking any collisions.
+	-- @param world bump world holding the tiles geometry
+	-- @param tx Translate on X
+	-- @param ty Translate on Y
+	-- @param sx Scale on X
+	-- @param sy Scale on Y
+	bump_translateBy = function(map, world, tx, ty, sx, sy)
+		-- Go through all objects in our world, and update their x and y values based on tx and ty
+		local allItems,_ = world:getItems()
+		for _,item in ipairs(allItems) do
+			local x,y,w,h = world:getRect(item)
+			world:update(item,
+				x + (tx or 0),
+				y + (ty or 0),
+				math.ceil(w * (sx or 1)),
+				math.ceil(h * (sy or 1))
+			)
+		end
 	end
 }
 
