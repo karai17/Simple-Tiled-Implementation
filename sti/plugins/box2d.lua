@@ -49,6 +49,19 @@ return {
 			if userdata.properties.sensor == true then
 				fixture:setSensor(true)
 			end
+			
+			local getPropertie = function(name)
+				local propertie = userdata.properties[name] or 1
+				if type(propertie) == "table" then
+					return unpack(propertie)
+				end
+				return propertie
+			end
+
+			fixture:setCategory(getPropertie("category"))
+			if userdata.properties.mask then
+				fixture:setMask(getPropertie("mask"))
+			end
 
 			local obj = {
 				object  = object,
@@ -82,6 +95,7 @@ return {
 
 			local userdata = {
 				object     = o,
+				name       = tile.layer.name,
 				properties = object.properties
 			}
 
@@ -292,3 +306,5 @@ return {
 -- @field collidable set to true, can be used on any Layer, Tile, or Object
 -- @field sensor set to true, can be used on any Tile or Object that is also collidable
 -- @field dynamic set to true, can be used on any Tile or Object
+-- @field category set to number, can be used on any Tile or Object, and indicates the object's type
+-- @field mask set to table or number, can be used on any Tile or Object, and indicates with objects will not collide
