@@ -113,6 +113,7 @@ function graphics.getWidth()
 	if graphics.isCreated then
 		return lg.getWidth()
 	end
+
 	return 0
 end
 
@@ -120,6 +121,7 @@ function graphics.getHeight()
 	if graphics.isCreated then
 		return lg.getHeight()
 	end
+
 	return 0
 end
 

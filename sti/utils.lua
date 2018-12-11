@@ -22,8 +22,6 @@ end
 
 -- Compensation for scale/rotation shift
 function utils.compensate(tile, tileX, tileY, tileW, tileH)
-	local origx = tileX
-	local origy = tileY
 	local compx = 0
 	local compy = 0
 
