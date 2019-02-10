@@ -46,9 +46,13 @@ return {
 
 			fixture:setUserData(userdata)
 
-			if userdata.properties.sensor == true then
-				fixture:setSensor(true)
-			end
+			-- Set some custom properties from userdata (or use default)
+			fixture:setFriction(userdata.properties.friction or 0.0)
+			fixture:setRestitution(userdata.properties.restitution or 0.0)
+			fixture:setSensor(userdata.properties.sensor or false)
+			fixture:setFilterData(userdata.properties.categories or 1,
+			                      userdata.properties.mask or 65535,
+			                      userdata.properties.group or 0)
 
 			local obj = {
 				object  = object,
@@ -292,3 +296,8 @@ return {
 -- @field collidable set to true, can be used on any Layer, Tile, or Object
 -- @field sensor set to true, can be used on any Tile or Object that is also collidable
 -- @field dynamic set to true, can be used on any Tile or Object
+-- @field friction can be used to define the friction of any Object
+-- @field restitution can be used to define the restitution of any Object
+-- @field categories  can be used to set the filter Category of any Object
+-- @field mask can be used to set the filter Mask of any Object
+-- @field group can be used to set the filter Group of any Object
