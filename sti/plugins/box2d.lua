@@ -46,8 +46,8 @@ return {
 
 			fixture:setUserData(userdata)
 
-			-- Set some custom properties from userdata (or use default)
-			fixture:setFriction(userdata.properties.friction or 0.0)
+			-- Set some custom properties from userdata (or use default set by box2d)
+			fixture:setFriction(userdata.properties.friction or 0.2)
 			fixture:setRestitution(userdata.properties.restitution or 0.0)
 			fixture:setSensor(userdata.properties.sensor or false)
 			fixture:setFilterData(userdata.properties.categories or 1,
