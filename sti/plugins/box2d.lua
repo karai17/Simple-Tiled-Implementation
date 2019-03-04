@@ -4,6 +4,7 @@
 -- @copyright 2017
 -- @license MIT/X11
 
+local love  = _G.love
 local utils = require((...):gsub('plugins.box2d', 'utils'))
 local lg    = require((...):gsub('plugins.box2d', 'graphics'))
 
@@ -102,7 +103,7 @@ return {
 
 					-- This fixes a height issue
 					 o.y = o.y + map.tiles[object.gid].offset.y
-					 oy  = tileset.tileheight
+					 oy  = o.h
 
 					for _, tt in ipairs(tileset.tiles) do
 						if tt.id == lid then
@@ -288,7 +289,7 @@ return {
 		end
 
 		lg.pop()
-	end,
+	end
 }
 
 --- Custom Properties in Tiled are used to tell this plugin what to do.
