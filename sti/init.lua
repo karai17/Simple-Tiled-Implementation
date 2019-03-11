@@ -536,8 +536,10 @@ function Map:setObjectSpriteBatches(layer)
 
 			local sx = object.width  / tile.width
 			local sy = object.height / tile.height
+			
+			-- Tiled rotates around bottom left corner, where love2D rotates around top left corner
 			local ox = 0
-			local oy = object.height
+			local oy = tile.height
 
 			local batch = batches[tileset]
 			local tileX = object.x + tile.offset.x
@@ -546,11 +548,21 @@ function Map:setObjectSpriteBatches(layer)
 
 			-- Compensation for scale/rotation shift
 			if tile.sx == -1 then
-				--ox = object.width
+				tileX = tileX + object.width
+
+				if tileR ~= 0 then
+					tileX = tileX - object.width
+					ox = ox + tile.width
+				end
 			end
 
 			if tile.sy == -1 then
-				--oy = 0
+				tileY = tileY - object.height
+				
+				if tileR ~= 0 then
+					tileY = tileY + object.width
+					oy = oy - tile.width
+				end
 			end
 
 			local t = {
