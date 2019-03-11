@@ -13,6 +13,7 @@ local STI = {
 }
 STI.__index = STI
 
+local love  = _G.love
 local cwd   = (...):gsub('%.init$', '') .. "."
 local utils = require(cwd .. "utils")
 local ceil  = math.ceil
@@ -272,11 +273,7 @@ function Map:setTileData(layer)
 		map[y] = {}
 		for x = 1, layer.width do
 			local gid = layer.data[i]
-
-			if gid > 0 then
-				map[y][x] = self.tiles[gid] or self:setFlippedGID(gid)
-			end
-
+			map[y][x] = self.tiles[gid] or self:setFlippedGID(gid)
 			i = i + 1
 		end
 	end
@@ -301,9 +298,8 @@ function Map:setObjectCoordinates(layer)
 		local y   = layer.y + object.y
 		local w   = object.width
 		local h   = object.height
-		local r   = object.rotation
-		local cos = math.cos(math.rad(r))
-		local sin = math.sin(math.rad(r))
+		local cos = math.cos(math.rad(object.rotation))
+		local sin = math.sin(math.rad(object.rotation))
 
 		if object.shape == "rectangle" and not object.gid then
 			object.rectangle = {}
@@ -474,8 +470,6 @@ function Map:setSpriteBatches(layer)
 			end
 		end
 	else
-		local sideLen = self.hexsidelength or 0
-
 		if self.staggeraxis == "y" then
 			for y = 1, layer.height do
 				for x = 1, layer.width do
@@ -524,8 +518,6 @@ end
 -- @param layer The Object Layer
 function Map:setObjectSpriteBatches(layer)
 	local newBatch = lg.newSpriteBatch
-	local tileW    = self.tilewidth
-	local tileH    = self.tileheight
 	local batches  = {}
 
 	if layer.draworder == "topdown" then
@@ -538,33 +530,44 @@ function Map:setObjectSpriteBatches(layer)
 		if object.gid then
 			local tile    = self.tiles[object.gid] or self:setFlippedGID(object.gid)
 			local tileset = tile.tileset
-			local image   = self.tilesets[tile.tileset].image
+			local image   = self.tilesets[tileset].image
 
 			batches[tileset] = batches[tileset] or newBatch(image)
 
-			local sx =  object.width / tile.width 
-			local sy =  object.height / tile.height
+			local sx = object.width  / tile.width
+			local sy = object.height / tile.height
+			
+			-- Tiled rotates around bottom left corner, where love2D rotates around top left corner
+			local ox = 0
+			local oy = tile.height
 
 			local batch = batches[tileset]
 			local tileX = object.x + tile.offset.x
-			local tileY = object.y + tile.offset.y - tile.height * sy
+			local tileY = object.y + tile.offset.y
 			local tileR = math.rad(object.rotation)
-			local oy    = 0
 
 			-- Compensation for scale/rotation shift
-			if tile.sx == 1 and tile.sy == 1 then
+			if tile.sx == -1 then
+				tileX = tileX + object.width
+
 				if tileR ~= 0 then
-					tileY = tileY + tileH
-					oy    = tileH
+					tileX = tileX - object.width
+					ox = ox + tile.width
 				end
-			else
-				if tile.sx < 0 then tileX = tileX + tileW end
-				if tile.sy < 0 then tileY = tileY + tileH end
-				if tileR   > 0 then tileX = tileX + tileW end
-				if tileR   < 0 then tileY = tileY + tileH end
 			end
 
-			local tab = {
+			if tile.sy == -1 then
+				tileY = tileY - object.height
+				
+				if tileR ~= 0 then
+					tileY = tileY + object.width
+					oy = oy - tile.width
+				end
+			end
+
+			local t = {
+				id    = batch:add(tile.quad, tileX, tileY, tileR, tile.sx * sx, tile.sy * sy, ox, oy),
+				batch = batch,
 				layer = layer,
 				gid   = tile.gid,
 				x     = tileX,
@@ -573,13 +576,8 @@ function Map:setObjectSpriteBatches(layer)
 				oy    = oy
 			}
 
-			if batch then
-				tab.batch = batch
-				tab.id = batch:add(tile.quad, tileX, tileY, tileR, tile.sx * sx, tile.sy * sy, 0, oy)
-			end
-
 			self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
-			table.insert(self.tileInstances[tile.gid], tab)
+			table.insert(self.tileInstances[tile.gid], t)
 		end
 	end
 

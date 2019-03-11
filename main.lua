@@ -1,5 +1,6 @@
 io.stdout:setvbuf("no")
-local sti = require "sti"
+local love = _G.love
+local sti  = require "sti"
 local map
 local world
 local tx, ty
@@ -66,22 +67,22 @@ end
 
 function love.draw()
 	-- Draw map
-	love.graphics.setColor(255, 255, 255)
+	love.graphics.setColor(1, 1, 1)
 	map:draw(-tx, -ty)
 
 	-- Draw physics objects
-	love.graphics.setColor(255, 0, 255)
+	love.graphics.setColor(1, 0, 1)
 	map:box2d_draw(-tx, -ty)
 
 	-- Draw points
 	love.graphics.translate(-tx, -ty)
 
-	love.graphics.setColor(255, 0, 255)
+	love.graphics.setColor(1, 0, 1)
 	for _, point in ipairs(points.mouse) do
 		love.graphics.points(point.x, point.y)
 	end
 
-	love.graphics.setColor(255, 255, 0)
+	love.graphics.setColor(1, 1, 0)
 	for _, point in ipairs(points.pixel) do
 		love.graphics.points(point.x, point.y)
 	end
