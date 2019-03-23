@@ -1,7 +1,7 @@
 --- Simple and fast Tiled map loader and renderer.
 -- @module sti
 -- @author Landon Manning
--- @copyright 2016
+-- @copyright 2019
 -- @license MIT/X11
 
 local STI = {
@@ -359,8 +359,8 @@ end
 -- @return number Tile instance location on X axis (in pixels)
 -- @return number Tile instance location on Y axis (in pixels)
 function Map:getLayerTilePosition(layer, tile, x, y)
-	local tileW    = self.tilewidth
-	local tileH    = self.tileheight
+	local tileW = self.tilewidth
+	local tileH = self.tileheight
 	local tileX, tileY
 
 	if self.orientation == "orthogonal" then
