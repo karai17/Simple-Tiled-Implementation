@@ -9,6 +9,7 @@
 * Added: tutorial formerly hosted by lua.space to /tutorials
 * Added: support for restitution, friction, and filter properties to Box2D plugin (thanks @DrJamgo)
 * Added: support for infinite maps
+* Added: support for layer groups (thanks @daxartio)
 * Changed: loading a map now asserts (thanks @Alloyed)
 * Fixed: error when translate coords are nil in Map.draw (thanks @camchenry)
 * Fixed: create new tile instance list if one doesn't exist (thanks @IoriBranford)
@@ -16,6 +17,8 @@
 * Fixed: incorrect Y offset when tile height is different than map's tileheight (thanks @IoriBranford)
 * Fixed: tile objects now scale correctly (thanks @Jules5)
 * Fixed: tile object transform issues (thanks @DavidJTFerguson37)
+* Fixed: clobbering directory structure if several levels deep (thanks @meeces2911)
+* Fixed: rotate_vertex was not compensating for height offset (thanks @Schwusch)
 
 ## 2017-05-18: v0.18.2.1
 

@@ -114,7 +114,7 @@ function Map:init(path, plugins, ox, oy)
 	end
 
 	local layers = {}
-	for i, layer in ipairs(self.layers) do
+	for _, layer in ipairs(self.layers) do
 		self:groupAppendToList(layers, layer)
 	end
 	self.layers = layers
@@ -136,11 +136,13 @@ function Map:groupAppendToList(layers, layer)
 			groupLayer.opacity = layer.opacity * groupLayer.opacity
 			groupLayer.offsetx = layer.offsetx + groupLayer.offsetx
 			groupLayer.offsety = layer.offsety + groupLayer.offsety
+
 			for key, property in pairs(layer.properties) do
 				if groupLayer.properties[key] == nil then
 					groupLayer.properties[key] = property
 				end
 			end
+
 			self:groupAppendToList(layers, groupLayer)
 		end
 	else
