@@ -83,7 +83,7 @@ end
 
 ## Requirements
 
-This library recommends LÖVE 11.0 and Tiled 0.18. If you are updating from an older version of Tiled, please re-export your Lua map files.
+This library recommends LÖVE 11.x and Tiled 1.2.x. If you are updating from an older version of Tiled, please re-export your Lua map files.
 
 ## License
 

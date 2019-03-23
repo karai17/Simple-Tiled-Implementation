@@ -517,7 +517,13 @@ function Map:set_batches(layer, chunk)
 
 		for y = startY, endY, incrementY do
 			for x = startX, endX, incrementX do
-				local tile = chunk and chunk.data[y][x] or layer.data[y][x]
+				-- NOTE: Cannot short circuit this since it is valid for tile to be assigned nil
+				local tile
+				if chunk then
+					tile = chunk.data[y][x]
+				else
+					tile = layer.data[y][x]
+				end
 
 				if tile then
 					self:addNewLayerTile(layer, chunk, tile, x, y)
@@ -528,7 +534,13 @@ function Map:set_batches(layer, chunk)
 		if self.staggeraxis == "y" then
 			for y = 1, (chunk and chunk.height or layer.height) do
 				for x = 1, (chunk and chunk.width or layer.width) do
-					local tile = chunk and chunk.data[y][x] or layer.data[y][x]
+					-- NOTE: Cannot short circuit this since it is valid for tile to be assigned nil
+					local tile
+					if chunk then
+						tile = chunk.data[y][x]
+					else
+						tile = layer.data[y][x]
+					end
 
 					if tile then
 						self:addNewLayerTile(layer, chunk, tile, x, y)
@@ -551,7 +563,14 @@ function Map:set_batches(layer, chunk)
 
 					for x = _x, (chunk and chunk.width or layer.width), 2 do
 						i = i + 1
-						local tile = chunk and chunk.data[y][x] or layer.data[y][x]
+
+						-- NOTE: Cannot short circuit this since it is valid for tile to be assigned nil
+						local tile
+						if chunk then
+							tile = chunk.data[y][x]
+						else
+							tile = layer.data[y][x]
+						end
 
 						if tile then
 							self:addNewLayerTile(layer, chunk, tile, x, y)
