@@ -1,16 +1,17 @@
 --- Box2D plugin for STI
 -- @module box2d
 -- @author Landon Manning
--- @copyright 2017
+-- @copyright 2019
 -- @license MIT/X11
 
+local love  = _G.love
 local utils = require((...):gsub('plugins.box2d', 'utils'))
 local lg    = require((...):gsub('plugins.box2d', 'graphics'))
 
 return {
 	box2d_LICENSE     = "MIT/X11",
 	box2d_URL         = "https://github.com/karai17/Simple-Tiled-Implementation",
-	box2d_VERSION     = "2.3.2.6",
+	box2d_VERSION     = "2.3.2.7",
 	box2d_DESCRIPTION = "Box2D hooks for STI.",
 
 	--- Initialize Box2D physics world.
@@ -43,20 +44,21 @@ return {
 			end
 
 			local fixture = love.physics.newFixture(currentBody, shape)
-
 			fixture:setUserData(userdata)
 
 			-- Set some custom properties from userdata (or use default set by box2d)
-			fixture:setFriction(userdata.properties.friction or 0.2)
+			fixture:setFriction(userdata.properties.friction       or 0.2)
 			fixture:setRestitution(userdata.properties.restitution or 0.0)
-			fixture:setSensor(userdata.properties.sensor or false)
-			fixture:setFilterData(userdata.properties.categories or 1,
-			                      userdata.properties.mask or 65535,
-			                      userdata.properties.group or 0)
+			fixture:setSensor(userdata.properties.sensor           or false)
+			fixture:setFilterData(
+				userdata.properties.categories or 1,
+				userdata.properties.mask       or 65535,
+				userdata.properties.group      or 0
+			)
 
 			local obj = {
 				object  = object,
-				body = currentBody,
+				body    = currentBody,
 				shape   = shape,
 				fixture = fixture,
 			}
@@ -102,7 +104,7 @@ return {
 
 					-- This fixes a height issue
 					 o.y = o.y + map.tiles[object.gid].offset.y
-					 oy  = tileset.tileheight
+					 oy  = o.h
 
 					for _, tt in ipairs(tileset.tiles) do
 						if tt.id == lid then
@@ -288,7 +290,7 @@ return {
 		end
 
 		lg.pop()
-	end,
+	end
 }
 
 --- Custom Properties in Tiled are used to tell this plugin what to do.

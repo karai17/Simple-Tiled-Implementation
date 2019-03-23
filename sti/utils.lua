@@ -8,11 +8,11 @@ function utils.format_path(path)
 	local k
 
 	repeat -- /./ -> /
-		path,k = path:gsub(np_pat2,'/')
+		path,k = path:gsub(np_pat2,'/',1)
 	until k == 0
 
 	repeat -- A/../ -> (empty)
-		path,k = path:gsub(np_pat1,'')
+		path,k = path:gsub(np_pat1,'',1)
 	until k == 0
 
 	if path == '' then path = '.' end
@@ -139,7 +139,7 @@ function utils.convert_ellipse_to_polygon(x, y, w, h, max_segments)
 	return vertices
 end
 
-function utils.rotate_vertex(map, vertex, x, y, cos, sin)
+function utils.rotate_vertex(map, vertex, x, y, cos, sin, oy)
 	if map.orientation == "isometric" then
 		x, y               = utils.convert_isometric_to_screen(map, x, y)
 		vertex.x, vertex.y = utils.convert_isometric_to_screen(map, vertex.x, vertex.y)
@@ -150,7 +150,7 @@ function utils.rotate_vertex(map, vertex, x, y, cos, sin)
 
 	return
 		x + cos * vertex.x - sin * vertex.y,
-		y + sin * vertex.x + cos * vertex.y
+		y + sin * vertex.x + cos * vertex.y - (oy or 0)
 end
 
 --- Project isometric position to cartesian position

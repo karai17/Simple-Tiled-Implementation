@@ -1,5 +1,22 @@
 # Change Log
 
+## 2019-03-23: v1.2.3.0-WIP
+
+* Added: support for changing layer tiles at runtime (thanks @IoriBranford)
+* Added: object's name and type now exposed to bump world (thanks @npinochet)
+* Added: support for LOVE 11.0 (thanks @tyraindreams, @Krankdud, @AndrewRublyov)
+* Added: support for Box2D dynamic bodies via "dynamic" property (thanks @lemilonkh)
+* Added: tutorial formerly hosted by lua.space to /tutorials
+* Added: support for restitution, friction, and filter properties to Box2D plugin (thanks @DrJamgo)
+* Added: support for infinite maps
+* Changed: loading a map now asserts (thanks @Alloyed)
+* Fixed: error when translate coords are nil in Map.draw (thanks @camchenry)
+* Fixed: create new tile instance list if one doesn't exist (thanks @IoriBranford)
+* Fixed: error when translate coords are nil in box2d_draw (thanks @DanielPower)
+* Fixed: incorrect Y offset when tile height is different than map's tileheight (thanks @IoriBranford)
+* Fixed: tile objects now scale correctly (thanks @Jules5)
+* Fixed: tile object transform issues (thanks @DavidJTFerguson37)
+
 ## 2017-05-18: v0.18.2.1
 
 * Changed: map.draw, map.box2d_draw, and map.bump_draw now take transform arguments. This (finally!) allows both scaling and translating to work together.

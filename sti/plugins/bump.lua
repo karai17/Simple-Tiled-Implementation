@@ -1,7 +1,7 @@
 --- Bump.lua plugin for STI
 -- @module bump.lua
 -- @author David Serrano (BobbyJones|FrenchFryLord)
--- @copyright 2016
+-- @copyright 2019
 -- @license MIT/X11
 
 local lg = require((...):gsub('plugins.bump', 'graphics'))
@@ -9,7 +9,7 @@ local lg = require((...):gsub('plugins.bump', 'graphics'))
 return {
 	bump_LICENSE        = "MIT/X11",
 	bump_URL            = "https://github.com/karai17/Simple-Tiled-Implementation",
-	bump_VERSION        = "3.1.6.1",
+	bump_VERSION        = "3.1.7.0",
 	bump_DESCRIPTION    = "Bump hooks for STI.",
 
 	--- Adds each collidable tile to the Bump world.
