@@ -8,11 +8,12 @@ local points
 
 function love.load()
 	-- Load map
-	map = sti("tests/ortho.lua", { "box2d" })
-	--map = sti("tests/iso.lua",   { "box2d" })
-	--map = sti("tests/stag.lua",  { "box2d" })
-	--map = sti("tests/hex.lua",   { "box2d" })
-	--map = sti("tests/bench.lua", { "box2d" }) -- this might crash your system!
+	map = sti("tests/ortho.lua",    { "box2d" })
+	--map = sti("tests/iso.lua",      { "box2d" })
+	--map = sti("tests/stag.lua",     { "box2d" })
+	--map = sti("tests/hex.lua",      { "box2d" })
+	--map = sti("tests/infinite.lua", { "box2d" })
+	--map = sti("tests/bench.lua",    { "box2d" }) -- this might crash your system!
 
 	-- Print versions
 	print("STI: " .. sti._VERSION)
