@@ -113,9 +113,38 @@ function Map:init(path, plugins, ox, oy)
 		gid = self:setTiles(i, tileset, gid)
 	end
 
+	local layers = {}
+	for i, layer in ipairs(self.layers) do
+		self:groupAppendToList(layers, layer)
+	end
+	self.layers = layers
+
 	-- Set layers
 	for _, layer in ipairs(self.layers) do
 		self:setLayer(layer, path)
+	end
+end
+
+--- Layers from the group are added to the list
+-- @param layers List of layers
+-- @param layer Layer data
+function Map:groupAppendToList(layers, layer)
+	if layer.type == "group" then
+		for _, groupLayer in pairs(layer.layers) do
+			groupLayer.name = layer.name .. "." .. groupLayer.name
+			groupLayer.visible = layer.visible
+			groupLayer.opacity = layer.opacity * groupLayer.opacity
+			groupLayer.offsetx = layer.offsetx + groupLayer.offsetx
+			groupLayer.offsety = layer.offsety + groupLayer.offsety
+			for key, property in pairs(layer.properties) do
+				if groupLayer.properties[key] == nil then
+					groupLayer.properties[key] = property
+				end
+			end
+			self:groupAppendToList(layers, groupLayer)
+		end
+	else
+		table.insert(layers, layer)
 	end
 end
 
