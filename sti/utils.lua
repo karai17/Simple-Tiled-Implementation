@@ -8,11 +8,11 @@ function utils.format_path(path)
 	local k
 
 	repeat -- /./ -> /
-		path,k = path:gsub(np_pat2,'/')
+		path,k = path:gsub(np_pat2,'/',1)
 	until k == 0
 
 	repeat -- A/../ -> (empty)
-		path,k = path:gsub(np_pat1,'')
+		path,k = path:gsub(np_pat1,'',1)
 	until k == 0
 
 	if path == '' then path = '.' end
