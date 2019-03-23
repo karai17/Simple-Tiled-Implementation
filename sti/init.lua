@@ -280,7 +280,12 @@ function Map:setTileData(layer)
 		map[y] = {}
 		for x = 1, layer.width do
 			local gid = layer.data[i]
-			map[y][x] = self.tiles[gid] or self:setFlippedGID(gid)
+
+			-- NOTE: Empty tiles have a GID of 0
+			if gid > 0 then
+				map[y][x] = self.tiles[gid] or self:setFlippedGID(gid)
+			end
+
 			i = i + 1
 		end
 	end
