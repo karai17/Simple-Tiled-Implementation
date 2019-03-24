@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.2" tiledversion="1.2.2" orientation="orthogonal" renderorder="right-down" width="32" height="16" tilewidth="32" tileheight="32" infinite="0" nextlayerid="6" nextobjectid="53">
+<map version="1.2" tiledversion="1.2.2" orientation="orthogonal" renderorder="right-down" width="32" height="16" tilewidth="32" tileheight="32" infinite="0" nextlayerid="6" nextobjectid="54">
  <tileset firstgid="1" source="../tsx/grid.tsx"/>
  <tileset firstgid="1025" source="../tsx/may.tsx"/>
  <layer id="5" name="Tile Layer 1" width="32" height="16">
@@ -85,5 +85,8 @@
   <object id="50" gid="2147484746" x="816" y="56" width="16" height="16" rotation="45"/>
   <object id="51" gid="3221226570" x="816" y="40" width="16" height="16" rotation="45"/>
   <object id="52" gid="1098" x="800" y="56" width="16" height="16" rotation="45"/>
+  <object id="53" x="0" y="448" width="160" height="64">
+   <text fontfamily="MS Shell Dlg 2" pixelsize="27" wrap="1" color="#ffffff" halign="center" valign="center">Hello World</text>
+  </object>
  </objectgroup>
 </map>

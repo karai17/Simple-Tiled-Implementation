@@ -9,7 +9,7 @@ return {
   tilewidth = 32,
   tileheight = 32,
   nextlayerid = 6,
-  nextobjectid = 53,
+  nextobjectid = 54,
   properties = {},
   tilesets = {
     {
@@ -637,6 +637,26 @@ return {
           rotation = 45,
           gid = 1098,
           visible = true,
+          properties = {}
+        },
+        {
+          id = 53,
+          name = "",
+          type = "",
+          shape = "text",
+          x = 0,
+          y = 448,
+          width = 160,
+          height = 64,
+          rotation = 0,
+          visible = true,
+          text = "Hello World",
+          fontfamily = "MS Shell Dlg 2",
+          pixelsize = 27,
+          wrap = true,
+          color = { 255, 255, 255 },
+          halign = "center",
+          valign = "center",
           properties = {}
         }
       }
