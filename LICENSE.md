@@ -2,7 +2,7 @@
 
 This code is licensed under the [**MIT/X11 Open Source License**][MIT].
 
-Copyright (c) 2014 Landon Manning - LManning17@gmail.com - [LandonManning.com][LM]
+Copyright (c) 2019 Landon Manning - LManning17@gmail.com - [LandonManning.com][LM]
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,5 +22,5 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
-[MIT]: http://www.opensource.org/licenses/mit-license.html
-[LM]: http://LandonManning.com
+[MIT]: https://www.opensource.org/licenses/mit-license.html
+[LM]: https://LandonManning.com

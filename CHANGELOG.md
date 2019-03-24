@@ -1,6 +1,6 @@
 # Change Log
 
-## 2019-03-23: v1.2.3.0-WIP
+## 2019-03-24: v1.2.3.0
 
 * Added: support for changing layer tiles at runtime (thanks @IoriBranford)
 * Added: object's name and type now exposed to bump world (thanks @npinochet)
