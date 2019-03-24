@@ -300,6 +300,6 @@ return {
 -- @field dynamic set to true, can be used on any Tile or Object
 -- @field friction can be used to define the friction of any Object
 -- @field restitution can be used to define the restitution of any Object
--- @field categories  can be used to set the filter Category of any Object
+-- @field categories can be used to set the filter Category of any Object
 -- @field mask can be used to set the filter Mask of any Object
 -- @field group can be used to set the filter Group of any Object

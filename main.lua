@@ -1,25 +1,20 @@
 io.stdout:setvbuf("no")
 local love = _G.love
 local sti  = require "sti"
-local map
-local world
-local tx, ty
-local points
+local map, world, tx, ty, points
 
 function love.load()
 	-- Load map
-	map = sti("tests/ortho.lua",    { "box2d" })
-	--map = sti("tests/iso.lua",      { "box2d" })
-	--map = sti("tests/stag.lua",     { "box2d" })
-	--map = sti("tests/hex.lua",      { "box2d" })
-	--map = sti("tests/infinite.lua", { "box2d" })
-	--map = sti("tests/bench.lua",    { "box2d" }) -- this might crash your system!
+	map = sti("tests/ortho.lua",     { "box2d" })
+	--map = sti("tests/ortho-inf.lua", { "box2d" })
+	--map = sti("tests/iso.lua",       { "box2d" })
+	--map = sti("tests/stag.lua",      { "box2d" })
+	--map = sti("tests/hex.lua",       { "box2d" })
+	--map = sti("tests/objects.lua",   { "box2d" })
 
 	-- Print versions
 	print("STI: " .. sti._VERSION)
 	print("Map: " .. map.tiledversion)
-	print("ESCAPE TO QUIT")
-	print("SPACE TO RESET TRANSLATION")
 
 	-- Prepare translations
 	tx, ty = 0, 0
@@ -37,33 +32,16 @@ function love.load()
 	love.graphics.setPointSize(5)
 end
 
-function love.keypressed(key)
-	-- Exit test
-	if key == "escape" then
-		love.event.quit()
-	end
-
-	-- Reset translation
-	if key == "space" then
-		tx, ty = 0, 0
-	end
-end
-
 function love.update(dt)
 	world:update(dt)
 	map:update(dt)
 
 	-- Move map
 	local kd = love.keyboard.isDown
-	local l  = kd("left")  or kd("a")
-	local r  = kd("right") or kd("d")
-	local u  = kd("up")    or kd("w")
-	local d  = kd("down")  or kd("s")
-
-	tx = l and tx - 128 * dt or tx
-	tx = r and tx + 128 * dt or tx
-	ty = u and ty - 128 * dt or ty
-	ty = d and ty + 128 * dt or ty
+	tx = kd("a", "left")  and tx - 128 * dt or tx
+	tx = kd("d", "right") and tx + 128 * dt or tx
+	ty = kd("w", "up")    and ty - 128 * dt or ty
+	ty = kd("s", "down")  and ty + 128 * dt or ty
 end
 
 function love.draw()
@@ -78,7 +56,7 @@ function love.draw()
 	-- Draw points
 	love.graphics.translate(-tx, -ty)
 
-	love.graphics.setColor(1, 0, 1)
+	love.graphics.setColor(0, 1, 1)
 	for _, point in ipairs(points.mouse) do
 		love.graphics.points(point.x, point.y)
 	end
@@ -94,11 +72,11 @@ function love.mousepressed(x, y, button)
 		x = x + tx
 		y = y + ty
 
-		local tilex, tiley   = map:convertPixelToTile(x, y)
+		local tilex,  tiley  = map:convertPixelToTile(x, y)
 		local pixelx, pixely = map:convertTileToPixel(tilex, tiley)
 
 		table.insert(points.pixel, { x=pixelx, y=pixely })
-		table.insert(points.mouse, { x=x, y=y })
+		table.insert(points.mouse, { x=x,      y=y      })
 
 		print(x, tilex, pixelx)
 		print(y, tiley, pixely)

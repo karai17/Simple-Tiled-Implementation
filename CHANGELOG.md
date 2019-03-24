@@ -10,6 +10,7 @@
 * Added: support for restitution, friction, and filter properties to Box2D plugin (thanks @DrJamgo)
 * Added: support for infinite maps
 * Added: support for layer groups (thanks @daxartio)
+* Added: support for point objects
 * Changed: loading a map now asserts (thanks @Alloyed)
 * Fixed: error when translate coords are nil in Map.draw (thanks @camchenry)
 * Fixed: create new tile instance list if one doesn't exist (thanks @IoriBranford)

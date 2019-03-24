@@ -935,6 +935,8 @@ function Map:drawObjectLayer(layer)
 			drawShape(object.polygon, "polygon")
 		elseif object.shape == "polyline" then
 			drawShape(object.polyline, "polyline")
+		elseif object.shape == "point" then
+			lg.points(object.x, object.y)
 		end
 	end
 

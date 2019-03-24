@@ -1,4 +1,4 @@
-local lg       = love.graphics
+local lg       = _G.love.graphics
 local graphics = { isCreated = lg and true or false }
 
 function graphics.newSpriteBatch(...)
@@ -109,11 +109,16 @@ function graphics.polygon(...)
 	end
 end
 
+function graphics.points(...)
+	if graphics.isCreated then
+		return lg.points(...)
+	end
+end
+
 function graphics.getWidth()
 	if graphics.isCreated then
 		return lg.getWidth()
 	end
-
 	return 0
 end
 
@@ -121,7 +126,6 @@ function graphics.getHeight()
 	if graphics.isCreated then
 		return lg.getHeight()
 	end
-
 	return 0
 end
 
