@@ -718,7 +718,7 @@ function Map:convertToCustomLayer(index)
 end
 
 --- Remove a Layer from the Layer stack
--- @param index Index or name of Layer to convert
+-- @param index Index or name of Layer to remove
 function Map:removeLayer(index)
 	local layer = assert(self.layers[index], "Layer not found: " .. index)
 
