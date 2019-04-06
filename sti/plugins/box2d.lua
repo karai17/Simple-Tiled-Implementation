@@ -150,6 +150,17 @@ return {
 					addObjectToWorld(o.shape, triangle, userdata, tile or object)
 				end
 			elseif o.shape == "polygon" then
+				-- Recalculate collision polygons inside tiles
+				if tile then
+					local cos = math.cos(math.rad(o.r))
+					local sin = math.sin(math.rad(o.r))
+					for _, vertex in ipairs(o.polygon) do
+						vertex.x = vertex.x + o.x
+						vertex.y = vertex.y + o.y
+						vertex.x, vertex.y = utils.rotate_vertex(map, vertex, o.x, o.y, cos, sin)
+					end
+				end
+
 				local vertices  = getPolygonVertices(o)
 				local triangles = love.math.triangulate(vertices)
 
