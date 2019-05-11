@@ -1259,10 +1259,22 @@ function Map:convertPixelToTile(x, y)
 			y = y - (even and tileH or (tileH - sideLenY) / 2)
 		end
 
-		local colW       = ((tileW - sideLenX) / 2) + sideLenX
-		local rowH       = ((tileH - sideLenY) / 2) + sideLenY
+		local colW       = ((tileW - sideLenX) / 2) + (sideLenX / 4)
+		local rowH       = ((tileH - sideLenY) / 2) + (sideLenY / 4)
 		local referenceX = ceil(x) / (colW * 2)
 		local referenceY = ceil(y) / (rowH * 2)
+
+    -- If in staggered line, then shift reference by 0.5 of other axes
+		if staggerX then
+			if (floor(referenceX) % 2 == 0) == even then
+				referenceY = referenceY - 0.5
+			end
+		else
+			if (floor(referenceY) % 2 == 0) == even then
+				referenceX = referenceX - 0.5
+			end
+		end
+
 		local relativeX  = x - referenceX * colW * 2
 		local relativeY  = y - referenceY * rowH * 2
 		local centers
@@ -1308,17 +1320,17 @@ function Map:convertPixelToTile(x, y)
 		end
 
 		local offsetsStaggerX = {
-			{ x = 0, y =  0 },
-			{ x = 1, y = -1 },
-			{ x = 1, y =  0 },
+			{ x = 1, y =  1 },
 			{ x = 2, y =  0 },
+			{ x = 2, y =  1 },
+			{ x = 3, y =  1 },
 		}
 
 		local offsetsStaggerY = {
-			{ x =  0, y = 0 },
-			{ x = -1, y = 1 },
-			{ x =  0, y = 1 },
+			{ x =  1, y = 1 },
 			{ x =  0, y = 2 },
+			{ x =  1, y = 2 },
+			{ x =  1, y = 3 },
 		}
 
 		local offsets = staggerX and offsetsStaggerX or offsetsStaggerY
