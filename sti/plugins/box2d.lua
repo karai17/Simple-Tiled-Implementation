@@ -91,8 +91,8 @@ return {
 				properties = object.properties
 			}
 
+			o.r = object.rotation or 0
 			if o.shape == "rectangle" then
-				o.r       = object.rotation or 0
 				local cos = math.cos(math.rad(o.r))
 				local sin = math.sin(math.rad(o.r))
 				local oy  = 0
@@ -180,6 +180,7 @@ return {
 					if tile.objectGroup then
 						for _, object in ipairs(tile.objectGroup.objects) do
 							if object.properties.collidable == true then
+								object = utils.deepCopy(object)
 								object.dx = instance.x + object.x
 								object.dy = instance.y + object.y
 								calculateObjectPosition(object, instance)
