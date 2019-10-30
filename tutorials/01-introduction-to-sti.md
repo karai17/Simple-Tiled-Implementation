@@ -47,7 +47,7 @@ end
 
 Amazing! We added just four lines of code and now our map is being drawn! But hey, what is that ugly box? That is our `Player` object that we created. Obviously we don't want that to be a box so let's create a player object.
 
-First we need to add a new `Custom Layer` to our map. This layer will be used for holding dynamic data that lives in our world such as players, doors, or other objects that can get added, modified, or removed throughout the lifecycle of the game.
+First we need to add a new `Custom Layer` to our map. This layer will be used for holding dynamic data that lives in our world such as players, doors, or other objects that can get added, modified, or removed throughout the lifecycle of the game. The 8th layer is the next free layer in the map. If you have different number of layers you should use different number. There shouldn't be any gaps in layer indices.
 
 ```lua
 function love.load()
