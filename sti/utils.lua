@@ -155,12 +155,12 @@ end
 
 --- Project isometric position to cartesian position
 function utils.convert_isometric_to_screen(map, x, y)
-	local mapH    = map.height
+	local mapW    = map.width
 	local tileW   = map.tilewidth
 	local tileH   = map.tileheight
 	local tileX   = x / tileH
 	local tileY   = y / tileH
-	local offsetX = mapH * tileW / 2
+	local offsetX = mapW * tileW / 2
 
 	return
 		(tileX - tileY) * tileW / 2 + offsetX,
