@@ -816,7 +816,9 @@ end
 -- @param ty Translate on Y
 -- @param sx Scale on X
 -- @param sy Scale on Y
-function Map:draw(tx, ty, sx, sy)
+-- @param cx Center on X
+-- @param cy Center on Y
+function Map:draw(tx, ty, sx, sy, cx, cy)
 	local current_canvas = lg.getCanvas()
 	lg.setCanvas(self.canvas)
 	lg.clear()
@@ -825,6 +827,7 @@ function Map:draw(tx, ty, sx, sy)
 	-- Map is translated to correct position so the right section is drawn
 	lg.push()
 	lg.origin()
+	lg.translate((cx or 0) / (sx or 1), (cy or 0) / (sy or 1))
 	lg.translate(math.floor(tx or 0), math.floor(ty or 0))
 
 	for _, layer in ipairs(self.layers) do

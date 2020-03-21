@@ -281,10 +281,13 @@ return {
 	-- @param ty Translate on Y
 	-- @param sx Scale on X
 	-- @param sy Scale on Y
-	box2d_draw = function(map, tx, ty, sx, sy)
+	-- @param cx Center on X
+	-- @param cy Center on Y
+	box2d_draw = function(map, tx, ty, sx, sy, cx, cy)
 		local collision = map.box2d_collision
 
 		lg.push()
+		lg.translate(cx or 0, cy or 0)
 		lg.scale(sx or 1, sy or sx or 1)
 		lg.translate(math.floor(tx or 0), math.floor(ty or 0))
 
