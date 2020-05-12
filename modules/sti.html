@@ -53,7 +53,7 @@
 <p></p>
     <h3>Info:</h3>
     <ul>
-        <li><strong>Copyright</strong>: 2016</li>
+        <li><strong>Copyright</strong>: 2019</li>
         <li><strong>License</strong>: MIT/X11</li>
         <li><strong>Author</strong>: Landon Manning</li>
     </ul>
@@ -68,6 +68,10 @@
 	<tr>
 	<td class="name" nowrap><a href="#Map:addCustomLayer">Map:addCustomLayer (name, index)</a></td>
 	<td class="summary">Create a Custom Layer to place userdata in (such as player sprites)</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Map:addNewLayerTile">Map:addNewLayerTile (layer, chunk, tile, number, number)</a></td>
+	<td class="summary">Place new tile instance</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Map:convertPixelToTile">Map:convertPixelToTile (x, y)</a></td>
@@ -102,12 +106,20 @@
 	<td class="summary">Get custom properties from Layer</td>
 	</tr>
 	<tr>
+	<td class="name" nowrap><a href="#Map:getLayerTilePosition">Map:getLayerTilePosition (layer, tile, x, y)</a></td>
+	<td class="summary">Convert tile location to tile instance location</td>
+	</tr>
+	<tr>
 	<td class="name" nowrap><a href="#Map:getObjectProperties">Map:getObjectProperties (layer, object)</a></td>
 	<td class="summary">Get custom properties from Object</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Map:getTileProperties">Map:getTileProperties (layer, x, y)</a></td>
 	<td class="summary">Get custom properties from Tile</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Map:groupAppendToList">Map:groupAppendToList (layers, layer)</a></td>
+	<td class="summary">Layers from the group are added to the list</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Map:init">Map:init (path, plugins, ox, oy)</a></td>
@@ -132,6 +144,10 @@
 	<tr>
 	<td class="name" nowrap><a href="#Map:setLayer">Map:setLayer (layer, path)</a></td>
 	<td class="summary">Create Layers</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Map:setLayerTile">Map:setLayerTile (layer, x, y, gid)</a></td>
+	<td class="summary">Change a tile in a layer to another tile</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Map:setObjectCoordinates">Map:setObjectCoordinates (layer)</a></td>
@@ -183,6 +199,10 @@
 	<tr>
 	<td class="name" nowrap><a href="#ImageLayer">ImageLayer</a></td>
 	<td class="summary"></td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Map.freeBatchSprites">Map.freeBatchSprites</a></td>
+	<td class="summary">A list of no-longer-used batch sprites, indexed by batch</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Map.layers">Map.layers</a></td>
@@ -272,6 +292,38 @@
 
         table Custom Layer
     </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Map:addNewLayerTile"></a>
+    <strong>Map:addNewLayerTile (layer, chunk, tile, number, number)</strong>
+    </dt>
+    <dd>
+    Place new tile instance
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">layer</span>
+         Tile layer
+        </li>
+        <li><span class="parameter">chunk</span>
+         Layer chunk
+        </li>
+        <li><span class="parameter">tile</span>
+         Tile
+        </li>
+        <li><span class="parameter">number</span>
+         Tile location on Y axis (in tiles)
+        </li>
+        <li><span class="parameter">number</span>
+         Tile location on Y axis (in tiles)
+        </li>
+    </ul>
+
 
 
 
@@ -477,6 +529,42 @@
 
 </dd>
     <dt>
+    <a name = "Map:getLayerTilePosition"></a>
+    <strong>Map:getLayerTilePosition (layer, tile, x, y)</strong>
+    </dt>
+    <dd>
+    Convert tile location to tile instance location
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">layer</span>
+         Tile layer
+        </li>
+        <li><span class="parameter">tile</span>
+         Tile
+        </li>
+        <li><span class="parameter">x</span>
+         Tile location on X axis (in tiles)
+        </li>
+        <li><span class="parameter">y</span>
+         Tile location on Y axis (in tiles)
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+        <li>
+        number Tile instance location on X axis (in pixels)</li>
+        <li>
+        number Tile instance location on Y axis (in pixels)</li>
+    </ol>
+
+
+
+
+</dd>
+    <dt>
     <a name = "Map:getObjectProperties"></a>
     <strong>Map:getObjectProperties (layer, object)</strong>
     </dt>
@@ -530,6 +618,29 @@
 
         table List of properties
     </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Map:groupAppendToList"></a>
+    <strong>Map:groupAppendToList (layers, layer)</strong>
+    </dt>
+    <dd>
+    Layers from the group are added to the list
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">layers</span>
+         List of layers
+        </li>
+        <li><span class="parameter">layer</span>
+         Layer data
+        </li>
+    </ul>
+
 
 
 
@@ -595,7 +706,7 @@
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">index</span>
-         Index or name of Layer to convert
+         Index or name of Layer to remove
         </li>
     </ul>
 
@@ -667,6 +778,35 @@
         </li>
         <li><span class="parameter">path</span>
          (Optional) Path to an Image Layer's image
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Map:setLayerTile"></a>
+    <strong>Map:setLayerTile (layer, x, y, gid)</strong>
+    </dt>
+    <dd>
+    Change a tile in a layer to another tile
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">layer</span>
+         The Layer that the Tile belongs to
+        </li>
+        <li><span class="parameter">x</span>
+         The X axis location of the Tile (in tiles)
+        </li>
+        <li><span class="parameter">y</span>
+         The Y axis location of the Tile (in tiles)
+        </li>
+        <li><span class="parameter">gid</span>
+         The gid of the new tile
         </li>
     </ul>
 
@@ -1032,6 +1172,20 @@
 
 </dd>
     <dt>
+    <a name = "Map.freeBatchSprites"></a>
+    <strong>Map.freeBatchSprites</strong>
+    </dt>
+    <dd>
+    A list of no-longer-used batch sprites, indexed by batch
+
+
+
+
+
+
+
+</dd>
+    <dt>
     <a name = "Map.layers"></a>
     <strong>Map.layers</strong>
     </dt>
@@ -1392,7 +1546,7 @@
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2017-05-18 17:36:07 </i>
+<i style="float:right;">Last updated 2020-04-16 17:17:47 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>
