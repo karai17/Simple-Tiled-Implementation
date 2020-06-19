@@ -157,9 +157,13 @@ function Map:loadPlugins(plugins)
 		local pluginModulePath = cwd .. 'plugins.' .. plugin
 		local ok, pluginModule = pcall(require, pluginModulePath)
 		if ok then
-			for k, func in pairs(pluginModule) do
-				if not self[k] then
-					self[k] = func
+			if pluginModule.loadStyle == "callable" then
+				pluginModule(self)
+			else
+				for k, func in pairs(pluginModule) do
+					if not self[k] then
+						self[k] = func
+					end
 				end
 			end
 		end
