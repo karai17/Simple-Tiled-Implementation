@@ -230,7 +230,7 @@ function love.load()
 end
 ```
 
-Cool, we can now move our player around the screen! But that's only half the battle. We also want to centre the player in the screen so that the player never runs away from us. Instead, we want the world to move around our player. How do we accomplish this? LÖVE provides graphics transform tools such as `translate`, `rotate`, and `scale` that will give us the illusion that our player is static and the world is dynamic, instead of the other way around.
+Cool, we can now move our player around the screen! But that's only half the battle. We also want to centre the player in the screen so that the player never runs away from us. Instead, we want the world to move around our player. How do we accomplish this? STI Map object's draw method lets us pass the translation and scale factors as parameters.
 
 ```lua
 function love.draw()
@@ -239,11 +239,8 @@ function love.draw()
 	local tx = math.floor(player.x - love.graphics.getWidth()  / 2)
 	local ty = math.floor(player.y - love.graphics.getHeight() / 2)
 
-	-- Transform world
-	love.graphics.translate(-tx, -ty)
-
 	-- Draw world
-	map:draw()
+	map:draw(-tx, -ty)
 end
 ```
 
@@ -263,12 +260,8 @@ function love.draw()
 	local tx = math.floor(player.x - screen_width  / 2)
 	local ty = math.floor(player.y - screen_height / 2)
 
-	-- Transform world
-	love.graphics.scale(scale)
-	love.graphics.translate(-tx, -ty)
-
 	-- Draw world
-	map:draw()
+	map:draw(-tx, -ty, scale, scale)
 end
 ```
 
@@ -371,12 +364,8 @@ function love.draw()
 	local tx = math.floor(player.x - screen_width  / 2)
 	local ty = math.floor(player.y - screen_height / 2)
 
-	-- Transform world
-	love.graphics.scale(scale)
-	love.graphics.translate(-tx, -ty)
-
 	-- Draw world
-	map:draw()
+	map:draw(-tx, -ty, scale, scale)
 end
 ```
 
