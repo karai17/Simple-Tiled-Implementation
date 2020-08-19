@@ -933,16 +933,18 @@ function Map:drawObjectLayer(layer)
 	end
 
 	for _, object in ipairs(layer.objects) do
-		if object.shape == "rectangle" and not object.gid then
-			drawShape(object.rectangle, "rectangle")
-		elseif object.shape == "ellipse" then
-			drawShape(object.ellipse, "ellipse")
-		elseif object.shape == "polygon" then
-			drawShape(object.polygon, "polygon")
-		elseif object.shape == "polyline" then
-			drawShape(object.polyline, "polyline")
-		elseif object.shape == "point" then
-			lg.points(object.x, object.y)
+		if object.visible then
+			if object.shape == "rectangle" and not object.gid then
+				drawShape(object.rectangle, "rectangle")
+			elseif object.shape == "ellipse" then
+				drawShape(object.ellipse, "ellipse")
+			elseif object.shape == "polygon" then
+				drawShape(object.polygon, "polygon")
+			elseif object.shape == "polyline" then
+				drawShape(object.polyline, "polyline")
+			elseif object.shape == "point" then
+				lg.points(object.x, object.y)
+			end
 		end
 	end
 
