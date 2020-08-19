@@ -38,8 +38,11 @@ return {
 			end
 
 			local currentBody = body
-
+			--dynamic are objects/players etc.
 			if userdata.properties.dynamic == true then
+				currentBody = love.physics.newBody(world, map.offsetx, map.offsety, 'dynamic')
+			-- static means it shouldn't move. Things like walls/ground.
+			elseif userdata.properties.static == true then
 				currentBody = love.physics.newBody(world, map.offsetx, map.offsety, 'dynamic')
 			end
 
