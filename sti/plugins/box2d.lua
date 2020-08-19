@@ -44,6 +44,7 @@ return {
 			-- static means it shouldn't move. Things like walls/ground.
 			elseif userdata.properties.static == true then
 				currentBody = love.physics.newBody(world, map.offsetx, map.offsety, 'static')
+			-- kinematic means that the object is static in the game world but effects other bodies
 			elseif userdata.properties.kinematic == true then
 				currentBody = love.physics.newBody(world, map.offsetx, map.offsety, 'kinematic')			
 			end
