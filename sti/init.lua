@@ -21,6 +21,7 @@ local floor = math.floor
 local lg    = require(cwd .. "graphics")
 local Map   = {}
 Map.__index = Map
+STI.Map = Map
 
 local function new(map, plugins, ox, oy)
 	local dir = ""
