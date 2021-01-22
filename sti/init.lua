@@ -381,8 +381,10 @@ function Map:setObjectCoordinates(layer)
 				vertex.y           = vertex.y + y
 				vertex.x, vertex.y = utils.rotate_vertex(self, vertex, x, y, cos, sin)
 			end
-		elseif object.shape == "rectangle" then -- a tile object
-			object.x, object.y = utils.convert_isometric_to_screen(self, object.x, object.y)
+		elseif object.shape == "rectangle" and object.gid then -- a tile object
+			if self.orientation == "isometric" then
+				object.x, object.y = utils.convert_isometric_to_screen(self, object.x, object.y)
+			end
 		end
 	end
 end
