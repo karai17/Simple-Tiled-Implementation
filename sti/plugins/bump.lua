@@ -54,6 +54,7 @@ return {
 								width      = map.tilewidth,
 								height     = map.tileheight,
 								layer      = instance.layer,
+								type       = tile.type,
 								properties = tile.properties
 							}
 
@@ -99,6 +100,7 @@ return {
 								width      = tile.width,
 								height     = tile.height,
 								layer      = layer,
+								type       = tile.type,
 								properties = tile.properties
 							}
 
