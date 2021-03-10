@@ -825,11 +825,16 @@ function Map:draw(tx, ty, sx, sy)
 	-- Map is translated to correct position so the right section is drawn
 	lg.push()
 	lg.origin()
-	lg.translate(math.floor(tx or 0), math.floor(ty or 0))
+	
+	tx, ty = tx or 0, ty or 0
 
 	for _, layer in ipairs(self.layers) do
 		if layer.visible and layer.opacity > 0 then
+			local px, py = layer.parallaxx or 1, layer.parallaxy or 1
+			px, py = math.floor(tx * px), math.floor(ty * py)
+			lg.translate(px, py)
 			self:drawLayer(layer)
+			lg.translate(-px, -py)
 		end
 	end
 
