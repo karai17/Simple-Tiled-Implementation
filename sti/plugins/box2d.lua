@@ -16,8 +16,11 @@ return {
 
 	--- Initialize Box2D physics world.
 	-- @param world The Box2D world to add objects to.
-	box2d_init = function(map, world)
+	box2d_init = function(map, world, scalex, scaley)
 		assert(love.physics, "To use the Box2D plugin, please enable the love.physics module.")
+
+		scalex = scalex or 1
+		scaley = scaley or 1
 
 		local body      = love.physics.newBody(world, map.offsetx, map.offsety)
 		local collision = {
@@ -26,15 +29,28 @@ return {
 
 		local function addObjectToWorld(objshape, vertices, userdata, object)
 			local shape
+			local nvertices = nil
+			if scalex == 1 and scaley == 1 then
+				nvertices = vertices
+			else
+				nvertices = {}
+				for i, k in ipairs(vertices) do
+					if i % 2 ~= 0 then
+						nvertices[i] = k * scalex
+					else
+						nvertices[i] = k * scaley
+					end
+				end
+			end
 
 			if objshape == "polyline" then
 				if #vertices == 4 then
-					shape = love.physics.newEdgeShape(unpack(vertices))
+					shape = love.physics.newEdgeShape(unpack(nvertices))
 				else
-					shape = love.physics.newChainShape(false, unpack(vertices))
+					shape = love.physics.newChainShape(false, unpack(nvertices))
 				end
 			else
-				shape = love.physics.newPolygonShape(unpack(vertices))
+				shape = love.physics.newPolygonShape(unpack(nvertices))
 			end
 
 			local currentBody = body
