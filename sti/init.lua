@@ -1248,6 +1248,7 @@ end
 ---@return number X The X axis location of the point (in pixels)
 ---@return number Y The Y axis location of the point (in pixels)
 function Map:convertTileToPixel(x,y)
+	local orientation = self.orientation
 	if self.orientation == "orthogonal" then
 		local tileW = self.tilewidth
 		local tileH = self.tileheight
@@ -1262,44 +1263,95 @@ function Map:convertTileToPixel(x,y)
 		return
 			(x - y) * tileW / 2 + offsetX,
 			(x + y) * tileH / 2
-	elseif self.orientation == "staggered" or
-		self.orientation     == "hexagonal" then
-		local tileW   = self.tilewidth
-		local tileH   = self.tileheight
-		local sideLen = self.hexsidelength or 0
+	elseif orientation == "staggered" or orientation == "hexagonal" then
+		local params = self:getRenderParams()
 
-		if self.staggeraxis == "x" then
-			return
-				x * tileW,
-				ceil(y) * (tileH + sideLen) + (ceil(y) % 2 == 0 and tileH or 0)
+		local tx,ty = math.floor(x), math.floor(y)
+		local px,py
+	
+		if params.staggerX then
+			py = ty * (params.tileHeight + params.sideLengthY)
+	
+			if params.doStaggerX(tx) then
+				py = py + params.rowHeight
+			end
+	
+			px = tx * params.columnWidth
 		else
-			return
-				ceil(x) * (tileW + sideLen) + (ceil(x) % 2 == 0 and tileW or 0),
-				y * tileH
+			px = tx * (params.tileWidth + params.sideLengthX)
+	
+			if params.doStaggerY(ty) then
+				px = px + params.columnWidth
+			end
+	
+			py = ty * params.rowHeight
 		end
+	
+		return px,py
 	end
 end
 
+function Map:getRenderParams()
+    ---@class sti.Map.Params
+    local t = {
+        tileWidth = self.tilewidth,
+        tileHeight = self.tileheight,
+        sideLengthX = 0,
+        sideLengthY = 0,
+        staggerX = self.staggeraxis == "x",
+        staggerEven = self.staggerindex == "even",
+    }
+
+    if t.staggerX then
+        t.sideLengthX = self.hexsidelength
+    else
+        t.sidelengthY = self.hexsidelength
+    end
+
+    t.sideOffsetX = (t.tileWidth - t.sideLengthX) / 2;
+    t.sideOffsetY = (t.tileHeight - t.sideLengthY) / 2;
+
+    t.columnWidth = t.sideOffsetX + t.sideLengthX;
+    t.rowHeight = t.sideOffsetY + t.sideLengthY;
+
+    -- staggerX if we have staggerX enabled, and...
+        -- if staggereven, then test if x is even
+        -- else, odd
+    function t.doStaggerX(x)
+        return (t.staggerX and (t.staggerEven and x % 2 == 0) or x % 2 == 1)
+    end
+
+    function t.doStaggerY(y)
+        return (not t.staggerX and (t.staggerEven and y % 2 == 0) or y % 2 == 1)
+    end
+
+    return t
+end
+
+local function Point(x, y)
+	return {x=x, y=y}
+end
+
 --- Convert pixel location to tile location
-function Map:convertPixelToTile(x, y)
 ---@param px number The X axis location of the point (in pixels)
 ---@param py number The Y axis location of the point (in pixels)
 ---@return number TX The X axis location of the point (in tiles)
 ---@return number TY The Y axis location of the point (in tiles)
+function Map:convertPixelToTile(px, py)
 	if self.orientation == "orthogonal" then
 		local tileW = self.tilewidth
 		local tileH = self.tileheight
 		return
-			x / tileW,
-			y / tileH
+			px / tileW,
+			py / tileH
 	elseif self.orientation == "isometric" then
 		local mapH    = self.height
 		local tileW   = self.tilewidth
 		local tileH   = self.tileheight
 		local offsetX = mapH * tileW / 2
 		return
-			y / tileH + (x - offsetX) / tileW,
-			y / tileH - (x - offsetX) / tileW
+			py / tileH + (px - offsetX) / tileW,
+			py / tileH - (px - offsetX) / tileW
 	elseif self.orientation == "staggered" then
 		local staggerX = self.staggeraxis  == "x"
 		local even     = self.staggerindex == "even"
@@ -1372,17 +1424,17 @@ function Map:convertPixelToTile(x, y)
 		local tileH = self.tileheight
 
 		if staggerX then
-			x = x - (even and tileW / 2 or 0)
+			px = px - (even and tileW / 2 or 0)
 		else
-			y = y - (even and tileH / 2 or 0)
+			py = py - (even and tileH / 2 or 0)
 		end
 
 		local halfH      = tileH / 2
 		local ratio      = tileH / tileW
-		local referenceX = ceil(x / tileW)
-		local referenceY = ceil(y / tileH)
-		local relativeX  = x - referenceX * tileW
-		local relativeY  = y - referenceY * tileH
+		local referenceX = ceil(px / tileW)
+		local referenceY = ceil(py / tileH)
+		local relativeX  = px - referenceX * tileW
+		local relativeY  = py - referenceY * tileH
 
 		if (halfH - relativeX * ratio > relativeY) then
 			return topLeft(referenceX, referenceY)
@@ -1396,102 +1448,102 @@ function Map:convertPixelToTile(x, y)
 
 		return referenceX, referenceY
 	elseif self.orientation == "hexagonal" then
-		local staggerX  = self.staggeraxis  == "x"
-		local even      = self.staggerindex == "even"
-		local tileW     = self.tilewidth
-		local tileH     = self.tileheight
-		local sideLenX  = 0
-		local sideLenY  = 0
-
-		local colW       = tileW / 2
-		local rowH       = tileH / 2
-		if staggerX then
-			sideLenX = self.hexsidelength
-			x = x - (even and tileW or (tileW - sideLenX) / 2)
-			colW = colW - (colW  - sideLenX / 2) / 2
+		local p = self:getRenderParams()
+		local tx,ty
+	
+		if p.staggerX then
+			px = px - (p.staggerEven and p.tileWidth or p.sideOffsetX)
 		else
-			sideLenY = self.hexsidelength
-			y = y - (even and tileH or (tileH - sideLenY) / 2)
-			rowH = rowH - (rowH  - sideLenY / 2) / 2
+			py = py - (p.staggerEven and p.tileHeight or p.sideOffsetY)
 		end
-
-		local referenceX = ceil(x) / (colW * 2)
-		local referenceY = ceil(y) / (rowH * 2)
-
-    -- If in staggered line, then shift reference by 0.5 of other axes
-		if staggerX then
-			if (floor(referenceX) % 2 == 0) == even then
-				referenceY = referenceY - 0.5
+	
+		--- Start with the coordinates of a grid-aligned tile
+		local reference_point = Point(
+			math.floor(px / (p.columnWidth * 2)),
+			math.floor(py / (p.rowHeight * 2))
+		)
+		
+		-- Relative x and y position on the base square of the grid-aligned tile
+		local relative_pos = Point(
+			px - reference_point.x * (p.columnWidth * 2),
+			py - reference_point.y * (p.rowHeight * 2)
+		)
+		
+		--- Adjust the reference point to the correct tile coords
+		if p.staggerX then
+			reference_point.x = reference_point.x * 2
+			if p.staggerEven then
+				reference_point.x = reference_point.x + 1
 			end
 		else
-			if (floor(referenceY) % 2 == 0) == even then
-				referenceX = referenceX - 0.5
+			reference_point.y = reference_point.y * 2
+			if p.staggerEven then
+				reference_point.y = reference_point.y + 1
 			end
 		end
-
-		local relativeX  = x - referenceX * colW * 2
-		local relativeY  = y - referenceY * rowH * 2
-		local centers
-
-		if staggerX then
-			local left    = sideLenX / 2
-			local centerX = left + colW
-			local centerY = tileH / 2
-
+	
+		-- Determine the nearest hexagon tile by the distance to the center
+		local centers = {}
+	
+		if p.staggerX then
+			local left = p.sideLengthX / 2
+			local centerX = left + p.columnWidth
+			local centerY = p.tileHeight / 2
+	
 			centers = {
-				{ x = left,           y = centerY        },
-				{ x = centerX,        y = centerY - rowH },
-				{ x = centerX,        y = centerY + rowH },
-				{ x = centerX + colW, y = centerY        },
+				Point(left,                     centerY),
+				Point(centerX,                  centerY - p.rowHeight),
+				Point(centerX,                  centerY + p.rowHeight),
+				Point(centerX + p.columnWidth,  centerY),
 			}
 		else
-			local top     = sideLenY / 2
-			local centerX = tileW / 2
-			local centerY = top + rowH
-
+			local top = p.sideLengthY / 2
+			local centerX = p.tileWidth / 2
+			local centerY = top + p.rowHeight
+	
 			centers = {
-				{ x = centerX,        y = top },
-				{ x = centerX - colW, y = centerY },
-				{ x = centerX + colW, y = centerY },
-				{ x = centerX,        y = centerY + rowH }
+				Point(centerX,                  top),
+				Point(centerX - p.columnWidth,  centerY),
+				Point(centerX + p.columnWidth,  centerY),
+				Point(centerX,                  centerY + p.rowHeight)
 			}
 		end
-
+	
 		local nearest = 0
-		local minDist = math.huge
-
-		local function len2(ax, ay)
-			return ax * ax + ay * ay
-		end
-
-		for i = 1, 4 do
-			local dc = len2(centers[i].x - relativeX, centers[i].y - relativeY)
-
-			if dc < minDist then
-				minDist = dc
+		local min_dist = math.huge
+	
+		for i = 1, #centers do
+			local center = centers[i]
+			local cx,cy = center.x, center.y
+			local rx,ry = relative_pos.x, relative_pos.y
+	
+			local dsqr = (cx - rx) ^2 + (cy - ry) ^2
+			if dsqr < min_dist then
+				min_dist = dsqr
 				nearest = i
 			end
 		end
-
-		local offsetsStaggerX = {
-			{ x = 1, y =  1 },
-			{ x = 2, y =  0 },
-			{ x = 2, y =  1 },
-			{ x = 3, y =  1 },
+	
+		local offsets_stagger_x = {
+			Point(0,0),
+			Point(1,-1),
+			Point(1, 0),
+			Point(2, 0),
 		}
-
-		local offsetsStaggerY = {
-			{ x =  1, y = 1 },
-			{ x =  0, y = 2 },
-			{ x =  1, y = 2 },
-			{ x =  1, y = 3 },
+	
+		local offsets_stagger_y = {
+			Point(0,0),
+			Point(-1, 1),
+			Point(0, 1),
+			Point(0, 2),
 		}
-
-		local offsets = staggerX and offsetsStaggerX or offsetsStaggerY
-
-		return
-			referenceX + offsets[nearest].x,
-			referenceY + offsets[nearest].y
+	
+		local offsets = p.staggerX and offsets_stagger_x or offsets_stagger_y
+	
+		tx = reference_point.x + offsets[nearest].x
+		ty = reference_point.y + offsets[nearest].y
+	
+		return tx,ty
 	end
 end
 
