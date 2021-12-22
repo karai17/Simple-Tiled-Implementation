@@ -4,6 +4,7 @@
 -- @copyright 2019
 -- @license MIT/X11
 
+---@class sti
 local STI = {
 	_LICENSE     = "MIT/X11",
 	_URL         = "https://github.com/karai17/Simple-Tiled-Implementation",
@@ -18,10 +19,42 @@ local cwd   = (...):gsub('%.init$', '') .. "."
 local utils = require(cwd .. "utils")
 local ceil  = math.ceil
 local floor = math.floor
+
+---@class lg : love.graphics
+---@field isCreated boolean
 local lg    = require(cwd .. "graphics")
+
+---@alias tiled.Shape '"rectangle"'|'"ellipse"'|'"polygon"'|'"polyline"'
+---@alias tiled.Orientation '"orthogonal"'|'"isometric"'|'"staggered"'|'"hexagonal"'
+---@alias tiled.Alignment '"unspecified"' -- TODO
+---@alias tiled.RenderOrder '"left-down"'|'"left-up"'|'"right-down"'|'"right-up"'
+
+---@class sti.Map
+---@field width number
+---@field height number
+---@field layers tiled.Layer[]
+---@field tiles tiled.Tile[]
+---@field tileInstances tiled.TileInstance[]
+---@field objects tiled.Object[]
+---@field orientation tiled.Orientation
+---@field tilesets tiled.Tileset[]
+---@field renderorder tiled.RenderOrder
+---@field version number
+---@field properties kv_table
+---@field staggeraxis '"x"'|'"y"'
+---@field staggerindex '"even"'|'"odd"'
+---@field hexsidelength number
 local Map   = {}
 Map.__index = Map
 
+--- A list of no-longer-used batch sprites, indexed by batch
+--@table Map.freeBatchSprites
+
+---@param map string|table
+---@param plugins any
+---@param ox any
+---@param oy any
+---@return sti.Map
 local function new(map, plugins, ox, oy)
 	local dir = ""
 
@@ -51,11 +84,11 @@ local function new(map, plugins, ox, oy)
 end
 
 --- Instance a new map.
--- @param map Path to the map file or the map table itself
--- @param plugins A list of plugins to load
--- @param ox Offset of map on the X axis (in pixels)
--- @param oy Offset of map on the Y axis (in pixels)
--- @return table The loaded Map
+---@param map string Path to the map file or the map table itself
+---@param plugins table A list of plugins to load
+---@param ox number Offset of map on the X axis (in pixels)
+---@param oy number Offset of map on the Y axis (in pixels)
+---@return sti.Map The loaded Map
 function STI.__call(_, map, plugins, ox, oy)
 	return new(map, plugins, ox, oy)
 end
@@ -68,10 +101,10 @@ end
 --- Map object
 
 --- Instance a new map
--- @param path Path to the map file
--- @param plugins A list of plugins to load
--- @param ox Offset of map on the X axis (in pixels)
--- @param oy Offset of map on the Y axis (in pixels)
+---@param path string Path to the map file or the map table itself
+---@param plugins table A list of plugins to load
+---@param ox number Offset of map on the X axis (in pixels)
+---@param oy number Offset of map on the Y axis (in pixels)
 function Map:init(path, plugins, ox, oy)
 	if type(plugins) == "table" then
 		self:loadPlugins(plugins)
@@ -126,8 +159,8 @@ function Map:init(path, plugins, ox, oy)
 end
 
 --- Layers from the group are added to the list
--- @param layers List of layers
--- @param layer Layer data
+---@param layers table List of layers
+---@param layer table Layer data
 function Map:groupAppendToList(layers, layer)
 	if layer.type == "group" then
 		for _, groupLayer in pairs(layer.layers) do
@@ -151,7 +184,7 @@ function Map:groupAppendToList(layers, layer)
 end
 
 --- Load plugins
--- @param plugins A list of plugins to load
+---@param plugins string[] A list of plugins to load
 function Map:loadPlugins(plugins)
 	for _, plugin in ipairs(plugins) do
 		local pluginModulePath = cwd .. 'plugins.' .. plugin
@@ -167,10 +200,10 @@ function Map:loadPlugins(plugins)
 end
 
 --- Create Tiles
--- @param index Index of the Tileset
--- @param tileset Tileset data
--- @param gid First Global ID in Tileset
--- @return number Next Tileset's first Global ID
+---@param index number Index of the Tileset
+---@param tileset table Tileset data TODO classify
+---@param gid number First Global ID in Tileset
+---@return number Next Tileset's first Global ID
 function Map:setTiles(index, tileset, gid)
 	local quad    = lg.newQuad
 	local imageW  = tileset.imagewidth
@@ -227,7 +260,7 @@ function Map:setTiles(index, tileset, gid)
 				height      = tileH,
 				sx          = 1,
 				sy          = 1,
-				r           = 0,
+				r           = 0, 
 				offset      = tileset.tileoffset,
 			}
 
@@ -240,8 +273,8 @@ function Map:setTiles(index, tileset, gid)
 end
 
 --- Create Layers
--- @param layer Layer data
--- @param path (Optional) Path to an Image Layer's image
+---@param layer tiled.Layer Layer data
+---@param path string (Optional) Path to an Image Layer's image
 function Map:setLayer(layer, path)
 	if layer.encoding then
 		if layer.encoding == "base64" then
@@ -298,7 +331,7 @@ function Map:setLayer(layer, path)
 end
 
 --- Add Tiles to Tile Layer
--- @param layer The Tile Layer
+---@param layer tiled.TileLayer The Tile Layer
 function Map:setTileData(layer)
 	if layer.chunks then
 		for _, chunk in ipairs(layer.chunks) do
@@ -328,7 +361,7 @@ function Map:setTileData(layer)
 end
 
 --- Add Objects to Layer
--- @param layer The Object Layer
+---@param layer tiled.ObjectLayer The Object Layer
 function Map:setObjectData(layer)
 	for _, object in ipairs(layer.objects) do
 		object.layer            = layer
@@ -337,7 +370,7 @@ function Map:setObjectData(layer)
 end
 
 --- Correct position and orientation of Objects in an Object Layer
--- @param layer The Object Layer
+---@param layer tiled.ObjectLayer The Object Layer
 function Map:setObjectCoordinates(layer)
 	for _, object in ipairs(layer.objects) do
 		local x   = layer.x + object.x
@@ -386,12 +419,12 @@ function Map:setObjectCoordinates(layer)
 end
 
 --- Convert tile location to tile instance location
--- @param layer Tile layer
--- @param tile Tile
--- @param x Tile location on X axis (in tiles)
--- @param y Tile location on Y axis (in tiles)
--- @return number Tile instance location on X axis (in pixels)
--- @return number Tile instance location on Y axis (in pixels)
+---@param layer tiled.Layer Tile layer
+---@param tile tiled.Tile Tile
+---@param x number Tile location on X axis (in tiles)
+---@param y number Tile location on Y axis (in tiles)
+---@return number X Tile instance location on X axis (in pixels)
+---@return number Y Tile instance location on Y axis (in pixels)
 function Map:getLayerTilePosition(layer, tile, x, y)
 	local tileW = self.tilewidth
 	local tileH = self.tileheight
@@ -448,11 +481,11 @@ function Map:getLayerTilePosition(layer, tile, x, y)
 end
 
 --- Place new tile instance
--- @param layer Tile layer
--- @param chunk Layer chunk
--- @param tile Tile
--- @param number Tile location on X axis (in tiles)
--- @param number Tile location on Y axis (in tiles)
+---@param layer tiled.TileLayer
+---@param chunk tiled.TileLayer Layer chunk
+---@param tile tiled.Tile
+---@param x number Tile location on X axis (in tiles)
+---@param y number Tile location on Y axis (in tiles)
 function Map:addNewLayerTile(layer, chunk, tile, x, y)
 	local tileset = tile.tileset
 	local image   = self.tilesets[tile.tileset].image
@@ -595,7 +628,7 @@ function Map:set_batches(layer, chunk)
 end
 
 --- Batch Tiles in Tile Layer for improved draw speed
--- @param layer The Tile Layer
+---@param layer tiled.TileLayer The Tile Layer
 function Map:setSpriteBatches(layer)
 	if layer.chunks then
 		for _, chunk in ipairs(layer.chunks) do
@@ -608,7 +641,7 @@ function Map:setSpriteBatches(layer)
 end
 
 --- Batch Tiles in Object Layer for improved draw speed
--- @param layer The Object Layer
+---@param layer tiled.ObjectLayer The Object Layer
 function Map:setObjectSpriteBatches(layer)
 	local newBatch = lg.newSpriteBatch
 	local batches  = {}
@@ -621,6 +654,7 @@ function Map:setObjectSpriteBatches(layer)
 
 	for _, object in ipairs(layer.objects) do
 		if object.gid then
+			---@type tiled.Tile
 			local tile    = self.tiles[object.gid] or self:setFlippedGID(object.gid)
 			local tileset = tile.tileset
 			local image   = self.tilesets[tileset].image
@@ -678,9 +712,9 @@ function Map:setObjectSpriteBatches(layer)
 end
 
 --- Create a Custom Layer to place userdata in (such as player sprites)
--- @param name Name of Custom Layer
--- @param index Draw order within Layer stack
--- @return table Custom Layer
+---@param name string Name of Custom Layer
+---@param index number Draw order within Layer stack
+---@return table CustomLayer
 function Map:addCustomLayer(name, index)
 	index = index or #self.layers + 1
 	local layer = {
@@ -701,8 +735,8 @@ function Map:addCustomLayer(name, index)
 end
 
 --- Convert another Layer into a Custom Layer
--- @param index Index or name of Layer to convert
--- @return table Custom Layer
+---@param index number Index or name of Layer to convert
+---@return table CustomLayer
 function Map:convertToCustomLayer(index)
 	local layer = assert(self.layers[index], "Layer not found: " .. index)
 
@@ -724,7 +758,7 @@ function Map:convertToCustomLayer(index)
 end
 
 --- Remove a Layer from the Layer stack
--- @param index Index or name of Layer to remove
+---@param index number Index or name of Layer to remove
 function Map:removeLayer(index)
 	local layer = assert(self.layers[index], "Layer not found: " .. index)
 
@@ -743,6 +777,7 @@ function Map:removeLayer(index)
 	end
 
 	-- Remove layer batches
+	---@diagnostic disable undefined-field
 	if layer.batches then
 		for _, batch in pairs(layer.batches) do
 			self.freeBatchSprites[batch] = nil
@@ -757,6 +792,7 @@ function Map:removeLayer(index)
 			end
 		end
 	end
+	---@diagnostic enable undefined-field
 
 	-- Remove tile instances
 	if layer.type == "tilelayer" then
@@ -812,10 +848,10 @@ function Map:update(dt)
 end
 
 --- Draw every Layer
--- @param tx Translate on X
--- @param ty Translate on Y
--- @param sx Scale on X
--- @param sy Scale on Y
+---@param tx number Translate on X
+---@param ty number Translate on Y
+---@param sx number Scale on X
+---@param sy number Scale on Y
 function Map:draw(tx, ty, sx, sy)
 	local current_canvas = lg.getCanvas()
 	lg.setCanvas(self.canvas)
@@ -848,7 +884,7 @@ function Map:draw(tx, ty, sx, sy)
 end
 
 --- Draw an individual Layer
--- @param layer The Layer to draw
+---@param layer tiled.Layer The Layer to draw
 function Map.drawLayer(_, layer)
 	local r,g,b,a = lg.getColor()
 	lg.setColor(r, g, b, a * layer.opacity)
@@ -857,7 +893,7 @@ function Map.drawLayer(_, layer)
 end
 
 --- Default draw function for Tile Layers
--- @param layer The Tile Layer to draw
+---@param layer tiled.TileLayer The Tile Layer to draw
 function Map:drawTileLayer(layer)
 	if type(layer) == "string" or type(layer) == "number" then
 		layer = self.layers[layer]
@@ -882,7 +918,7 @@ function Map:drawTileLayer(layer)
 end
 
 --- Default draw function for Object Layers
--- @param layer The Object Layer to draw
+---@param layer tiled.ObjectLayer The Object Layer to draw
 function Map:drawObjectLayer(layer)
 	if type(layer) == "string" or type(layer) == "number" then
 		layer = self.layers[layer]
@@ -956,7 +992,7 @@ function Map:drawObjectLayer(layer)
 end
 
 --- Default draw function for Image Layers
--- @param layer The Image Layer to draw
+---@param layer tiled.ImageLayer The Image Layer to draw
 function Map:drawImageLayer(layer)
 	if type(layer) == "string" or type(layer) == "number" then
 		layer = self.layers[layer]
@@ -970,8 +1006,8 @@ function Map:drawImageLayer(layer)
 end
 
 --- Resize the drawable area of the Map
--- @param w The new width of the drawable area (in pixels)
--- @param h The new Height of the drawable area (in pixels)
+---@param w number The new width of the drawable area (in pixels)
+---@param h number The new Height of the drawable area (in pixels)
 function Map:resize(w, h)
 	if lg.isCreated then
 		w = w or lg.getWidth()
@@ -983,8 +1019,8 @@ function Map:resize(w, h)
 end
 
 --- Create flipped or rotated Tiles based on bitop flags
--- @param gid The flagged Global ID
--- @return table Flipped Tile
+---@param gid number The flagged Global ID
+---@return table Flipped Tile
 function Map:setFlippedGID(gid)
 	local bit31   = 2147483648
 	local bit30   = 1073741824
@@ -1057,8 +1093,8 @@ function Map:setFlippedGID(gid)
 end
 
 --- Get custom properties from Layer
--- @param layer The Layer
--- @return table List of properties
+---@param layer tiled.Layer The Layer
+---@return kv_table Properties List of properties
 function Map:getLayerProperties(layer)
 	local l = self.layers[layer]
 
@@ -1070,10 +1106,10 @@ function Map:getLayerProperties(layer)
 end
 
 --- Get custom properties from Tile
--- @param layer The Layer that the Tile belongs to
--- @param x The X axis location of the Tile (in tiles)
--- @param y The Y axis location of the Tile (in tiles)
--- @return table List of properties
+---@param layer tiled.TileLayer The Layer that the Tile belongs to
+---@param x number The X axis location of the Tile (in tiles)
+---@param y number The Y axis location of the Tile (in tiles)
+---@return kv_table Properties List of properties
 function Map:getTileProperties(layer, x, y)
 	local tile = self.layers[layer].data[y][x]
 
@@ -1085,9 +1121,9 @@ function Map:getTileProperties(layer, x, y)
 end
 
 --- Get custom properties from Object
--- @param layer The Layer that the Object belongs to
--- @param object The index or name of the Object
--- @return table List of properties
+---@param layer tiled.ObjectLayer The Layer that the Object belongs to
+---@param object string|number The index or name of the Object
+---@return kv_table Properties List of properties
 function Map:getObjectProperties(layer, object)
 	local o = self.layers[layer].objects
 
@@ -1110,10 +1146,10 @@ function Map:getObjectProperties(layer, object)
 end
 
 --- Change a tile in a layer to another tile
--- @param layer The Layer that the Tile belongs to
--- @param x The X axis location of the Tile (in tiles)
--- @param y The Y axis location of the Tile (in tiles)
--- @param gid The gid of the new tile
+---@param layer tiled.TileLayer The Layer that the Tile belongs to
+---@param x number The X axis location of the Tile (in tiles)
+---@param y number The Y axis location of the Tile (in tiles)
+---@param gid number The gid of the new tile
 function Map:setLayerTile(layer, x, y, gid)
 	layer = self.layers[layer]
 
@@ -1145,9 +1181,8 @@ function Map:setLayerTile(layer, x, y, gid)
 end
 
 --- Swap a tile in a spritebatch
--- @param instance The current Instance object we want to replace
--- @param tile The Tile object we want to use
--- @return none
+---@param instance tiled.TileInstance The current Instance object we want to replace
+---@param tile tiled.Tile The Tile object we want to use
 function Map:swapTile(instance, tile)
 	-- Update sprite batch
 	if instance.batch then
@@ -1208,10 +1243,10 @@ function Map:swapTile(instance, tile)
 end
 
 --- Convert tile location to pixel location
--- @param x The X axis location of the point (in tiles)
--- @param y The Y axis location of the point (in tiles)
--- @return number The X axis location of the point (in pixels)
--- @return number The Y axis location of the point (in pixels)
+---@param x number The X axis location of the point (in tiles)
+---@param y number The Y axis location of the point (in tiles)
+---@return number X The X axis location of the point (in pixels)
+---@return number Y The Y axis location of the point (in pixels)
 function Map:convertTileToPixel(x,y)
 	if self.orientation == "orthogonal" then
 		local tileW = self.tilewidth
@@ -1246,11 +1281,11 @@ function Map:convertTileToPixel(x,y)
 end
 
 --- Convert pixel location to tile location
--- @param x The X axis location of the point (in pixels)
--- @param y The Y axis location of the point (in pixels)
--- @return number The X axis location of the point (in tiles)
--- @return number The Y axis location of the point (in tiles)
 function Map:convertPixelToTile(x, y)
+---@param px number The X axis location of the point (in pixels)
+---@param py number The Y axis location of the point (in pixels)
+---@return number TX The X axis location of the point (in tiles)
+---@return number TY The Y axis location of the point (in tiles)
 	if self.orientation == "orthogonal" then
 		local tileW = self.tilewidth
 		local tileH = self.tileheight
@@ -1460,83 +1495,52 @@ function Map:convertPixelToTile(x, y)
 	end
 end
 
---- A list of individual layers indexed both by draw order and name
--- @table Map.layers
--- @see TileLayer
--- @see ObjectLayer
--- @see ImageLayer
--- @see CustomLayer
+---@alias kv_table table<string, any>
 
---- A list of individual tiles indexed by Global ID
--- @table Map.tiles
--- @see Tile
--- @see Map.tileInstances
+---@class tiled.Layer
+---@field type string The type of layer.
+---@field name string The name of the layer
+---@field x number Position on the X axis (in pixels)
+---@field y number Position on the Y axis (in pixels)
+---@field width number Width of layer (in tiles)
+---@field height number Height of layer (in tiles)
+---@field visible boolean Toggle if layer is visible or hidden
+---@field opacity number Opacity of layer
+---@field properties kv_table Custom properties
+---@field update fun(dt:number) Update function
+---@field draw fun() Draw function
+---@field gid number The global ID
+---@field parallaxx number
+---@field parallaxy number
+---@field offsetx number
+---@field offsety number
+---@field compression string
+---@field encoding string
+--- TODO ^ specific strings
 
---- A list of tile instances indexed by Global ID
--- @table Map.tileInstances
--- @see TileInstance
--- @see Tile
--- @see Map.tiles
+--- @class tiled.TileLayer : tiled.Layer
+---@field type '"tilelayer"'
+---@field data string A tileWo dimensional table filled with individual tiles indexed by [y][x] (in tiles)
+---@field batches love.SpriteBatch[]
+---@field chunks tiled.TileLayer[]
 
---- A list of no-longer-used batch sprites, indexed by batch
---@table Map.freeBatchSprites
+--- @class tiled.ObjectLayer : tiled.Layer
+---@field type '"objectgroup"'
+---@field draworder '"topdown"'|'"manual"'
+---@field objects tiled.Object[] List of objects indexed by draw order
+---@field batches love.SpriteBatch[]
 
---- A list of individual objects indexed by Global ID
--- @table Map.objects
--- @see Object
-
---- @table TileLayer
--- @field name The name of the layer
--- @field x Position on the X axis (in pixels)
--- @field y Position on the Y axis (in pixels)
--- @field width Width of layer (in tiles)
--- @field height Height of layer (in tiles)
--- @field visible Toggle if layer is visible or hidden
--- @field opacity Opacity of layer
--- @field properties Custom properties
--- @field data A tileWo dimensional table filled with individual tiles indexed by [y][x] (in tiles)
--- @field update Update function
--- @field draw Draw function
--- @see Map.layers
--- @see Tile
-
---- @table ObjectLayer
--- @field name The name of the layer
--- @field x Position on the X axis (in pixels)
--- @field y Position on the Y axis (in pixels)
--- @field visible Toggle if layer is visible or hidden
--- @field opacity Opacity of layer
--- @field properties Custom properties
--- @field objects List of objects indexed by draw order
--- @field update Update function
--- @field draw Draw function
--- @see Map.layers
--- @see Object
-
---- @table ImageLayer
--- @field name The name of the layer
--- @field x Position on the X axis (in pixels)
--- @field y Position on the Y axis (in pixels)
--- @field visible Toggle if layer is visible or hidden
--- @field opacity Opacity of layer
--- @field properties Custom properties
--- @field image Image to be drawn
--- @field update Update function
--- @field draw Draw function
--- @see Map.layers
+---@class tiled.ImageLayer : tiled.Layer
+---@field type '"imagelayer"'
+---@field image love.Image Image to be drawn
+---@see Map.layers
 
 --- Custom Layers are used to place userdata such as sprites within the draw order of the map.
--- @table CustomLayer
--- @field name The name of the layer
--- @field x Position on the X axis (in pixels)
--- @field y Position on the Y axis (in pixels)
--- @field visible Toggle if layer is visible or hidden
--- @field opacity Opacity of layer
--- @field properties Custom properties
--- @field update Update function
--- @field draw Draw function
--- @see Map.layers
--- @usage
+---@class tiled.CustomLayer : tiled.Layer
+---@field type '"customlayer"'
+---@see Map.layers
+---@see sti.addCustomLayer
+---@usage
 --	-- Create a Custom Layer
 --	local spriteLayer = map:addCustomLayer("Sprite Layer", 3)
 --
@@ -1567,50 +1571,64 @@ end
 --		end
 --	end
 
---- @table Tile
--- @field id Local ID within Tileset
--- @field gid Global ID
--- @field tileset Tileset ID
--- @field quad Quad object
--- @field properties Custom properties
--- @field terrain Terrain data
--- @field animation Animation data
--- @field frame Current animation frame
--- @field time Time spent on current animation frame
--- @field width Width of tile
--- @field height Height of tile
--- @field sx Scale value on the X axis
--- @field sy Scale value on the Y axis
--- @field r Rotation of tile (in radians)
--- @field offset Offset drawing position
--- @field offset.x Offset value on the X axis
--- @field offset.y Offset value on the Y axis
--- @see Map.tiles
+---@class tiled.Tile
+---@field id number Local ID within Tileset
+---@field gid number Global ID
+---@field tileset number Tileset ID
+---@field quad love.Quad object
+---@field properties kv_table Custom properties
+---@field terrain table Terrain data TODO fill out
+---@field animation table Animation data TODO fill out
+---@field frame number Current animation frame
+---@field time number Time spent on current animation frame
+---@field width number Width of tile
+---@field height number Height of tile
+---@field sx number Scale value on the X axis
+---@field sy number Scale value on the Y axis
+---@field r number Rotation of tile (in radians)
+---@field offset {x:number,y:number} Offset drawing position
+---@see Map.tiles
 
---- @table TileInstance
--- @field batch Spritebatch the Tile Instance belongs to
--- @field id ID within the spritebatch
--- @field gid Global ID
--- @field x Position on the X axis (in pixels)
--- @field y Position on the Y axis (in pixels)
--- @see Map.tileInstances
--- @see Tile
+---@class tiled.TileInstance
+---@field batch love.SpriteBatch Spritebatch the Tile Instance belongs to
+---@field id number ID within the spritebatch
+---@field gid number Global ID
+---@field x number Position on the X axis (in pixels)
+---@field y number Position on the Y axis (in pixels)
+---@field layer tiled.TileLayer
+---@see Map.tileInstances
+---@see Tile
 
---- @table Object
--- @field id Global ID
--- @field name Name of object (non-unique)
--- @field shape Shape of object
--- @field x Position of object on X axis (in pixels)
--- @field y Position of object on Y axis (in pixels)
--- @field width Width of object (in pixels)
--- @field height Heigh tof object (in pixels)
--- @field rotation Rotation of object (in radians)
--- @field visible Toggle if object is visible or hidden
--- @field properties Custom properties
--- @field ellipse List of verticies of specific shape
--- @field rectangle List of verticies of specific shape
--- @field polygon List of verticies of specific shape
--- @field polyline List of verticies of specific shape
--- @see Map.objects
+---@class tiled.Object
+---@field id number Local ID
+---@field gid number Global ID
+---@field name string Name of object (non-unique)
+---@field shape tiled.Shape Shape of object
+---@field x number Position of object on X axis (in pixels)
+---@field y number Position of object on Y axis (in pixels)
+---@field width number Width of object (in pixels)
+---@field height number Heigh tof object (in pixels)
+---@field rotation number Rotation of object (in radians)
+---@field visible boolean Toggle if object is visible or hidden
+---@field properties kv_table Custom properties
+---@field ellipse pos_table[] List of verticies of specific shape
+---@field rectangle pos_table[] List of verticies of specific shape
+---@field polygon pos_table[] List of verticies of specific shape
+---@field polyline pos_table[] List of verticies of specific shape
+---@field layer tiled.ObjectLayer
+---@see Map.objects
+
+---@class tiled.Tileset An individual tileset object.
+---@field name string Name of the thing.
+---@field firstgid number First Global ID
+---@field tilewidth number Width of each tile
+---@field tileheight number Height of each tile
+---@field spacing number 
+---@field margin number
+---@field columns number
+---@field image string Path to the image file.
+---@field imagewidth number
+---@field imageheight number
+---@field objectalignment tiled.Alignment
 
 return setmetatable({}, STI)
