@@ -865,6 +865,8 @@ function Map:drawTileLayer(layer)
 
 	assert(layer.type == "tilelayer", "Invalid layer type: " .. layer.type .. ". Layer must be of type: tilelayer")
 
+	if layer.tintcolor then love.graphics.setColor(love.math.colorFromBytes(unpack(layer.tintcolor))) end
+
 	-- NOTE: This does not take into account any sort of draw range clipping and will always draw every chunk
 	if layer.chunks then
 		for _, chunk in ipairs(layer.chunks) do
