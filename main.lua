@@ -5,7 +5,8 @@ local map, world, tx, ty, points
 
 function love.load()
 	-- Load map
-	map = sti("tests/ortho.lua",     { "box2d" })
+	map = sti("tests/collection.lua",  { "box2d" })
+	--map = sti("tests/ortho.lua",     { "box2d" })
 	--map = sti("tests/ortho-inf.lua", { "box2d" })
 	--map = sti("tests/iso.lua",       { "box2d" })
 	--map = sti("tests/stag.lua",      { "box2d" })
