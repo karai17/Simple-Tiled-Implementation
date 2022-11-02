@@ -117,7 +117,7 @@ function Map:init(path, plugins, ox, oy)
             -- Build atlas for image collection
             local files, ids = {}, {}
             for j = 1, #tileset.tiles do
-                files[ j ] = path .. tileset.tiles[j].image
+                files[ j ] = utils.format_path(path .. tileset.tiles[j].image)
                 ids[ j ] = tileset.tiles[j].id
             end
 
