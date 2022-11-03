@@ -15,6 +15,7 @@
    <image width="184" height="184" source="../images/iso.png"/>
   </tile>
  </tileset>
+ <tileset firstgid="11" name="empty" tilewidth="1" tileheight="1" tilecount="0" columns="0"/>
  <imagelayer id="2" name="Image Layer 1">
   <image source="../images/grid.png" width="1024" height="1024"/>
  </imagelayer>
