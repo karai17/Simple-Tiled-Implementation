@@ -19,6 +19,7 @@ local utils = require(cwd .. "utils")
 local ceil  = math.ceil
 local floor = math.floor
 local lg    = require(cwd .. "graphics")
+local atlas = require(cwd .. "atlas")
 local Map   = {}
 Map.__index = Map
 
@@ -96,21 +97,46 @@ function Map:init(path, plugins, ox, oy)
 	-- Set tiles, images
 	local gid = 1
 	for i, tileset in ipairs(self.tilesets) do
-		assert(tileset.image, "STI does not support Tile Collections.\nYou need to create a Texture Atlas.")
+		assert(not tileset.filename, "STI does not support external Tilesets.\nYou need to embed all Tilesets.")
 
-		-- Cache images
-		if lg.isCreated then
-			local formatted_path = utils.format_path(path .. tileset.image)
+        if tileset.image then
+            -- Cache images
+            if lg.isCreated then
+                local formatted_path = utils.format_path(path .. tileset.image)
 
-			if not STI.cache[formatted_path] then
-				utils.fix_transparent_color(tileset, formatted_path)
-				utils.cache_image(STI, formatted_path, tileset.image)
-			else
-				tileset.image = STI.cache[formatted_path]
-			end
-		end
+                if not STI.cache[formatted_path] then
+                    utils.fix_transparent_color(tileset, formatted_path)
+                    utils.cache_image(STI, formatted_path, tileset.image)
+                else
+                    tileset.image = STI.cache[formatted_path]
+                end
+            end
 
-		gid = self:setTiles(i, tileset, gid)
+            gid = self:setTiles(i, tileset, gid)
+        elseif tileset.tilecount > 0 then
+            -- Build atlas for image collection
+            local files, ids = {}, {}
+            for j = 1, #tileset.tiles do
+                files[ j ] = utils.format_path(path .. tileset.tiles[j].image)
+                ids[ j ] = tileset.tiles[j].id
+            end
+
+            local map = atlas.Atlas( files, "ids", ids )
+
+            if lg.isCreated then
+                local formatted_path = utils.format_path(path .. tileset.name)
+
+                if not STI.cache[formatted_path] then
+                    -- No need to fix transparency color for collections
+                    utils.cache_image(STI, formatted_path, map.image)
+                    tileset.image = map.image
+                else
+                    tileset.image = STI.cache[formatted_path]
+                end
+            end
+
+            gid = self:setAtlasTiles(i, tileset, map.coords, gid)
+        end
 	end
 
 	local layers = {}
@@ -166,7 +192,7 @@ function Map:loadPlugins(plugins)
 	end
 end
 
---- Create Tiles
+--- Create Tiles based on a single tileset image
 -- @param index Index of the Tileset
 -- @param tileset Tileset data
 -- @param gid First Global ID in Tileset
@@ -237,6 +263,59 @@ function Map:setTiles(index, tileset, gid)
 	end
 
 	return gid
+end
+
+--- Create Tiles based on a texture atlas
+-- @param index Index of the Tileset
+-- @param tileset Tileset data
+-- @param coords Tile XY location in the atlas
+-- @param gid First Global ID in Tileset
+-- @return number Next Tileset's first Global ID
+function Map:setAtlasTiles(index, tileset, coords, gid)
+    local quad      = lg.newQuad
+    local imageW    = tileset.image:getWidth()
+    local imageH    = tileset.image:getHeight()
+
+    local firstgid = tileset.firstgid
+    for i = 1, #tileset.tiles do
+        local tile = tileset.tiles[i]
+        if tile.terrain then
+            terrain = {}
+
+            for j = 1, #tile.terrain do
+                terrain[j] = tileset.terrains[tile.terrain[j] + 1]
+            end
+        end
+
+        local tile = {
+            id          = tile.id,
+            gid         = firstgid + tile.id,
+            tileset     = index,
+            class       = tile.class,
+            quad        = quad(
+                coords[i].x,  coords[i].y,
+                tile.width,  tile.height,
+                imageW, imageH
+            ),
+            properties  = tile.properties or {},
+            terrain     = terrain,
+            animation   = tile.animation,
+            objectGroup = tile.objectGroup,
+            frame       = 1,
+            time        = 0,
+            width       = tile.width,
+            height      = tile.height,
+            sx          = 1,
+            sy          = 1,
+            r           = 0,
+            offset      = tileset.tileoffset,
+        }
+
+        -- Be aware that in collections self.tiles can be a sparse array
+        self.tiles[tile.gid] = tile
+    end
+
+    return gid + #tileset.tiles
 end
 
 --- Create Layers
@@ -398,9 +477,8 @@ function Map:getLayerTilePosition(layer, tile, x, y)
 	local tileX, tileY
 
 	if self.orientation == "orthogonal" then
-		local tileset = self.tilesets[tile.tileset]
 		tileX = (x - 1) * tileW + tile.offset.x
-		tileY = (y - 0) * tileH + tile.offset.y - tileset.tileheight
+		tileY = (y - 0) * tileH + tile.offset.y - tile.height
 		tileX, tileY = utils.compensate(tile, tileX, tileY, tileW, tileH)
 	elseif self.orientation == "isometric" then
 		tileX = (x - y) * (tileW / 2) + tile.offset.x + layer.width * tileW / 2 - self.tilewidth / 2
