@@ -82,12 +82,6 @@ function Map:init(path, plugins, ox, oy)
 	self.objects       = {}
 	self.tiles         = {}
 	self.tileInstances = {}
-	self.drawRange     = {
-		sx = 1,
-		sy = 1,
-		ex = self.width,
-		ey = self.height,
-	}
 	self.offsetx = ox or 0
 	self.offsety = oy or 0
 
