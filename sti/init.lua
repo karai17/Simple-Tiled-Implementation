@@ -1046,6 +1046,32 @@ function Map:drawImageLayer(layer)
 
 	if layer.image ~= "" then
 		lg.draw(layer.image, layer.x, layer.y)
+		-- we need pixel sizes for drawing
+		local imagewidth, imageheight = layer.image:getDimensions()
+		-- if we're repeating on the Y axis...
+		if layer.repeaty then
+			local x = imagewidth
+			local y = imageheight
+			while y < self.height * self.tileheight do 
+				lg.draw(layer.image, x, y)
+				-- if we are *also* repeating on X
+				if layer.repeatx then 
+					x = x + imagewidth
+					while x < self.width * self.tilewidth do 
+						lg.draw(layer.image, x, y)
+						x = x + imagewidth
+					end
+				end
+				y = y + imageheight
+			end
+		-- if we're repeating on X alone...
+		elseif layer.repeatx then
+			local x = imagewidth
+			while x < self.width * self.tilewidth do 
+				lg.draw(layer.image, x, layer.y)
+				x = x + imagewidth
+			end
+		end
 	end
 end
 
