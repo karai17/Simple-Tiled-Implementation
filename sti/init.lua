@@ -923,7 +923,15 @@ end
 -- @param layer The Layer to draw
 function Map.drawLayer(_, layer)
 	local r,g,b,a = lg.getColor()
-	lg.setColor(r, g, b, a * layer.opacity)
+	-- if the layer has a tintcolor set
+	if layer.tintcolor then 
+		r, g, b, a = unpack(layer.tintcolor)
+		a = a or 255 -- alpha may not be specified
+		lg.setColor(r/255, g/255, b/255, a/255) -- Tiled uses 0-255
+	-- if a tintcolor is not given just use the current color
+	else
+		lg.setColor(r, g, b, a * layer.opacity)
+	end
 	layer:draw()
 	lg.setColor(r,g,b,a)
 end
