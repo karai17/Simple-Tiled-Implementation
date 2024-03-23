@@ -897,6 +897,31 @@ function Map:draw(tx, ty, sx, sy)
 	-- Map is translated to correct position so the right section is drawn
 	lg.push()
 	lg.origin()
+	
+	--[[
+		This snippet comes from 'monolifed' on the Love2D forums,
+		however it was more or less exactly the same code I was already writing 
+		to implement the same parallax scrolling. I found his before 
+		testing and polishing mine
+		https://love2d.org/forums/viewtopic.php?p=238378#p238378
+
+		previous code commented below the new. 
+
+	]]
+
+	tx, ty = tx or 0, ty or 0
+
+	for _, layer in ipairs(self.layers) do
+		if layer.visible and layer.opacity > 0 then
+			local px, py = layer.parallaxx or 1, layer.parallaxy or 1
+			px, py = math.floor(tx * px), math.floor(ty * py)
+			lg.translate(px, py)
+			self:drawLayer(layer)
+			lg.translate(-px, -py)
+		end
+	end
+
+	--[[
 	lg.translate(math.floor(tx or 0), math.floor(ty or 0))
 
 	for _, layer in ipairs(self.layers) do
@@ -904,6 +929,7 @@ function Map:draw(tx, ty, sx, sy)
 			self:drawLayer(layer)
 		end
 	end
+	]]
 
 	lg.pop()
 
