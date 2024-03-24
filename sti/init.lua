@@ -207,7 +207,7 @@ function Map:setTiles(index, tileset, gid)
 			local id    = gid - tileset.firstgid
 			local quadX = (x - 1) * tileW + margin + (x - 1) * spacing
 			local quadY = (y - 1) * tileH + margin + (y - 1) * spacing
-			local type = ""
+			local class = ""
 			local properties, terrain, animation, objectGroup
 
 			for _, tile in pairs(tileset.tiles) do
@@ -215,7 +215,7 @@ function Map:setTiles(index, tileset, gid)
 					properties  = tile.properties
 					animation   = tile.animation
 					objectGroup = tile.objectGroup
-					type        = tile.type
+					class       = tile.class
 
 					if tile.terrain then
 						terrain = {}
@@ -231,7 +231,7 @@ function Map:setTiles(index, tileset, gid)
 				id          = id,
 				gid         = gid,
 				tileset     = index,
-				type        = type,
+				class       = class,
 				quad        = quad(
 					quadX,  quadY,
 					tileW,  tileH,
