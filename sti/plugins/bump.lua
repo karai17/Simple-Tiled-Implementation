@@ -70,42 +70,43 @@ return {
 			-- Entire layer
 			if layer.properties.collidable == true then
 				if layer.type == "tilelayer" then
-					for y, tiles in ipairs(layer.data) do
-						for x, tile in pairs(tiles) do
+					for i, chunk in ipairs(layer.chunks) do
+						for y, tiles in ipairs(chunk.data) do
+							for x, tile in pairs(tiles) do
 
-							if tile.objectGroup then
-								for _, object in ipairs(tile.objectGroup.objects) do
-									if object.properties.collidable == true then
-										local t = {
-											name       = object.name,
-											type       = object.type,
-											x          = ((x-1) * map.tilewidth  + tile.offset.x + map.offsetx) + object.x,
-											y          = ((y-1) * map.tileheight + tile.offset.y + map.offsety) + object.y,
-											width      = object.width,
-											height     = object.height,
-											layer      = layer,
-											properties = object.properties
-										}
+								if tile.objectGroup then
+									for _, object in ipairs(tile.objectGroup.objects) do
+										if object.properties.collidable == true then
+											local t = {
+												name       = object.name,
+												type       = object.type,
+												x          = ((x-1) * map.tilewidth  + tile.offset.x + map.offsetx) + object.x,
+												y          = ((y-1) * map.tileheight + tile.offset.y + map.offsety) + object.y,
+												width      = object.width,
+												height     = object.height,
+												layer      = layer,
+												properties = object.properties
+											}
 
-										world:add(t, t.x, t.y, t.width, t.height)
-										table.insert(collidables, t)
+											world:add(t, t.x, t.y, t.width, t.height)
+											table.insert(collidables, t)
+										end
 									end
 								end
+
+								local t = {
+									x          = (x-1) * map.tilewidth  + tile.offset.x + map.offsetx,
+									y          = (y-1) * map.tileheight + tile.offset.y + map.offsety,
+									width      = tile.width,
+									height     = tile.height,
+									layer      = layer,
+									type       = tile.type,
+									properties = tile.properties
+								}
+
+								world:add(t, t.x, t.y, t.width, t.height)
+								table.insert(collidables, t)
 							end
-
-
-							local t = {
-								x          = (x-1) * map.tilewidth  + tile.offset.x + map.offsetx,
-								y          = (y-1) * map.tileheight + tile.offset.y + map.offsety,
-								width      = tile.width,
-								height     = tile.height,
-								layer      = layer,
-								type       = tile.type,
-								properties = tile.properties
-							}
-
-							world:add(t, t.x, t.y, t.width, t.height)
-							table.insert(collidables, t)
 						end
 					end
 				elseif layer.type == "imagelayer" then
