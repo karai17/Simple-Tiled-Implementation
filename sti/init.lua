@@ -571,9 +571,9 @@ function Map:set_batches(layer, chunk)
 		layer.batches = {}
 	end
 
+	local offsetX = chunk and chunk.x or 0
+	local offsetY = chunk and chunk.y or 0
 	if self.orientation == "orthogonal" or self.orientation == "isometric" then
-		local offsetX = chunk and chunk.x or 0
-		local offsetY = chunk and chunk.y or 0
 
 		local startX     = 1
 		local startY     = 1
@@ -621,7 +621,7 @@ function Map:set_batches(layer, chunk)
 					end
 
 					if tile then
-						self:addNewLayerTile(layer, chunk, tile, x, y)
+						self:addNewLayerTile(layer, chunk, tile, x + offsetX, y + offsetY)
 					end
 				end
 			end
@@ -651,7 +651,7 @@ function Map:set_batches(layer, chunk)
 						end
 
 						if tile then
-							self:addNewLayerTile(layer, chunk, tile, x, y)
+							self:addNewLayerTile(layer, chunk, tile, x + ofsetX, y + offsetY)
 						end
 					end
 
