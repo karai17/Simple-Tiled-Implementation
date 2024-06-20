@@ -1364,15 +1364,18 @@ function Map:convertTileToPixel(x,y)
 		local tileW   = self.tilewidth
 		local tileH   = self.tileheight
 		local sideLen = self.hexsidelength or 0
+		local even    = self.staggerindex == "even" and 1 or 0
 
 		if self.staggeraxis == "x" then
+			local colW = tileW - (tileW  - sideLen) / 2
 			return
-				x * tileW,
-				ceil(y) * (tileH + sideLen) + (ceil(y) % 2 == 0 and tileH or 0)
+				(x-1) * colW,
+				ceil(y-1) * (tileH) + (ceil(x) % 2 == even and tileH / 2 or 0)
 		else
+			local rowH = tileH - (tileH - sideLen) / 2
 			return
-				ceil(x) * (tileW + sideLen) + (ceil(x) % 2 == 0 and tileW or 0),
-				y * tileH
+				ceil(x-1) * (tileW) + (ceil(y) % 2 == even and tileW / 2 or 0),
+				(y-1) * rowH
 		end
 	end
 end
