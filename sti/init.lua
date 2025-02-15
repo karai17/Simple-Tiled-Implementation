@@ -377,6 +377,20 @@ function Map:setTileData(layer)
 		for _, chunk in ipairs(layer.chunks) do
 			self:setTileData(chunk)
 		end
+		
+		-- flatten chunks into single data table
+		local data = {}
+		for _, chunk in ipairs(layer.chunks) do
+			for row, column in ipairs(chunk.data) do
+				data[row + chunk.x] = {}
+				for k, v in ipairs(column) do
+					data[row][k + chunk.x] = v
+				end
+			end
+		end
+		layer.data = data
+		layer.chunks = nil
+		
 		return
 	end
 
@@ -598,9 +612,17 @@ function Map:set_batches(layer, chunk)
 				-- NOTE: Cannot short circuit this since it is valid for tile to be assigned nil
 				local tile
 				if chunk then
-					tile = chunk.data[y][x]
+					if chunk.tile[y] then
+						tile = chunk.data[y][x]
+					else
+						tile = nil
+					end
 				else
-					tile = layer.data[y][x]
+					if layer.data[y] then
+						tile = layer.data[y][x]
+					else
+						tile = nil
+					end
 				end
 
 				if tile then
@@ -1746,3 +1768,5 @@ end
 -- @see Map.objects
 
 return setmetatable({}, STI)
+
+
