@@ -6,6 +6,20 @@ If you like STI, consider tossing me a few monies via [**PayPal**][paypal].
 
 Simple Tiled Implementation is a [**Tiled**][Tiled] map loader and renderer designed for the *awesome* [**LÖVE**][LOVE] framework. Please read the [**documentation**][dox] to learn how it works, or check out the tutorials included in this repo.
 
+## Installation With LuaRocks
+
+STI can be installed via LuaRocks:
+
+```sh
+luarocks install --server=https://luarocks.org/dev sti
+```
+
+You can also install directly from the rockspec file:
+
+```sh
+luarocks install sti-dev-1.rockspec
+```
+
 ## Quick Example
 
 ```lua
