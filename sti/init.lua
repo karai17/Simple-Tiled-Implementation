@@ -1271,7 +1271,7 @@ function Map:setLayerTile(layer, x, y, gid)
 	if instance then
 		self:swapTile(instance, tile)
 	else
-		self:addNewLayerTile(layer, tile, x, y)
+		self:addNewLayerTile(layer, nil, tile, x, y)
 	end
 	layer.data[y][x] = tile
 end
