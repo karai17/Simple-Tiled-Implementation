@@ -182,9 +182,15 @@ end
 function utils.pixel_function(_, _, r, g, b, a)
 	local mask = utils._TC
 
-	if r == mask.r and
-		g == mask.g and
-		b == mask.b then
+	-- In Love 11+, `ImageData:mapPixel` passes 32-bit single-precision floats,
+	-- while Lua computes `hex_to_color` using 64-bit double-precision floats.
+	-- For non-primary colors (e.g. #ff00e6 where b = 230/255), exact equality
+	-- (==) fails due to precision differences (~5.84e-9). An epsilon comparison
+	-- (< 0.002, smaller than 1/255) ensures all matching 8-bit color channels
+	-- are correctly masked to transparent.
+	if math.abs(r - mask.r) < 0.002 and
+		 math.abs(g - mask.g) < 0.002 and
+		 math.abs(b - mask.b) < 0.002 then
 		return r, g, b, 0
 	end
 
